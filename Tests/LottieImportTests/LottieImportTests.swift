@@ -304,6 +304,18 @@ final class LottieImportTests: XCTestCase {
         let size = PixelSize(width: Int(scene.width), height: Int(scene.height))
         let frames = try exporter.frames(of: root, size: size, from: 0.0, to: 2.0, frameCount: 20)
 
+        let outputDir = ProcessInfo.processInfo.environment["LOTTIE_TEST_FRAMES_DIR"] ?? (NSTemporaryDirectory() + "lottie_frames")
+        let fm = FileManager.default
+        try? fm.createDirectory(atPath: outputDir, withIntermediateDirectories: true)
+        for (i, _) in frames.enumerated() {
+            let progress = Double(i) / 19.0
+            let time = 2.0 * progress
+            let path = "\(outputDir)/frame_\(i).png"
+            if let pngData = try? exporter.screenshot(of: root, size: size, at: time) {
+                try? Data(pngData).write(to: URL(fileURLWithPath: path))
+            }
+        }
+
         let allIdentical = frames.allSatisfy { $0.data == frames[0].data }
         XCTAssertFalse(allIdentical, "All frames are identical!")
     }
@@ -328,6 +340,12 @@ final class LottieImportTests: XCTestCase {
         printTree(scene.root, at: 0.0)
         print("=== PRESENTATION AT T=1.0 ===")
         printTree(scene.root, at: 1.0)
+
+        print("=== DRAW LIST AT T=0.0 ===")
+        let list = Compositor().drawList(for: scene.root, at: 0.0)
+        for cmd in list.commands {
+            print("  \(cmd)")
+        }
     }
 
     func testPureLayerPositioning() {
