@@ -234,7 +234,7 @@ final class LottieImportTests: XCTestCase {
 
     func testExportFixturesToAPNG() throws {
         let examplesDir = "/Volumes/Code/DeveloperExt/public/PureLottie/docs/lottie-format/lottie-spec/docs/static/examples"
-        let outputDir = "/Users/mmj/.gemini/antigravity-cli/brain/bb4484fe-0766-4982-9bc6-80c9926fef2d"
+        let outputDir = FileManager.default.temporaryDirectory.path
 
         let fm = FileManager.default
         let fixtures = try fm.contentsOfDirectory(atPath: examplesDir).filter { $0.hasSuffix(".json") }
