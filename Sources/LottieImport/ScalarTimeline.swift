@@ -8,7 +8,7 @@ import PureLayer
 
 /// One point of a sampled scalar timeline, in seconds from the composition's
 /// in-point.
-struct TimelineSample: Sendable, Equatable {
+struct TimelineSample: Equatable {
     var time: Double
     var value: Double
 }
@@ -114,26 +114,27 @@ enum ScalarTimeline {
         return out
     }
 
-    /// A `KeyframeAnimation` spanning the whole scene, with key times
-    /// normalized over `sceneDuration` and the first/last values pinned at the
-    /// scene boundaries so `fillMode` never has to extrapolate.
+    /// A `KeyframeAnimation` spanning the duration, with key times
+    /// normalized over `duration` and the first/last values pinned at the
+    /// boundaries so `fillMode` never has to extrapolate.
     static func animation(
         keyPath: String,
         samples: [TimelineSample],
-        sceneDuration: Double,
-        beginTime: Double = 0
+        duration: Double,
+        beginTime: Double = 0,
+        speed: Double = 1.0
     ) -> KeyframeAnimation? {
-        guard sceneDuration > 0, samples.count >= 2 else { return nil }
+        guard duration > 0, samples.count >= 2 else { return nil }
         var padded = samples
         if let first = samples.first, first.time > 0 {
             padded.insert(TimelineSample(time: 0, value: first.value), at: 0)
         }
-        if let last = padded.last, last.time < sceneDuration {
-            padded.append(TimelineSample(time: sceneDuration, value: last.value))
+        if let last = padded.last, last.time < duration {
+            padded.append(TimelineSample(time: duration, value: last.value))
         }
-        let animation = KeyframeAnimation(keyPath: keyPath, timing: Timing(beginTime: beginTime, duration: sceneDuration, fillMode: .both))
+        let animation = KeyframeAnimation(keyPath: keyPath, timing: Timing(beginTime: beginTime, duration: duration, speed: speed, fillMode: .both))
         animation.values = padded.map(\.value)
-        animation.keyTimes = padded.map { min(max($0.time / sceneDuration, 0), 1) }
+        animation.keyTimes = padded.map { min(max($0.time / duration, 0), 1) }
         animation.calculationMode = .linear
         return animation
     }

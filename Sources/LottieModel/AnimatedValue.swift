@@ -71,7 +71,7 @@ public struct LottieKeyframe<Value: Decodable & Sendable & Equatable>: Decodable
         easeOut = try? container.decodeIfPresent(EasingHandle.self, forKey: .easeOut)
         spatialOut = try? container.decodeIfPresent([Double].self, forKey: .spatialOut)
         spatialIn = try? container.decodeIfPresent([Double].self, forKey: .spatialIn)
-        isHold = (try container.decodeIfPresent(Int.self, forKey: .hold) ?? 0) == 1
+        isHold = try (container.decodeIfPresent(Int.self, forKey: .hold) ?? 0) == 1
     }
 }
 
@@ -89,9 +89,9 @@ public enum AnimatedDouble: Sendable, Equatable {
     public var initialValue: Double {
         switch self {
         case let .fixed(value):
-            return value
+            value
         case let .keyframed(keyframes):
-            return keyframes.first?.startValue?.first ?? 0
+            keyframes.first?.startValue?.first ?? 0
         }
     }
 
@@ -129,9 +129,9 @@ public enum AnimatedVector: Sendable, Equatable {
     public var initialValue: [Double] {
         switch self {
         case let .fixed(value):
-            return value
+            value
         case let .keyframed(keyframes):
-            return keyframes.first?.startValue ?? []
+            keyframes.first?.startValue ?? []
         }
     }
 
@@ -165,9 +165,9 @@ public enum AnimatedBezier: Sendable, Equatable {
     public var initialValue: LottieBezier? {
         switch self {
         case let .fixed(value):
-            return value
+            value
         case let .keyframed(keyframes):
-            return keyframes.first?.startValue?.first
+            keyframes.first?.startValue?.first
         }
     }
 

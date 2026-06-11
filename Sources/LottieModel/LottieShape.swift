@@ -22,15 +22,15 @@ public indirect enum LottieShape: Sendable, Equatable {
     /// The `nm` display name, when the payload carries one.
     public var name: String? {
         switch self {
-        case let .group(group): return group.name
-        case let .path(path): return path.name
-        case let .rectangle(rectangle): return rectangle.name
-        case let .ellipse(ellipse): return ellipse.name
-        case let .fill(fill): return fill.name
-        case let .stroke(stroke): return stroke.name
-        case let .trim(trim): return trim.name
-        case let .transform(transform): return transform.name
-        case let .unsupported(_, name): return name
+        case let .group(group): group.name
+        case let .path(path): path.name
+        case let .rectangle(rectangle): rectangle.name
+        case let .ellipse(ellipse): ellipse.name
+        case let .fill(fill): fill.name
+        case let .stroke(stroke): stroke.name
+        case let .trim(trim): trim.name
+        case let .transform(transform): transform.name
+        case let .unsupported(_, name): name
         }
     }
 }

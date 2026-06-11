@@ -17,15 +17,23 @@ struct ShapeBuilder {
 
     /// Builds the layers for `items`, bottom-most first (PureLayer draws later
     /// sublayers on top; Lottie lists topmost items first).
-    func layers(for items: [LottieShape], bounds: Rect, at path: String) -> [Layer] {
+    func layers(for items: [LottieShape], bounds: Rect, parentTransform: AffineTransform = .identity, at path: String, timing: LayerTiming) -> [Layer] {
+        var localTransform = AffineTransform.identity
+        for item in items {
+            if case let .transform(transform) = item {
+                localTransform = affine(of: transform, at: path)
+            }
+        }
+        let currentTransform = localTransform.concatenating(parentTransform)
+
         var result: [Layer] = []
-        if let shapeLayer = shapeLayer(for: items, bounds: bounds, at: path) {
+        if let shapeLayer = shapeLayer(for: items, bounds: bounds, currentTransform: currentTransform, at: path, timing: timing) {
             result.append(shapeLayer)
         }
         for item in items.reversed() {
             if case let .group(group) = item {
                 let groupPath = "\(path) > group '\(group.name ?? "?")'"
-                result.append(contentsOf: layers(for: group.items, bounds: bounds, at: groupPath))
+                result.append(contentsOf: layers(for: group.items, bounds: bounds, parentTransform: currentTransform, at: groupPath, timing: timing))
             }
         }
         return result
@@ -33,17 +41,16 @@ struct ShapeBuilder {
 
     /// One `ShapeLayer` from the level's own geometry and styles, or `nil`
     /// when the level has no drawable geometry.
-    private func shapeLayer(for items: [LottieShape], bounds: Rect, at path: String) -> ShapeLayer? {
+    private func shapeLayer(for items: [LottieShape], bounds: Rect, currentTransform: AffineTransform, at path: String, timing: LayerTiming) -> ShapeLayer? {
         var geometry = Path()
         var fill: ShapeFill?
         var stroke: ShapeStroke?
         var trim: ShapeTrim?
-        var groupTransform: ShapeTransform?
 
         for item in items {
             switch item {
             case .group:
-                break // Recursed by `layers(for:bounds:at:)`.
+                break // Recursed by `layers(for:bounds:parentTransform:at:)`.
             case let .path(shapePath):
                 if shapePath.shape.isAnimated {
                     context.report.skip("path morph", at: "\(path) > path '\(shapePath.name ?? "?")'")
@@ -67,8 +74,8 @@ struct ShapeBuilder {
                 stroke = shapeStroke
             case let .trim(shapeTrim):
                 trim = shapeTrim
-            case let .transform(transform):
-                groupTransform = transform
+            case .transform:
+                break // Handled by `layers(for:bounds:parentTransform:at:)`.
             case let .unsupported(type, name):
                 context.report.skip("shape type '\(type)'", at: "\(path) > '\(name ?? "?")'")
             }
@@ -80,10 +87,7 @@ struct ShapeBuilder {
         layer.bounds = bounds
         layer.position = Point(x: bounds.width / 2, y: bounds.height / 2)
         layer.fillColor = nil
-        if let groupTransform {
-            geometry = applied(groupTransform, to: geometry, at: path)
-        }
-        layer.path = geometry
+        layer.path = geometry.applying(currentTransform)
 
         if let fill {
             apply(fill, to: layer, at: path)
@@ -92,7 +96,7 @@ struct ShapeBuilder {
             apply(stroke, to: layer, at: path)
         }
         if let trim {
-            apply(trim, to: layer, at: path)
+            apply(trim, to: layer, at: path, timing: timing)
         }
         return layer
     }
@@ -122,7 +126,7 @@ struct ShapeBuilder {
         layer.lineWidth = stroke.width.initialValue
     }
 
-    private func apply(_ trim: ShapeTrim, to layer: ShapeLayer, at path: String) {
+    private func apply(_ trim: ShapeTrim, to layer: ShapeLayer, at path: String, timing: LayerTiming) {
         if trim.multiple == 2 {
             context.report.approximate("individual trim (trimmed as one length)", at: path)
         }
@@ -137,10 +141,10 @@ struct ShapeBuilder {
                 from: keyframes,
                 dimension: 0,
                 frameRate: context.frameRate,
-                startFrame: context.startFrame,
+                startFrame: timing.startFrame,
                 map: fraction
             )
-            if let animation = ScalarTimeline.animation(keyPath: "strokeStart", samples: samples, sceneDuration: context.duration, beginTime: context.timeShift) {
+            if let animation = ScalarTimeline.animation(keyPath: "strokeStart", samples: samples, duration: timing.duration, beginTime: timing.beginTime, speed: timing.speed) {
                 layer.add(animation, forKey: "lottie.strokeStart")
             }
         }
@@ -149,18 +153,17 @@ struct ShapeBuilder {
                 from: keyframes,
                 dimension: 0,
                 frameRate: context.frameRate,
-                startFrame: context.startFrame,
+                startFrame: timing.startFrame,
                 map: fraction
             )
-            if let animation = ScalarTimeline.animation(keyPath: "strokeEnd", samples: samples, sceneDuration: context.duration, beginTime: context.timeShift) {
+            if let animation = ScalarTimeline.animation(keyPath: "strokeEnd", samples: samples, duration: timing.duration, beginTime: timing.beginTime, speed: timing.speed) {
                 layer.add(animation, forKey: "lottie.strokeEnd")
             }
         }
     }
 
-    /// Bakes a static group transform into the geometry; an animated group
-    /// transform is reported and its initial pose baked.
-    private func applied(_ transform: ShapeTransform, to geometry: Path, at path: String) -> Path {
+    /// Extract the affine transform from a static shape transform.
+    private func affine(of transform: ShapeTransform, at path: String) -> AffineTransform {
         let animated = (transform.anchor?.isAnimated ?? false)
             || (transform.position?.isAnimated ?? false)
             || (transform.scale?.isAnimated ?? false)
@@ -175,11 +178,10 @@ struct ShapeBuilder {
         let position = transform.position?.initialValue ?? []
         let scale = transform.scale?.initialValue ?? []
         let rotation = (transform.rotation?.initialValue ?? 0) * .pi / 180
-        let affine = AffineTransform.translation(x: -(anchor.component(0) ?? 0), y: -(anchor.component(1) ?? 0))
+        return AffineTransform.translation(x: -(anchor.component(0) ?? 0), y: -(anchor.component(1) ?? 0))
             .concatenating(.scale(x: (scale.component(0) ?? 100) / 100, y: (scale.component(1) ?? 100) / 100))
             .concatenating(.rotation(angle: rotation))
             .concatenating(.translation(x: position.component(0) ?? 0, y: position.component(1) ?? 0))
-        return geometry.applying(affine)
     }
 
     private func color(from components: [Double], opacityPercent: Double) -> Color {
