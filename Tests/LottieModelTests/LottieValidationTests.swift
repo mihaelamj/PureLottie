@@ -182,6 +182,51 @@ final class LottieValidationTests: XCTestCase {
         XCTAssertEqual(stroke.dashPattern?.first?.type, "d")
     }
 
+    func testMalformedStrokeDashEntriesFailSourceValidation() throws {
+        let document = try LottieSourceDocument.parse("""
+        {
+          "v": "5.7.4",
+          "fr": 30,
+          "ip": 0,
+          "op": 30,
+          "w": 64,
+          "h": 64,
+          "layers": [{
+            "ty": 4,
+            "ind": 1,
+            "ip": 0,
+            "op": 30,
+            "ks": {},
+            "shapes": [{
+              "ty": "st",
+              "nm": "Bad dash stroke",
+              "c": { "a": 0, "k": [1, 0, 0, 1] },
+              "o": { "a": 0, "k": 100 },
+              "w": { "a": 0, "k": 2 },
+              "d": [{ "n": "bad" }, 2]
+            }]
+          }],
+          "assets": []
+        }
+        """)
+
+        do {
+            try document.validate(using: LottieValidator.blank.validating(\.strokeStyleFieldsAreModeledOrReported))
+            XCTFail("Expected malformed dash entries to fail validation.")
+        } catch let collection as ValidationErrorCollection {
+            XCTAssertEqual(collection.values.map(\.reason), [
+                "Stroke dash entry type `bad` must be one of d, g, or o.",
+                "Stroke dash entry must declare value field `v`.",
+                "Stroke dash entry must be an object.",
+            ])
+            XCTAssertEqual(collection.values.map(\.codingPath.description), [
+                "$.layers[0].shapes[0].d[0].n",
+                "$.layers[0].shapes[0].d[0].v",
+                "$.layers[0].shapes[0].d[1]",
+            ])
+        }
+    }
+
     func testLayerReferencesAreResolvedBeforeImport() throws {
         let document = try LottieSourceDocument.parse("""
         {

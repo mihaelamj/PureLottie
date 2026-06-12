@@ -320,7 +320,7 @@ private struct ShapeProgramScope {
                     feature: "shape type '\(type)'",
                     path: itemPath,
                     sourcePath: "\(sourcePath) > '\(name ?? "?")'",
-                    classification: .gap
+                    classification: .reported
                 ))
             }
         }

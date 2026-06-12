@@ -135,6 +135,10 @@ struct LottieShapeProgramTests {
             "shape type 'gf'",
             "shape type 'rp'",
         ])
+        #expect(program.diagnostics.map(\.classification) == [
+            .reported,
+            .reported,
+        ])
         #expect(program.diagnostics.map(\.codingPath.description) == [
             "$.layers[0].shapes[1]",
             "$.layers[0].shapes[0]",
