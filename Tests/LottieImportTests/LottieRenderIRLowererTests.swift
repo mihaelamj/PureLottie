@@ -129,6 +129,14 @@ struct LottieRenderIRLowererTests {
                   "ml2": { "a": 0, "k": 6 },
                   "bm": 2,
                   "d": [{ "n": "d", "v": { "a": 0, "k": 4 } }]
+                },
+                {
+                  "ty": "tm",
+                  "nm": "Individual Trim",
+                  "s": { "a": 0, "k": 0 },
+                  "e": { "a": 0, "k": 50 },
+                  "o": { "a": 0, "k": 0 },
+                  "m": 2
                 }
               ]
             }
@@ -137,7 +145,12 @@ struct LottieRenderIRLowererTests {
         }
         """, at: 0)
 
-        let tree = LottieRenderIRLowerer().lower(frame)
+        let evidenceContext = LottieBackendEvidenceContext(
+            sourceFixture: "Tests/Fixtures/LottieOracle/backend-gap.json",
+            expectedLottieWebFrameArtifact: "reference/frame_0000.00.png",
+            pureLayerFrameArtifact: "purelayer/frame_0000.00.png"
+        )
+        let tree = LottieRenderIRLowerer().lower(frame, evidenceContext: evidenceContext)
         let findings = tree.report.findings
 
         #expect(findings.contains {
@@ -160,6 +173,34 @@ struct LottieRenderIRLowererTests {
             $0.feature == "stroke dash pattern"
                 && $0.path == "root > layer 'Shapes' > stroke 'Fancy'"
         })
+        #expect(findings.contains {
+            $0.feature == "individual trim (trimmed as one length)"
+                && $0.path == "root > layer 'Shapes' > trim 'Individual Trim'"
+        })
+
+        let strokeBlend = try #require(findings.first { $0.feature == "stroke blend mode" })
+        let strokeEvidence = try #require(strokeBlend.evidence)
+        #expect(strokeEvidence.owner == .backendCapability)
+        #expect(strokeEvidence.sourceFixture == "Tests/Fixtures/LottieOracle/backend-gap.json")
+        #expect(strokeEvidence.sourceFrame == 0)
+        #expect(strokeEvidence.frameRate == 10)
+        #expect(strokeEvidence.expectedLottieWebFrameArtifact == "reference/frame_0000.00.png")
+        #expect(strokeEvidence.pureLayerFrameArtifact == "purelayer/frame_0000.00.png")
+        #expect(strokeEvidence.lottiePath == "root > layer 'Shapes' > stroke 'Fancy'")
+        #expect(strokeEvidence.jsonPath == "$.layers[1].shapes[1]")
+        #expect(strokeEvidence.renderNode?.nodeID == "render#1")
+        #expect(strokeEvidence.renderNode?.kind == "shape")
+        #expect(strokeEvidence.renderNode?.sourcePath == "root > layer 'Shapes'")
+        #expect(strokeEvidence.vmTrace?.instruction == LottieVMInstruction.Kind.emitRenderNode.rawValue)
+        #expect(strokeEvidence.renderTerm?.kind == "strokeStyle")
+        #expect(strokeEvidence.renderTerm?.values["blendMode"] == "2")
+        #expect(strokeEvidence.renderTerm?.values["dashCount"] == "1")
+
+        let trimFinding = try #require(findings.first { $0.feature == "individual trim (trimmed as one length)" })
+        let trimEvidence = try #require(trimFinding.evidence)
+        #expect(trimEvidence.owner == .intentionalApproximation)
+        #expect(trimEvidence.renderTerm?.kind == "trimPath")
+        #expect(trimEvidence.renderTerm?.values["multiple"] == "2")
     }
 
     private func renderFrame(from source: String, at frame: Double) throws -> LottieRenderFrame {

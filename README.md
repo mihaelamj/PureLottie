@@ -35,6 +35,16 @@ step into, step over, step out, step back, breakpoint, and watch semantics for
 tests and a future IDE. Debugging stays inside `LottieEvaluation`; it does not
 import PureLayer or PureDraw.
 
+## Backend Gap Evidence
+
+`LottieRenderIRLowerer` reports unsupported PureLayer/PureDraw backend behavior
+as `ImportReport` findings with optional `LottieBackendGapEvidence`. Evidence
+records include the source fixture when known, source frame, Lottie path, JSON
+path, source range when available, VM trace identity, RenderIR node and term
+details, and lottie-web/PureLayer frame artifact paths when the oracle provides
+them. Evidence ownership distinguishes backend capability gaps from intentional
+approximations and PureLottie semantic investigations.
+
 ## Local Gate
 
 Run the full local gate before committing code changes:
@@ -81,6 +91,7 @@ npx --prefix Tools/LottieOracle playwright install chromium
 npm --prefix Tools/LottieOracle run oracle -- --fixture eligible-shape-position
 ```
 
-The harness compares pixels only when validation, `ImportReport`, and RenderIR
-diagnostics are clean. Generated artifacts live under
+The harness compares pixels only when validation, `ImportReport`, RenderIR
+diagnostics, and RenderIR-to-PureLayer backend evidence are clean. Generated
+artifacts live under
 `Tools/LottieOracle/artifacts/`.
