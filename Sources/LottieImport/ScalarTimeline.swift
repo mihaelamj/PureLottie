@@ -32,11 +32,14 @@ enum ScalarTimeline {
         dimension: Int,
         frameRate: Double,
         startFrame: Double,
+        beginTime: Double = 0.0,
+        speed: Double = 1.0,
         map: (Double) -> Double
     ) -> [TimelineSample] {
         guard frameRate > 0, !keyframes.isEmpty else { return [] }
         func seconds(_ frame: Double) -> Double {
-            (frame - startFrame) / frameRate
+            let absoluteSeconds = (frame - startFrame) / frameRate
+            return (absoluteSeconds - beginTime) * speed
         }
 
         var out: [TimelineSample] = []

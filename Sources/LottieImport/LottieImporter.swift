@@ -72,6 +72,8 @@ final class ImportContext {
 /// transforms with animated position/scale/rotation/opacity, in/out visibility
 /// windows, transform parenting, and single additive alpha masks.
 public struct LottieImporter {
+    private typealias AffineTransform = PureLayer.AffineTransform
+
     public init() {}
 
     public func scene(from animation: LottieAnimation) -> LottieScene {
@@ -92,50 +94,6 @@ public struct LottieImporter {
         )
     }
 
-    // MARK: Layer walk
-
-    private func accumulatedTransformForParentChain(
-        of lottieLayer: LottieLayer,
-        byIndex: [Int: LottieLayer],
-        context _: ImportContext
-    ) -> AccumulatedTransform {
-        var cursor = lottieLayer.parent
-        var ancestors: [LottieLayer] = []
-        var guardCounter = 0
-        while let parentIndex = cursor, let parent = byIndex[parentIndex], guardCounter < 64 {
-            ancestors.append(parent)
-            cursor = parent.parent
-            guardCounter += 1
-        }
-
-        var acc = AccumulatedTransform()
-        for ancestor in ancestors.reversed() {
-            let transform = ancestor.transform
-            let anchor = transform?.anchor?.initialValue ?? []
-            let scale = transform?.scale?.initialValue ?? []
-
-            let anchorX = anchor.component(0) ?? 0
-            let anchorY = anchor.component(1) ?? 0
-            let posPoint = transform?.position?.initialPoint
-            let posX = posPoint?.x ?? 0
-            let posY = posPoint?.y ?? 0
-            let scaleX = (scale.component(0) ?? 100) / 100
-
-            let parentScale = scaleX
-            let parentAnchor = Point(x: anchorX, y: anchorY)
-            let parentPosition = Point(x: posX, y: posY)
-
-            let newScale = acc.scale * parentScale
-            let newAnchor = parentAnchor
-            let newPosition = Point(
-                x: (parentPosition.x - acc.anchor.x) * acc.scale + acc.position.x,
-                y: (parentPosition.y - acc.anchor.y) * acc.scale + acc.position.y
-            )
-            acc = AccumulatedTransform(position: newPosition, anchor: newAnchor, scale: newScale)
-        }
-        return acc
-    }
-
     private func combine(_ child: AccumulatedTransform, with parent: AccumulatedTransform) -> AccumulatedTransform {
         let newScale = child.scale * parent.scale
         let newAnchor = child.anchor
@@ -146,9 +104,6 @@ public struct LottieImporter {
         return AccumulatedTransform(position: newPosition, anchor: newAnchor, scale: newScale)
     }
 
-    /// Builds one composition's layers into `container`. Lottie lists the
-    /// topmost layer first; PureLayer draws later sublayers on top, so the list
-    /// is walked in reverse.
     private func build(
         layers: [LottieLayer],
         into container: Layer,
@@ -157,9 +112,39 @@ public struct LottieImporter {
         parentTiming: LayerTiming,
         accumulated: AccumulatedTransform
     ) {
-        let byIndex = Dictionary(layers.compactMap { layer in layer.index.map { ($0, layer) } }, uniquingKeysWith: { first, _ in first })
+        var builtLayers: [Int: Layer] = [:]
+
+        // Pre-compute original timelines and timings for all active layers in this composition
+        var timelines: [Int: TransformTimeline] = [:]
+        var timings: [Int: LayerTiming] = [:]
+
+        for lottieLayer in layers {
+            guard let index = lottieLayer.index else { continue }
+
+            let layerStart = lottieLayer.startTime / context.frameRate
+            let layerSpeed = lottieLayer.stretch
+            let speed = parentTiming.speed / layerSpeed
+            let beginTime = parentTiming.beginTime + layerStart / speed
+            let duration = parentTiming.duration / layerSpeed
+            let timing = LayerTiming(speed: speed, beginTime: beginTime, duration: duration, startFrame: parentTiming.startFrame)
+
+            timings[index] = timing
+
+            let hasValidParent = lottieLayer.parent != nil && layers.contains(where: { $0.index == lottieLayer.parent })
+            let layerAccumulated = hasValidParent ? AccumulatedTransform() : accumulated
+
+            let timeline = Self.originalTimeline(
+                for: lottieLayer,
+                context: context,
+                timing: timing,
+                accumulated: layerAccumulated
+            )
+            timelines[index] = timeline
+        }
+
+        // Pass 1: Build all layers with timing and properties
         for lottieLayer in layers.reversed() {
-            guard !lottieLayer.isHidden else { continue }
+            if lottieLayer.isHidden && lottieLayer.index == nil { continue }
             let layerPath = "\(path) > layer '\(lottieLayer.name ?? "?")'"
 
             let layerStart = lottieLayer.startTime / context.frameRate
@@ -169,11 +154,51 @@ public struct LottieImporter {
             let duration = parentTiming.duration / layerSpeed
             let timing = LayerTiming(speed: speed, beginTime: beginTime, duration: duration, startFrame: parentTiming.startFrame)
 
-            let parentChainAcc = accumulatedTransformForParentChain(of: lottieLayer, byIndex: byIndex, context: context)
-            let layerAccumulated = combine(parentChainAcc, with: accumulated)
+            let hasValidParent = lottieLayer.parent != nil && layers.contains(where: { $0.index == lottieLayer.parent })
+            let layerAccumulated = hasValidParent ? AccumulatedTransform() : accumulated
 
-            guard let built = buildLayer(lottieLayer, context: context, at: layerPath, parentTiming: parentTiming, timing: timing, accumulated: layerAccumulated) else { continue }
-            container.addSublayer(built)
+            let finalTimeline: TransformTimeline
+
+            if let index = lottieLayer.index {
+                guard let timeline = timelines[index] else { continue }
+                finalTimeline = timeline
+            } else {
+                finalTimeline = Self.originalTimeline(
+                    for: lottieLayer,
+                    context: context,
+                    timing: timing,
+                    accumulated: layerAccumulated
+                )
+            }
+
+            if let built = buildLayer(
+                lottieLayer,
+                context: context,
+                at: layerPath,
+                parentTiming: parentTiming,
+                timing: timing,
+                accumulated: layerAccumulated,
+                timeline: finalTimeline
+            ) {
+                if let index = lottieLayer.index {
+                    builtLayers[index] = built
+                } else {
+                    container.addSublayer(built)
+                }
+            }
+        }
+
+        // Pass 2: Establish actual parent-child relationships in the layer tree
+        for lottieLayer in layers.reversed() {
+            guard let index = lottieLayer.index,
+                  let built = builtLayers[index]
+            else { continue }
+
+            if let parentIndex = lottieLayer.parent, let parentLayer = builtLayers[parentIndex] {
+                parentLayer.addSublayer(built)
+            } else {
+                container.addSublayer(built)
+            }
         }
     }
 
@@ -183,89 +208,138 @@ public struct LottieImporter {
         at path: String,
         parentTiming: LayerTiming,
         timing: LayerTiming,
-        accumulated: AccumulatedTransform
+        accumulated: AccumulatedTransform,
+        timeline: TransformTimeline
     ) -> Layer? {
         let layer: Layer
-        switch lottieLayer.type {
-        case .shape:
+        let contentLayer: Layer?
+        let isLayerHidden = lottieLayer.isHidden
+
+        if isLayerHidden {
             layer = Layer()
             layer.backgroundColor = nil
             bounds(of: lottieLayer, context: context).map { layer.bounds = $0 }
-            let builder = ShapeBuilder(context: context)
-            for sublayer in builder.layers(for: lottieLayer.shapes ?? [], bounds: layer.bounds, at: path, timing: timing) {
-                layer.addSublayer(sublayer)
-            }
-        case .solid:
-            layer = Layer()
-            layer.bounds = Rect(x: 0, y: 0, width: lottieLayer.solidWidth ?? 0, height: lottieLayer.solidHeight ?? 0)
-            layer.backgroundColor = Self.color(hex: lottieLayer.solidColor ?? "#000000")
-        case .null:
-            layer = Layer()
-            layer.backgroundColor = nil
-            bounds(of: lottieLayer, context: context).map { layer.bounds = $0 }
-        case .precomposition:
-            guard let referenceId = lottieLayer.referenceId,
-                  let asset = context.animation.precomposition(id: referenceId),
-                  let assetLayers = asset.layers
-            else {
-                context.report.skip("precomposition with missing asset", at: path)
+            contentLayer = nil
+        } else {
+            switch lottieLayer.type {
+            case .shape:
+                layer = Layer()
+                layer.backgroundColor = nil
+                bounds(of: lottieLayer, context: context).map { layer.bounds = $0 }
+
+                let content = Layer()
+                content.bounds = layer.bounds
+                content.position = Point(x: 0, y: 0)
+                content.anchorPoint = Point(x: 0, y: 0)
+                content.backgroundColor = nil
+
+                let builder = ShapeBuilder(context: context)
+                for sublayer in builder.layers(for: lottieLayer.shapes ?? [], bounds: layer.bounds, at: path, timing: timing) {
+                    content.addSublayer(sublayer)
+                }
+                contentLayer = content
+
+            case .solid:
+                layer = Layer()
+                layer.bounds = Rect(x: 0, y: 0, width: lottieLayer.solidWidth ?? 0, height: lottieLayer.solidHeight ?? 0)
+                layer.backgroundColor = nil
+
+                let content = Layer()
+                content.bounds = layer.bounds
+                content.position = Point(x: 0, y: 0)
+                content.anchorPoint = Point(x: 0, y: 0)
+                content.backgroundColor = Self.color(hex: lottieLayer.solidColor ?? "#000000")
+                contentLayer = content
+
+            case .null:
+                layer = Layer()
+                layer.backgroundColor = nil
+                bounds(of: lottieLayer, context: context).map { layer.bounds = $0 }
+                contentLayer = nil
+
+            case .precomposition:
+                guard let referenceId = lottieLayer.referenceId,
+                      let asset = context.animation.precomposition(id: referenceId),
+                      let assetLayers = asset.layers
+                else {
+                    context.report.skip("precomposition with missing asset", at: path)
+                    return nil
+                }
+                guard !context.precompositionStack.contains(referenceId) else {
+                    context.report.skip("recursive precomposition '\(referenceId)'", at: path)
+                    return nil
+                }
+                layer = Layer()
+                layer.backgroundColor = nil
+                layer.bounds = Rect(x: 0, y: 0, width: lottieLayer.width ?? context.animation.width, height: lottieLayer.height ?? context.animation.height)
+                layer.masksToBounds = false
+
+                let content = Layer()
+                content.bounds = layer.bounds
+                content.position = Point(x: 0, y: 0)
+                content.anchorPoint = Point(x: 0, y: 0)
+                content.backgroundColor = nil
+                content.masksToBounds = false
+
+                let assetParentTiming = LayerTiming(speed: timing.speed, beginTime: timing.beginTime, duration: timing.duration, startFrame: 0.0)
+
+                let transform = lottieLayer.transform
+                let anchor = transform?.anchor?.initialValue ?? []
+                let scale = transform?.scale?.initialValue ?? []
+
+                let anchorX = anchor.component(0) ?? 0
+                let anchorY = anchor.component(1) ?? 0
+                let posPoint = transform?.position?.initialPoint
+                let posX = posPoint?.x ?? 0
+                let posY = posPoint?.y ?? 0
+                let scaleX = (scale.component(0) ?? 100) / 100
+
+                let precompAcc = AccumulatedTransform(
+                    position: Point(x: posX, y: posY),
+                    anchor: Point(x: anchorX, y: anchorY),
+                    scale: scaleX
+                )
+                let childAccumulated = combine(precompAcc, with: accumulated)
+
+                context.precompositionStack.append(referenceId)
+                build(layers: assetLayers, into: content, context: context, at: "\(path) > precomp '\(referenceId)'", parentTiming: assetParentTiming, accumulated: childAccumulated)
+                context.precompositionStack.removeLast()
+                contentLayer = content
+
+            default:
+                context.report.skip("layer type \(lottieLayer.rawType)", at: path)
                 return nil
             }
-            guard !context.precompositionStack.contains(referenceId) else {
-                context.report.skip("recursive precomposition '\(referenceId)'", at: path)
-                return nil
-            }
-            layer = Layer()
-            layer.backgroundColor = nil
-            layer.bounds = Rect(x: 0, y: 0, width: lottieLayer.width ?? context.animation.width, height: lottieLayer.height ?? context.animation.height)
-            layer.masksToBounds = false
-            let assetParentTiming = LayerTiming(speed: timing.speed, beginTime: timing.beginTime, duration: timing.duration, startFrame: 0.0)
-
-            let transform = lottieLayer.transform
-            let anchor = transform?.anchor?.initialValue ?? []
-            let scale = transform?.scale?.initialValue ?? []
-
-            let anchorX = anchor.component(0) ?? 0
-            let anchorY = anchor.component(1) ?? 0
-            let posPoint = transform?.position?.initialPoint
-            let posX = posPoint?.x ?? 0
-            let posY = posPoint?.y ?? 0
-            let scaleX = (scale.component(0) ?? 100) / 100
-
-            let precompAcc = AccumulatedTransform(
-                position: Point(x: posX, y: posY),
-                anchor: Point(x: anchorX, y: anchorY),
-                scale: scaleX
-            )
-            let childAccumulated = combine(precompAcc, with: accumulated)
-
-            context.precompositionStack.append(referenceId)
-            build(layers: assetLayers, into: layer, context: context, at: "\(path) > precomp '\(referenceId)'", parentTiming: assetParentTiming, accumulated: childAccumulated)
-            context.precompositionStack.removeLast()
-        default:
-            context.report.skip("layer type \(lottieLayer.rawType)", at: path)
-            return nil
         }
 
         if lottieLayer.type == .precomposition {
             layer.position = Point(x: 0, y: 0)
             layer.anchorPoint = Point(x: 0, y: 0)
             layer.transform = Transform3D.identity
-            let visibility = visibilityWindow(of: lottieLayer, context: context, parentTiming: parentTiming, childTiming: timing)
-            applyOpacity(lottieLayer.transform?.opacity, to: layer, context: context, visibility: visibility, timing: timing)
+            if let contentLayer {
+                let visibility = visibilityWindow(of: lottieLayer, context: context, parentTiming: parentTiming, childTiming: timing)
+                applyOpacity(lottieLayer.transform?.opacity, to: contentLayer, context: context, visibility: visibility, timing: timing)
+            }
         } else {
-            apply(
-                lottieLayer.transform,
+            applyTimeline(
+                timeline,
                 to: layer,
-                context: context,
-                at: path,
-                includeOpacity: true,
-                visibility: visibilityWindow(of: lottieLayer, context: context, parentTiming: parentTiming, childTiming: timing),
-                timing: timing,
-                accumulated: accumulated
+                timing: timing
             )
+            if let contentLayer {
+                contentLayer.transform = Transform3D.translation(x: -timeline.anchor.x, y: -timeline.anchor.y, z: 0)
+                let visibility = visibilityWindow(of: lottieLayer, context: context, parentTiming: parentTiming, childTiming: timing)
+                applyOpacity(lottieLayer.transform?.opacity, to: contentLayer, context: context, visibility: visibility, timing: timing)
+            }
         }
-        applyMasks(lottieLayer, to: layer, context: context, at: path)
+
+        if let contentLayer {
+            contentLayer.name = "\(lottieLayer.name ?? "?") content"
+            applyMasks(lottieLayer, to: contentLayer, context: context, at: path)
+            layer.addSublayer(contentLayer)
+        }
+
+        layer.name = lottieLayer.name
         return layer
     }
 
@@ -294,162 +368,203 @@ public struct LottieImporter {
 
     // MARK: - Transform mapping
 
-    /// Maps the Lottie transform onto CA-style layer geometry: `p` is the
-    /// position of the anchor in the parent, `a` the anchor in points, scale
-    /// and rotation compose about the anchor. Animated components become
-    /// keyframe animations on the engine's own key paths; their static initial
-    /// values are deliberately not baked, since the animations span the whole
-    /// scene with `fillMode: .both`.
-    private func apply(
-        _ transform: LottieTransform?,
-        to layer: Layer,
+    private struct TransformTimeline {
+        var anchor: Point
+        var tx: [TimelineSample]
+        var ty: [TimelineSample]
+        var sx: [TimelineSample]
+        var sy: [TimelineSample]
+        var rz: [TimelineSample]
+    }
+
+    private static func originalTimeline(
+        for lottieLayer: LottieLayer,
         context: ImportContext,
-        at path: String,
-        includeOpacity: Bool,
-        visibility: (start: Double, end: Double)?,
         timing: LayerTiming,
         accumulated: AccumulatedTransform
-    ) {
+    ) -> TransformTimeline {
+        let transform = lottieLayer.transform
         let anchor = transform?.anchor?.initialValue ?? []
-        if transform?.anchor?.isAnimated == true {
-            context.report.skip("animated anchor point", at: path)
-        }
         let anchorX = anchor.component(0) ?? 0
         let anchorY = anchor.component(1) ?? 0
 
-        // Bypass PureLayer's container positioning bug:
-        // Set position and anchorPoint to 0, and bake the anchor offset into the base transform.
-        layer.position = Point(x: 0, y: 0)
-        layer.anchorPoint = Point(x: 0, y: 0)
-        layer.transform = Transform3D.translation(x: -anchorX, y: -anchorY, z: 0)
-
-        applyPosition(transform?.position, to: layer, context: context, at: path, timing: timing, accumulated: accumulated)
-
-        // Scale
-        let scale = transform?.scale
-        if let scale {
-            if scale.isAnimated {
-                addScaleAnimations(scale, to: layer, context: context, timing: timing, scaleMultiplier: accumulated.scale)
-            } else {
-                let value = scale.initialValue
-                let x = ((value.component(0) ?? 100) / 100) * accumulated.scale
-                let y = ((value.component(1) ?? 100) / 100) * accumulated.scale
-                addConstantAnimation(keyPath: "transform.scale.x", value: x, key: "lottie.scale.x", to: layer, timing: timing)
-                addConstantAnimation(keyPath: "transform.scale.y", value: y, key: "lottie.scale.y", to: layer, timing: timing)
-            }
-        } else {
-            addConstantAnimation(keyPath: "transform.scale.x", value: accumulated.scale, key: "lottie.scale.x", to: layer, timing: timing)
-            addConstantAnimation(keyPath: "transform.scale.y", value: accumulated.scale, key: "lottie.scale.y", to: layer, timing: timing)
-        }
-
-        // Rotation
-        if let rotation = transform?.rotation {
-            if case let .keyframed(keyframes) = rotation {
-                let samples = ScalarTimeline.samples(from: keyframes, dimension: 0, frameRate: context.frameRate, startFrame: timing.startFrame) { $0 * .pi / 180 }
-                if let animation = ScalarTimeline.animation(
-                    keyPath: "transform.rotation.z",
-                    samples: samples,
-                    duration: timing.duration,
-                    beginTime: timing.beginTime,
-                    speed: timing.speed
-                ) {
-                    layer.add(animation, forKey: "lottie.rotation")
-                }
-            } else {
-                let radians = rotation.initialValue * .pi / 180
-                addConstantAnimation(keyPath: "transform.rotation.z", value: radians, key: "lottie.rotation", to: layer, timing: timing)
-            }
-        } else {
-            addConstantAnimation(keyPath: "transform.rotation.z", value: 0.0, key: "lottie.rotation", to: layer, timing: timing)
-        }
-
-        if includeOpacity {
-            applyOpacity(transform?.opacity, to: layer, context: context, visibility: visibility, timing: timing)
-        }
-    }
-
-    private func applyPosition(_ position: LottiePosition?, to layer: Layer, context: ImportContext, at path: String, timing: LayerTiming, accumulated: AccumulatedTransform) {
-        func transformPoint(_ p: Point) -> Point {
+        let transformPoint = { (p: Point) -> Point in
             Point(
                 x: (p.x - accumulated.anchor.x) * accumulated.scale + accumulated.position.x,
                 y: (p.y - accumulated.anchor.y) * accumulated.scale + accumulated.position.y
             )
         }
 
-        guard let position else {
-            let p = transformPoint(.zero)
-            addConstantAnimation(keyPath: "transform.translation.x", value: p.x, key: "lottie.position.x", to: layer, timing: timing)
-            addConstantAnimation(keyPath: "transform.translation.y", value: p.y, key: "lottie.position.y", to: layer, timing: timing)
-            return
-        }
-        let initialPt = position.initialPoint
-        let initial = transformPoint(Point(x: initialPt.x, y: initialPt.y))
-        if position.isAnimated {
-            func add(_ samples: [TimelineSample], keyPath: String, key: String) {
-                if let animation = ScalarTimeline.animation(keyPath: keyPath, samples: samples, duration: timing.duration, beginTime: timing.beginTime, speed: timing.speed) {
-                    layer.add(animation, forKey: key)
-                }
-            }
-            switch position {
-            case let .vector(vector):
-                guard case let .keyframed(keyframes) = vector else { return }
-                if keyframes.contains(where: { ($0.spatialOut ?? []).contains(where: { abs($0) > 0.0001 }) || ($0.spatialIn ?? []).contains(where: { abs($0) > 0.0001 }) }) {
-                    context.report.approximate("spatial position curve (linearized)", at: path)
-                }
-                add(
-                    ScalarTimeline.samples(from: keyframes, dimension: 0, frameRate: context.frameRate, startFrame: timing.startFrame) { x in
-                        (x - accumulated.anchor.x) * accumulated.scale + accumulated.position.x
-                    },
-                    keyPath: "transform.translation.x",
-                    key: "lottie.position.x"
-                )
-                add(
-                    ScalarTimeline.samples(from: keyframes, dimension: 1, frameRate: context.frameRate, startFrame: timing.startFrame) { y in
-                        (y - accumulated.anchor.y) * accumulated.scale + accumulated.position.y
-                    },
-                    keyPath: "transform.translation.y",
-                    key: "lottie.position.y"
-                )
-            case let .split(x, y):
-                if case let .keyframed(keyframes) = x {
-                    add(
-                        ScalarTimeline.samples(from: keyframes, dimension: 0, frameRate: context.frameRate, startFrame: timing.startFrame) { val in
+        var tx: [TimelineSample]
+        var ty: [TimelineSample]
+
+        if let position = transform?.position {
+            if position.isAnimated {
+                switch position {
+                case let .vector(vector):
+                    if case let .keyframed(keyframes) = vector {
+                        tx = ScalarTimeline.samples(
+                            from: keyframes,
+                            dimension: 0,
+                            frameRate: context.frameRate,
+                            startFrame: timing.startFrame,
+                            beginTime: timing.beginTime,
+                            speed: timing.speed
+                        ) { x in
+                            (x - accumulated.anchor.x) * accumulated.scale + accumulated.position.x
+                        }
+                        ty = ScalarTimeline.samples(
+                            from: keyframes,
+                            dimension: 1,
+                            frameRate: context.frameRate,
+                            startFrame: timing.startFrame,
+                            beginTime: timing.beginTime,
+                            speed: timing.speed
+                        ) { y in
+                            (y - accumulated.anchor.y) * accumulated.scale + accumulated.position.y
+                        }
+                    } else {
+                        let initialPt = position.initialPoint
+                        let p = transformPoint(Point(x: initialPt.x, y: initialPt.y))
+                        tx = [TimelineSample(time: 0, value: p.x), TimelineSample(time: timing.duration, value: p.x)]
+                        ty = [TimelineSample(time: 0, value: p.y), TimelineSample(time: timing.duration, value: p.y)]
+                    }
+                case let .split(x, y):
+                    if case let .keyframed(keyframes) = x {
+                        tx = ScalarTimeline.samples(
+                            from: keyframes,
+                            dimension: 0,
+                            frameRate: context.frameRate,
+                            startFrame: timing.startFrame,
+                            beginTime: timing.beginTime,
+                            speed: timing.speed
+                        ) { val in
                             (val - accumulated.anchor.x) * accumulated.scale + accumulated.position.x
-                        },
-                        keyPath: "transform.translation.x",
-                        key: "lottie.position.x"
-                    )
-                } else {
-                    addConstantAnimation(keyPath: "transform.translation.x", value: initial.x, key: "lottie.position.x", to: layer, timing: timing)
-                }
-                if case let .keyframed(keyframes) = y {
-                    add(
-                        ScalarTimeline.samples(from: keyframes, dimension: 0, frameRate: context.frameRate, startFrame: timing.startFrame) { val in
+                        }
+                    } else {
+                        let initialPt = position.initialPoint
+                        let p = transformPoint(Point(x: initialPt.x, y: initialPt.y))
+                        tx = [TimelineSample(time: 0, value: p.x), TimelineSample(time: timing.duration, value: p.x)]
+                    }
+                    if case let .keyframed(keyframes) = y {
+                        ty = ScalarTimeline.samples(
+                            from: keyframes,
+                            dimension: 0,
+                            frameRate: context.frameRate,
+                            startFrame: timing.startFrame,
+                            beginTime: timing.beginTime,
+                            speed: timing.speed
+                        ) { val in
                             (val - accumulated.anchor.y) * accumulated.scale + accumulated.position.y
-                        },
-                        keyPath: "transform.translation.y",
-                        key: "lottie.position.y"
-                    )
-                } else {
-                    addConstantAnimation(keyPath: "transform.translation.y", value: initial.y, key: "lottie.position.y", to: layer, timing: timing)
+                        }
+                    } else {
+                        let initialPt = position.initialPoint
+                        let p = transformPoint(Point(x: initialPt.x, y: initialPt.y))
+                        ty = [TimelineSample(time: 0, value: p.y), TimelineSample(time: timing.duration, value: p.y)]
+                    }
                 }
+            } else {
+                let initialPt = position.initialPoint
+                let p = transformPoint(Point(x: initialPt.x, y: initialPt.y))
+                tx = [TimelineSample(time: 0, value: p.x), TimelineSample(time: timing.duration, value: p.x)]
+                ty = [TimelineSample(time: 0, value: p.y), TimelineSample(time: timing.duration, value: p.y)]
             }
         } else {
-            addConstantAnimation(keyPath: "transform.translation.x", value: initial.x, key: "lottie.position.x", to: layer, timing: timing)
-            addConstantAnimation(keyPath: "transform.translation.y", value: initial.y, key: "lottie.position.y", to: layer, timing: timing)
+            let p = transformPoint(.zero)
+            tx = [TimelineSample(time: 0, value: p.x), TimelineSample(time: timing.duration, value: p.x)]
+            ty = [TimelineSample(time: 0, value: p.y), TimelineSample(time: timing.duration, value: p.y)]
         }
+
+        var sx: [TimelineSample]
+        var sy: [TimelineSample]
+        let mapScale = { (percent: Double) in (percent / 100) * accumulated.scale }
+
+        if let scale = transform?.scale {
+            if scale.isAnimated, case let .keyframed(keyframes) = scale {
+                sx = ScalarTimeline.samples(
+                    from: keyframes,
+                    dimension: 0,
+                    frameRate: context.frameRate,
+                    startFrame: timing.startFrame,
+                    beginTime: timing.beginTime,
+                    speed: timing.speed,
+                    map: mapScale
+                )
+                sy = ScalarTimeline.samples(
+                    from: keyframes,
+                    dimension: 1,
+                    frameRate: context.frameRate,
+                    startFrame: timing.startFrame,
+                    beginTime: timing.beginTime,
+                    speed: timing.speed,
+                    map: mapScale
+                )
+            } else {
+                let value = scale.initialValue
+                let valX = ((value.component(0) ?? 100) / 100) * accumulated.scale
+                let valY = ((value.component(1) ?? 100) / 100) * accumulated.scale
+                sx = [TimelineSample(time: 0, value: valX), TimelineSample(time: timing.duration, value: valX)]
+                sy = [TimelineSample(time: 0, value: valY), TimelineSample(time: timing.duration, value: valY)]
+            }
+        } else {
+            sx = [TimelineSample(time: 0, value: accumulated.scale), TimelineSample(time: timing.duration, value: accumulated.scale)]
+            sy = [TimelineSample(time: 0, value: accumulated.scale), TimelineSample(time: timing.duration, value: accumulated.scale)]
+        }
+
+        var rz: [TimelineSample]
+        if let rotation = transform?.rotation {
+            if case let .keyframed(keyframes) = rotation {
+                rz = ScalarTimeline.samples(
+                    from: keyframes,
+                    dimension: 0,
+                    frameRate: context.frameRate,
+                    startFrame: timing.startFrame,
+                    beginTime: timing.beginTime,
+                    speed: timing.speed
+                ) { $0 * .pi / 180 }
+            } else {
+                let radians = rotation.initialValue * .pi / 180
+                rz = [TimelineSample(time: 0, value: radians), TimelineSample(time: timing.duration, value: radians)]
+            }
+        } else {
+            rz = [TimelineSample(time: 0, value: 0), TimelineSample(time: timing.duration, value: 0)]
+        }
+
+        return TransformTimeline(
+            anchor: Point(x: anchorX, y: anchorY),
+            tx: tx,
+            ty: ty,
+            sx: sx,
+            sy: sy,
+            rz: rz
+        )
     }
 
-    private func addScaleAnimations(_ scale: AnimatedVector, to layer: Layer, context: ImportContext, timing: LayerTiming, scaleMultiplier: Double) {
-        guard case let .keyframed(keyframes) = scale else { return }
-        let map = { (percent: Double) in (percent / 100) * scaleMultiplier }
-        let xSamples = ScalarTimeline.samples(from: keyframes, dimension: 0, frameRate: context.frameRate, startFrame: timing.startFrame, map: map)
-        let ySamples = ScalarTimeline.samples(from: keyframes, dimension: 1, frameRate: context.frameRate, startFrame: timing.startFrame, map: map)
-        if let animation = ScalarTimeline.animation(keyPath: "transform.scale.x", samples: xSamples, duration: timing.duration, beginTime: timing.beginTime, speed: timing.speed) {
-            layer.add(animation, forKey: "lottie.scale.x")
-        }
-        if let animation = ScalarTimeline.animation(keyPath: "transform.scale.y", samples: ySamples, duration: timing.duration, beginTime: timing.beginTime, speed: timing.speed) {
-            layer.add(animation, forKey: "lottie.scale.y")
+    private func applyTimeline(
+        _ timeline: TransformTimeline,
+        to layer: Layer,
+        timing: LayerTiming
+    ) {
+        layer.position = Point(x: 0, y: 0)
+        layer.anchorPoint = Point(x: 0, y: 0)
+        layer.transform = Transform3D.identity
+
+        addTimelineAnimation(keyPath: "transform.translation.x", samples: timeline.tx, key: "lottie.position.x", to: layer, timing: timing)
+        addTimelineAnimation(keyPath: "transform.translation.y", samples: timeline.ty, key: "lottie.position.y", to: layer, timing: timing)
+        addTimelineAnimation(keyPath: "transform.scale.x", samples: timeline.sx, key: "lottie.scale.x", to: layer, timing: timing)
+        addTimelineAnimation(keyPath: "transform.scale.y", samples: timeline.sy, key: "lottie.scale.y", to: layer, timing: timing)
+        addTimelineAnimation(keyPath: "transform.rotation.z", samples: timeline.rz, key: "lottie.rotation", to: layer, timing: timing)
+    }
+
+    private func addTimelineAnimation(
+        keyPath: String,
+        samples: [TimelineSample],
+        key: String,
+        to layer: Layer,
+        timing: LayerTiming
+    ) {
+        if let animation = ScalarTimeline.animation(keyPath: keyPath, samples: samples, duration: timing.duration, beginTime: timing.beginTime, speed: timing.speed) {
+            layer.add(animation, forKey: key)
         }
     }
 
@@ -459,7 +574,15 @@ public struct LottieImporter {
         let map = { (percent: Double) in min(max(percent / 100, 0), 1) }
         var samples: [TimelineSample]?
         if case let .keyframed(keyframes) = opacity {
-            samples = ScalarTimeline.samples(from: keyframes, dimension: 0, frameRate: context.frameRate, startFrame: timing.startFrame, map: map)
+            samples = ScalarTimeline.samples(
+                from: keyframes,
+                dimension: 0,
+                frameRate: context.frameRate,
+                startFrame: timing.startFrame,
+                beginTime: timing.beginTime,
+                speed: timing.speed,
+                map: map
+            )
         }
         let staticValue = map(opacity?.initialValue ?? 100)
         switch (samples, visibility) {
@@ -481,16 +604,6 @@ public struct LottieImporter {
             if let animation = ScalarTimeline.animation(keyPath: "opacity", samples: gated, duration: timing.duration, beginTime: timing.beginTime, speed: timing.speed) {
                 layer.add(animation, forKey: "lottie.opacity")
             }
-        }
-    }
-
-    private func addConstantAnimation(keyPath: String, value: Double, key: String, to layer: Layer, timing: LayerTiming) {
-        let samples = [
-            TimelineSample(time: 0, value: value),
-            TimelineSample(time: timing.duration, value: value),
-        ]
-        if let animation = ScalarTimeline.animation(keyPath: keyPath, samples: samples, duration: timing.duration, beginTime: timing.beginTime, speed: timing.speed) {
-            layer.add(animation, forKey: key)
         }
     }
 

@@ -43,6 +43,9 @@ let package = Package(
             dependencies: [
                 "LottieImport",
                 .product(name: "PureLayer", package: "PureLayer"),
+            ],
+            resources: [
+                .copy("Samples"),
             ]
         ),
     ]

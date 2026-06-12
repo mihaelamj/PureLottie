@@ -1,0 +1,362 @@
+# Enumerations
+
+<h2 id="blend-mode">Blend Mode</h2>
+
+{schema_string:constants/blend-mode/description}
+
+{schema_enum:blend-mode}
+
+In the following example you can change the blend mode of the top layer
+
+<lottie-playground example="blend_mode.json">
+    <title>Example</title>
+    <form>
+        <input title="Opacity" type="range" min="0" value="50" max="100"/>
+        <enum title="Blend Mode">blend-mode</enum>
+    </form>
+    <json>lottie.layers[0]</json>
+    <script>
+        lottie.layers[0].bm = Number(data["Blend Mode"]);
+        lottie.layers[0].ks.o.k = data["Opacity"];
+    </script>
+</lottie-playground>
+
+
+<h2 id="composite">Composite</h2>
+
+{schema_string:constants/composite/description}
+
+{schema_enum:composite}
+
+
+<h2 id="fill-rule">Fill Rule</h2>
+
+{schema_string:constants/fill-rule/description}
+
+{schema_enum:fill-rule}
+
+<lottie-playground example="fill.json">
+    <title>Example</title>
+    <form>
+        <enum title="Fill Rule">fill-rule</enum>
+    </form>
+    <json>lottie.layers[0].shapes[0].it[1]</json>
+    <script>
+        var shape = lottie.layers[0].shapes[0].it[1];
+        shape.r = Number(data["Fill Rule"]);
+    </script>
+</lottie-playground>
+
+
+<h2 id="font-path-origin">Font Path Origin</h2>
+
+{schema_string:constants/font-path-origin/description}
+
+{schema_enum:font-path-origin}
+
+
+<h2 id="gradient-type">Gradient Type</h2>
+
+{schema_string:constants/gradient-type/description}
+
+
+{schema_enum:gradient-type}
+
+Gradient types are defined by {link:constants/gradient-type} with the following semantics
+(Properties are the ones from {link:shapes/gradient-fill} and {link:shapes/gradient-stroke}).
+
+All gradient types use a padded spread, meaning the color stays constant outside the range.
+
+
+<h4>`1`: Linear Gradient</h4>
+
+The gradient changes colors across a straight line, with `s` indicating the point
+at offset 0 and `e` the point at offset 1.
+
+
+<h4>`2`: Radial Gradient</h4>
+
+The gradient radiates between an outer circle and a point within it.
+
+The outer circle corresponds with offset 1 and is centered at `s` and has radius
+`|e - s|`.
+
+The inner point is defined in polar coordinates relative to `s` and `e`:
+
+`h` is a percentange of the radius (between 0 and 100) indicating the distance
+from `s`. A value of 0 indicates being at `s` and a value of 100 being on 
+the edge of the outer circle.
+
+`a` Is the angle in degrees the point is offset from the line between `s` and `e`.
+A value of 0 indicates the point is on that line, otherwise it's rotated clockwise
+by that many degrees.
+
+
+<h4>`3`: Conic Gradient</h4>
+
+The gradient changes colors across a circle around a point.
+
+`s` indicates the center of the circle.
+
+`a` is the initial angle in degrees. If omitted, defaults to `0`.
+
+Offset values represent portions of a turn around the circle turning clockwise.
+A value of 0 will be at the angle `a`, a value of 0.25 will be 90 degrees from that.
+
+<lottie-playground example="gradient.json" renderer="glaxnimate">
+    <title>Example</title>
+    <form>
+        <input title="Start X" type="range" min="0" max="512"  value="256"/>
+        <input title="Start Y" type="range" min="0" max="512"  value="256"/>
+        <input title="End X" type="range" min="0" max="512"  value="256"/>
+        <input title="End Y" type="range" min="0" max="512"  value="16"/>
+        <enum title="Type" value="1">gradient-type</enum>
+        <input title="Highlight" type="range" min="0" max="100"  value="0"/>
+        <input title="Angle" type="range" min="0" max="360"  value="0"/>
+    </form>
+    <json>lottie.layers[1].shapes[0].it[1]</json>
+    <script>
+    var gradient = lottie.layers[1].shapes[0].it[1];
+    var start_marker = lottie.layers[0].shapes[1].it[1];
+    var end_marker = lottie.layers[0].shapes[0].it[1];
+    gradient.s.k = start_marker.p.k = [data["Start X"], data["Start Y"]];
+    gradient.e.k = end_marker.p.k = [data["End X"], data["End Y"]];
+    gradient.t = Number(data["Type"]);
+    if ( gradient.t === 2 ) 
+    {
+        gradient.h = {
+            a: 0,
+            k: data["Highlight"]
+        };
+    }
+    else 
+    {
+        delete gradient.h;
+    }
+    if ( gradient.t !== 1 ) 
+    {
+        gradient.a = {
+            a: 0,
+            k: data["Angle"]
+        };
+    } 
+    else 
+    {
+        delete gradient.a;
+    }
+    </script>
+</lottie-playground>
+
+<h2 id="line-cap">Line Cap</h2>
+
+{schema_string:constants/line-cap/description}
+
+{schema_enum:line-cap}
+
+<lottie-playground example="stroke.json">
+    <title>Example</title>
+    <form>
+        <enum title="Line Cap" value="2">line-cap</enum>
+    </form>
+    <json>lottie.layers[0].shapes[2]</json>
+    <script>
+        var shape = lottie.layers[0].shapes[2];
+        shape.lc = Number(data["Line Cap"]);
+        shape.d = undefined;
+    </script>
+</lottie-playground>
+
+
+<h2 id="line-join">Line Join</h2>
+
+{schema_string:constants/line-join/description}
+
+{schema_enum:line-join}
+
+<lottie-playground example="stroke.json">
+    <title>Example</title>
+    <form>
+        <enum title="Line Join" value="2">line-join</enum>
+        <input type="range" min="0" max="10" value="3" title="Miter Limit"/>
+    </form>
+    <json>lottie.layers[0].shapes[2]</json>
+    <script>
+        var shape = lottie.layers[0].shapes[2];
+        shape.lj = Number(data["Line Join"]);
+        shape.ml = data["Miter Limit"];
+        shape.d = undefined;
+        var trim = lottie.layers[0].shapes[1];
+        trim.e.k = 100;
+    </script>
+</lottie-playground>
+
+<h2 id="mask-mode">Mask Mode</h2>
+
+{schema_string:constants/mask-mode/description}
+
+{schema_enum:mask-mode}
+
+<lottie-playground example="mask.json">
+    <title>Example</title>
+    <form>
+        <enum title="Mask Mode" value="a">mask-mode</enum>
+        <input type="range" min="0" max="100" value="100" title="Mask1 Opacity"/>
+        <input type="range" min="0" max="100" value="100" title="Mask2 Opacity"/>
+    </form>
+    <json>lottie.layers[1].masksProperties[1]</json>
+    <script>
+        let mask1 = lottie.layers[1].masksProperties[0];
+        let mask2 = lottie.layers[1].masksProperties[1];
+        mask1.o.k = Number(data["Mask1 Opacity"]);
+        mask2.o.k = Number(data["Mask2 Opacity"]);
+        mask2.mode = data["Mask Mode"];
+    </script>
+</lottie-playground>
+
+
+<h2 id="matte-mode">Matte Mode</h2>
+
+{schema_string:constants/matte-mode/description}
+
+{schema_enum:matte-mode}
+
+<lottie-playground example="matte.json">
+    <title>Example</title>
+    <form>
+        <enum title="Matte Mode" value="1">matte-mode</enum>
+    </form>
+    <json>{...lottie.layers[1], shapes: [], ks: {}}</json>
+    <script>
+        lottie.layers[1].tt = Number(data["Matte Mode"]);
+    </script>
+</lottie-playground>
+
+
+<h2 id="merge-mode">Merge Mode</h2>
+
+{schema_string:constants/merge-mode/description}
+
+{schema_enum:merge-mode}
+
+
+<h2 id="shape-direction">Shape Direction</h2>
+
+{schema_string:constants/shape-direction/description}
+
+{schema_enum:shape-direction}
+
+<lottie-playground example="trim_path.json">
+    <form>
+        <enum title="Shape Direction">shape-direction</enum>
+    </form>
+    <json>lottie.layers[0].shapes[1]</json>
+    <script>
+        for ( let shape of lottie.layers[0].shapes )
+            shape.d = Number(data["Shape Direction"]);
+    </script>
+</lottie-playground>
+
+
+<h2 id="star-type">Star Type</h2>
+
+{schema_string:constants/star-type/description}
+
+{schema_enum:star-type}
+
+<lottie-playground example="star.json">
+    <title>Example</title>
+    <form>
+        <enum title="Star Type">star-type</enum>
+    </form>
+    <json>lottie.layers[0].shapes[0].it[0]</json>
+    <script>
+        var star = lottie.layers[0].shapes[0].it[0];
+        star.sy = Number(data["Star Type"]);
+        if ( data["Star Type"] == "1" )
+        {
+            star["ir"] = {"a": 0, "k": 100};
+            star["is"] = {"a": 0, "k": 0};
+        }
+        else
+        {
+            delete star["ir"];
+            delete star["is"];
+        }
+        lottie.layers[0].shapes[0].it[0] = star;
+    </script>
+</lottie-playground>
+
+
+<h2 id="stroke-dash-type">Stroke Dash Type</h2>
+
+{schema_string:constants/stroke-dash-type/description}
+
+{schema_enum:stroke-dash-type}
+
+
+<h2 id="text-based">Text Based</h2>
+
+{schema_string:constants/text-based/description}
+
+{schema_enum:text-based}
+
+
+
+<h2 id="text-grouping">Text Grouping</h2>
+
+{schema_string:constants/text-grouping/description}
+
+{schema_enum:text-grouping}
+
+
+
+<h2 id="text-justify">Text Justify</h2>
+
+{schema_string:constants/text-justify/description}
+
+{schema_enum:text-justify}
+
+
+
+<h2 id="text-shape">Text Shape</h2>
+
+{schema_string:constants/text-shape/description}
+
+{schema_enum:text-shape}
+
+To better illustrate what the value mean, the graphics below shows an
+example for each value, including the function itself, based on the
+range start and end character.
+
+![Text Shapes](/lottie-docs/static/examples/text_shape.png)
+
+
+<h2 id="trim-multiple-shapes">Trim Multiple Shapes</h2>
+
+{schema_string:constants/trim-multiple-shapes/description}
+
+{schema_enum:trim-multiple-shapes}
+
+<lottie-playground example="trim_path.json">
+    <form>
+        <enum title="Multiple Shapes">trim-multiple-shapes</enum>
+    </form>
+    <json>lottie.layers[0].shapes[4]</json>
+    <script>
+        lottie.layers[0].shapes[4].m = Number(data["Multiple Shapes"]);
+    </script>
+</lottie-playground>
+
+
+<h2 id="text-caps">Text Caps</h2>
+
+{schema_string:constants/text-caps/description}
+
+{schema_enum:text-caps}
+
+
+<h2 id="text-range-units">Text Range Units</h2>
+
+{schema_string:constants/text-range-units/description}
+
+{schema_enum:text-range-units}

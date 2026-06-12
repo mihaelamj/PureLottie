@@ -142,6 +142,8 @@ struct ShapeBuilder {
                 dimension: 0,
                 frameRate: context.frameRate,
                 startFrame: timing.startFrame,
+                beginTime: timing.beginTime,
+                speed: timing.speed,
                 map: fraction
             )
             if let animation = ScalarTimeline.animation(keyPath: "strokeStart", samples: samples, duration: timing.duration, beginTime: timing.beginTime, speed: timing.speed) {
@@ -154,6 +156,8 @@ struct ShapeBuilder {
                 dimension: 0,
                 frameRate: context.frameRate,
                 startFrame: timing.startFrame,
+                beginTime: timing.beginTime,
+                speed: timing.speed,
                 map: fraction
             )
             if let animation = ScalarTimeline.animation(keyPath: "strokeEnd", samples: samples, duration: timing.duration, beginTime: timing.beginTime, speed: timing.speed) {

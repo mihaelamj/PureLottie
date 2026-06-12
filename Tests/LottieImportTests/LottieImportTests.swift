@@ -2,6 +2,9 @@
 @testable import LottieModel
 import PureLayer
 import XCTest
+#if canImport(AppKit)
+    import AppKit
+#endif
 
 final class LottieImportTests: XCTestCase {
     func testSimpleImport() throws {
@@ -142,13 +145,15 @@ final class LottieImportTests: XCTestCase {
 
         XCTAssertTrue(scene.report.isClean)
 
-        // Let's find the shape layer sublayers in the imported scene.
-        // There should be a ShapeLayer representing ChildGroup.
-        // Note: the original implementation flattens nested groups into sibling layers.
-        let sublayers = scene.root.sublayers.first?.sublayers ?? []
-        XCTAssertEqual(sublayers.count, 1)
+        func findShapeLayer(in layer: Layer) -> ShapeLayer? {
+            if let shape = layer as? ShapeLayer { return shape }
+            for sub in layer.sublayers {
+                if let found = findShapeLayer(in: sub) { return found }
+            }
+            return nil
+        }
 
-        guard let shapeLayer = sublayers.first as? ShapeLayer else {
+        guard let shapeLayer = findShapeLayer(in: scene.root) else {
             XCTFail("Expected a ShapeLayer")
             return
         }
@@ -233,8 +238,10 @@ final class LottieImportTests: XCTestCase {
     }
 
     func testExportFixturesToAPNG() throws {
-        let examplesDir = "/Volumes/Code/DeveloperExt/public/PureLottie/docs/lottie-format/lottie-spec/docs/static/examples"
-        let outputDir = FileManager.default.temporaryDirectory.path
+        let thisFile = URL(fileURLWithPath: #filePath)
+        let testsDir = thisFile.deletingLastPathComponent()
+        let examplesDir = testsDir.appendingPathComponent("Samples").path
+        let outputDir = ProcessInfo.processInfo.environment["LOTTIE_TEST_MOVIES_DIR"] ?? FileManager.default.temporaryDirectory.path
 
         let fm = FileManager.default
         let fixtures = try fm.contentsOfDirectory(atPath: examplesDir).filter { $0.hasSuffix(".json") }
@@ -265,7 +272,15 @@ final class LottieImportTests: XCTestCase {
             let exporter = MovieExporter()
             let outputPath = "\(outputDir)/\(fixture.replacingOccurrences(of: ".json", with: ".png"))"
             let outputURL = URL(fileURLWithPath: outputPath)
-            let size = PixelSize(width: Int(scene.width), height: Int(scene.height))
+
+            var width = Int(scene.width)
+            var height = Int(scene.height)
+            if width > 512 || height > 512 {
+                let ratio = min(512.0 / Double(width), 512.0 / Double(height))
+                width = Int(Double(width) * ratio)
+                height = Int(Double(height) * ratio)
+            }
+            let size = PixelSize(width: width > 0 ? width : 512, height: height > 0 ? height : 512)
 
             if animated {
                 let fps = 10.0
@@ -293,8 +308,10 @@ final class LottieImportTests: XCTestCase {
     }
 
     func testTransformActuallyAnimates() throws {
-        let examplesDir = "/Volumes/Code/DeveloperExt/public/PureLottie/docs/lottie-format/lottie-spec/docs/static/examples"
-        let data = try Data(contentsOf: URL(fileURLWithPath: "\(examplesDir)/time_stretch.json"))
+        let thisFile = URL(fileURLWithPath: #filePath)
+        let testsDir = thisFile.deletingLastPathComponent()
+        let examplesDir = testsDir.appendingPathComponent("Samples").path
+        let data = try Data(contentsOf: URL(fileURLWithPath: "\(examplesDir)/TwitterHeart.json"))
         let animation = try LottieAnimation.decode(from: data)
         let importer = LottieImporter()
         let scene = importer.scene(from: animation)
@@ -321,8 +338,10 @@ final class LottieImportTests: XCTestCase {
     }
 
     func testDebugTimeline() throws {
-        let examplesDir = "/Volumes/Code/DeveloperExt/public/PureLottie/docs/lottie-format/lottie-spec/docs/static/examples"
-        let data = try Data(contentsOf: URL(fileURLWithPath: "\(examplesDir)/time_stretch.json"))
+        let thisFile = URL(fileURLWithPath: #filePath)
+        let testsDir = thisFile.deletingLastPathComponent()
+        let examplesDir = testsDir.appendingPathComponent("Samples").path
+        let data = try Data(contentsOf: URL(fileURLWithPath: "\(examplesDir)/Watermelon.json"))
         let animation = try LottieAnimation.decode(from: data)
         let importer = LottieImporter()
         let scene = importer.scene(from: animation)
@@ -330,7 +349,9 @@ final class LottieImportTests: XCTestCase {
         func printTree(_ layer: Layer, prefix: String = "", at time: Double) {
             let pres = layer.presentation(at: time)
             let layerName = layer.name ?? "unnamed"
-            print("\(prefix)- Layer: \(layerName), type: \(type(of: layer)), pos: \(pres.position), transform: \(pres.transform), opacity: \(pres.opacity)")
+            print(
+                "\(prefix)- Layer: \(layerName), type: \(type(of: layer)), pos: \(pres.position), transform: \(pres.transform), opacity: \(pres.opacity), animKeys: \(layer.animationKeys())"
+            )
             for sub in layer.sublayers {
                 printTree(sub, prefix: prefix + "  ", at: time)
             }
@@ -338,11 +359,19 @@ final class LottieImportTests: XCTestCase {
 
         print("=== PRESENTATION AT T=0.0 ===")
         printTree(scene.root, at: 0.0)
+        print("=== PRESENTATION AT T=0.5 ===")
+        printTree(scene.root, at: 0.5)
         print("=== PRESENTATION AT T=1.0 ===")
         printTree(scene.root, at: 1.0)
+        print("=== PRESENTATION AT T=1.5 ===")
+        printTree(scene.root, at: 1.5)
+        print("=== PRESENTATION AT T=2.0 ===")
+        printTree(scene.root, at: 2.0)
+        print("=== PRESENTATION AT T=5.0 ===")
+        printTree(scene.root, at: 5.0)
 
-        print("=== DRAW LIST AT T=0.0 ===")
-        let list = Compositor().drawList(for: scene.root, at: 0.0)
+        print("=== DRAW LIST AT T=5.0 ===")
+        let list = Compositor().drawList(for: scene.root, at: 5.0)
         for cmd in list.commands {
             print("  \(cmd)")
         }
@@ -369,6 +398,39 @@ final class LottieImportTests: XCTestCase {
         print("=== DRAW LIST COMMANDS ===")
         for cmd in list.commands {
             print(cmd)
+        }
+    }
+
+    func testDumpWatermelonDetails() throws {
+        let thisFile = URL(fileURLWithPath: #filePath)
+        let testsDir = thisFile.deletingLastPathComponent()
+        let examplesDir = testsDir.appendingPathComponent("Samples").path
+        let data = try Data(contentsOf: URL(fileURLWithPath: "\(examplesDir)/Watermelon.json"))
+        let animation = try LottieAnimation.decode(from: data)
+        let importer = LottieImporter()
+        let scene = importer.scene(from: animation)
+        let exporter = MovieExporter()
+        let size = PixelSize(width: Int(scene.width), height: Int(scene.height))
+
+        for t in [0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0] {
+            if let pngData = try? exporter.screenshot(of: scene.root, size: size, at: t) {
+                let path = "/Users/mmj/.gemini/antigravity-cli/brain/bb4484fe-0766-4982-9bc6-80c9926fef2d/scratch/watermelon_frame_\(t).png"
+                try? Data(pngData).write(to: URL(fileURLWithPath: path))
+
+                var nonZero = 0
+                #if canImport(AppKit)
+                    if let rep = NSBitmapImageRep(data: Data(pngData)) {
+                        for y in 0 ..< rep.pixelsHigh {
+                            for x in 0 ..< rep.pixelsWide {
+                                if rep.colorAt(x: x, y: y)?.alphaComponent ?? 0 > 0.01 {
+                                    nonZero += 1
+                                }
+                            }
+                        }
+                    }
+                #endif
+                print("T = \(t)s: size: \(pngData.count), non-zero alpha pixels: \(nonZero)")
+            }
         }
     }
 }
