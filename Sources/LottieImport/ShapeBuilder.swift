@@ -82,6 +82,9 @@ struct ShapeBuilder {
         if fill.opacity?.isAnimated == true {
             context.report.skip("animated fill opacity", at: path)
         }
+        if let blendMode = fill.blendMode, blendMode != 0 {
+            context.report.skip("fill blend mode", at: path)
+        }
         layer.fillColor = color(from: fill.color.initialValue, opacityPercent: fill.opacity?.initialValue ?? 100)
         layer.fillRule = fill.fillRule == 2 ? .evenOdd : .winding
     }
@@ -95,6 +98,24 @@ struct ShapeBuilder {
         }
         if stroke.width.isAnimated {
             context.report.skip("animated stroke width", at: path)
+        }
+        if let blendMode = stroke.blendMode, blendMode != 0 {
+            context.report.skip("stroke blend mode", at: path)
+        }
+        if let lineCap = stroke.lineCap, lineCap != 1 {
+            context.report.skip("stroke line cap", at: path)
+        }
+        if let lineJoin = stroke.lineJoin, lineJoin != 1 {
+            context.report.skip("stroke line join", at: path)
+        }
+        if let miterLimit = stroke.miterLimit, abs(miterLimit - 10) > 0.0001 {
+            context.report.skip("stroke miter limit", at: path)
+        }
+        if stroke.secondaryMiterLimit != nil {
+            context.report.skip("secondary stroke miter limit", at: path)
+        }
+        if hasDashPattern(stroke.dashPattern) {
+            context.report.skip("stroke dash pattern", at: path)
         }
         layer.strokeColor = color(from: stroke.color.initialValue, opacityPercent: stroke.opacity?.initialValue ?? 100)
         layer.lineWidth = stroke.width.initialValue
@@ -143,6 +164,13 @@ struct ShapeBuilder {
         return abs(trim.start.initialValue) <= 0.0001
             && abs(trim.end.initialValue - 100) <= 0.0001
             && abs(trim.offset?.initialValue ?? 0) <= 0.0001
+    }
+
+    private func hasDashPattern(_ dashPattern: [ShapeStrokeDash]?) -> Bool {
+        guard let dashPattern else { return false }
+        return dashPattern.contains { dash in
+            dash.value?.isAnimated == true || abs(dash.value?.initialValue ?? 0) > 0.0001
+        }
     }
 
     private func color(from components: [Double], opacityPercent: Double) -> Color {
