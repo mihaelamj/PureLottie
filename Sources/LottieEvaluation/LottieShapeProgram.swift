@@ -109,6 +109,7 @@ public struct LottieShapeProgram: Sendable, Equatable {
         case path(ShapePath)
         case rectangle(ShapeRectangle)
         case ellipse(ShapeEllipse)
+        case polystar(ShapePolystar)
     }
 
     public struct AppliedTransform: Sendable, Equatable {
@@ -318,6 +319,25 @@ private struct ShapeProgramScope {
                     modifiers: activeModifiers,
                     to: activeStyles
                 )
+            case let .polystar(polystar):
+                guard polystar.isHidden != true else { continue }
+                if polystar.isGeometryAnimated {
+                    diagnostics.append(diagnostic(
+                        ruleID: "lottie.evaluation.shape.polystar.animated-geometry.unsupported",
+                        feature: "animated polystar geometry",
+                        path: itemPath,
+                        sourcePath: "\(sourcePath) > polystar '\(polystar.name ?? "?")'",
+                        classification: .gap
+                    ))
+                }
+                append(
+                    .polystar(polystar),
+                    sourcePath: "\(sourcePath) > polystar '\(polystar.name ?? "?")'",
+                    jsonPath: itemPath,
+                    transformStack: activeTransformStack,
+                    modifiers: activeModifiers,
+                    to: activeStyles
+                )
             case let .fill(fill):
                 guard fill.isHidden != true else { continue }
                 let style = ShapeProgramStyleAccumulator(
@@ -432,6 +452,18 @@ private struct ShapeProgramScope {
             classification: classification,
             evidence: sourcePath
         )
+    }
+}
+
+private extension ShapePolystar {
+    var isGeometryAnimated: Bool {
+        points?.isAnimated == true
+            || position?.isAnimated == true
+            || rotation?.isAnimated == true
+            || innerRadius?.isAnimated == true
+            || innerRoundness?.isAnimated == true
+            || outerRadius?.isAnimated == true
+            || outerRoundness?.isAnimated == true
     }
 }
 

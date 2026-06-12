@@ -134,16 +134,16 @@ private struct DrawingProgramLowerer {
     }
 
     private func path(for fragment: LottieShapeProgram.GeometryFragment) -> Path? {
+        let geometry = LottieSourceGeometryEvaluator(animation: context.animation).evaluate(
+            fragment.geometry,
+            at: context.startFrame,
+            sourcePath: fragment.sourcePath,
+            jsonPath: fragment.jsonPath
+        )
+        context.report.reportShapeDiagnostics(geometry.diagnostics)
+
         var path = Path()
-        switch fragment.geometry {
-        case let .path(shapePath):
-            guard let bezier = shapePath.shape.initialValue else { return nil }
-            PathBuilder.path(from: bezier, into: &path)
-        case let .rectangle(rectangle):
-            PathBuilder.rectangle(rectangle, into: &path)
-        case let .ellipse(ellipse):
-            PathBuilder.ellipse(ellipse, into: &path)
-        }
+        PathBuilder.path(from: geometry.value.bezier, into: &path)
 
         guard !path.isEmpty else { return nil }
         return path.applying(affine(for: fragment.transformStack))

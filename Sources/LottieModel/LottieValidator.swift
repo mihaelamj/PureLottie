@@ -939,7 +939,7 @@ public enum BuiltinValidation {
                         ),
                     ]
                 }
-                let supported = Set(["el", "fl", "gr", "rc", "sh", "st", "tm", "tr"])
+                let supported = Set(["el", "fl", "gr", "rc", "sh", "sr", "st", "tm", "tr"])
                 guard !supported.contains(type) else { return [] }
                 return [
                     ValidationError(
@@ -964,34 +964,57 @@ public enum BuiltinValidation {
                 guard context.subject.objectMembers != nil,
                       isShapeItemPath(context.codingPath),
                       let type = context.subject.member("ty")?.stringValue,
-                      ["el", "rc", "sh"].contains(type),
-                      let direction = context.subject.member("d")
+                      ["el", "rc", "sh", "sr"].contains(type)
                 else {
                     return []
                 }
-                guard let value = integralNumber(direction) else {
-                    return [
-                        ValidationError(
+                var errors: [ValidationError] = []
+                if let direction = context.subject.member("d") {
+                    if let value = integralNumber(direction) {
+                        if ![1, 2, 3].contains(value) {
+                            errors.append(ValidationError(
+                                ruleID: "lottie.shape.geometry-field",
+                                reason: "Shape direction `d` must be 1, 2, or 3 before rendering.",
+                                at: context.codingPath.appending(.key("d")),
+                                range: direction.range,
+                                phase: .semantic,
+                                classification: .gap
+                            ))
+                        }
+                    } else {
+                        errors.append(ValidationError(
                             ruleID: "lottie.shape.geometry-field",
-                            reason: "Shape path direction field `d` must be an integer.",
+                            reason: "Shape direction field `d` must be an integer.",
                             at: context.codingPath.appending(.key("d")),
                             range: direction.range,
                             phase: .semantic,
                             classification: .gap
-                        ),
-                    ]
+                        ))
+                    }
                 }
-                guard value != 1 else { return [] }
-                return [
-                    ValidationError(
-                        ruleID: "lottie.shape.geometry-field",
-                        reason: "Non-default path direction `d` changes trim and winding behavior.",
-                        at: context.codingPath.appending(.key("d")),
-                        range: direction.range,
-                        phase: .semantic,
-                        classification: .gap
-                    ),
-                ]
+                if type == "sr", let starType = context.subject.member("sy") {
+                    if let value = integralNumber(starType) {
+                        if value != 1, value != 2 {
+                            errors.append(ValidationError(
+                                ruleID: "lottie.shape.geometry-field",
+                                reason: "Polystar `sy` must be 1 for star or 2 for polygon before rendering.",
+                                at: context.codingPath.appending(.key("sy")),
+                                range: starType.range,
+                                phase: .semantic,
+                                classification: .gap
+                            ))
+                        }
+                    } else {
+                        errors.append(integerFieldError(
+                            ruleID: "lottie.shape.geometry-field",
+                            field: "Polystar `sy`",
+                            key: "sy",
+                            value: starType,
+                            path: context.codingPath
+                        ))
+                    }
+                }
+                return errors
             }
         )
     }
@@ -1009,7 +1032,7 @@ public enum BuiltinValidation {
                     return []
                 }
                 var errors: [ValidationError] = []
-                if ["fl", "gr", "st"].contains(type),
+                if ["el", "fl", "gr", "rc", "sh", "sr", "st"].contains(type),
                    let blendMode = context.subject.member("bm")
                 {
                     if let mode = integralNumber(blendMode) {

@@ -829,8 +829,8 @@ private let semanticLedger: [ObservedField: SemanticDisposition] = {
     add("stroke.dash", .reported, ["n", "v"])
     add("stroke.dash", .metadata, ["nm"])
 
-    add("shape.el", .lowered, ["hd", "nm", "p", "s", "ty"])
-    add("shape.el", .metadata, ["closed", "d", "mn"])
+    add("shape.el", .lowered, ["d", "hd", "nm", "p", "s", "ty"])
+    add("shape.el", .metadata, ["closed", "mn"])
     add("shape.el", .gap, ["bm"])
 
     add("shape.fl", .lowered, ["c", "hd", "nm", "o", "r", "ty"])
@@ -841,13 +841,17 @@ private let semanticLedger: [ObservedField: SemanticDisposition] = {
     add("shape.gr", .metadata, ["cix", "cl", "ix", "mn", "np"])
     add("shape.gr", .gap, ["bm"])
 
-    add("shape.rc", .lowered, ["hd", "nm", "p", "r", "s", "ty"])
-    add("shape.rc", .metadata, ["d", "mn"])
+    add("shape.rc", .lowered, ["d", "hd", "nm", "p", "r", "s", "ty"])
+    add("shape.rc", .metadata, ["mn"])
     add("shape.rc", .gap, ["bm"])
 
     add("shape.sh", .lowered, ["hd", "ks", "nm", "ty"])
-    add("shape.sh", .metadata, ["cl", "closed", "ind", "ix", "mn"])
-    add("shape.sh", .gap, ["bm", "d"])
+    add("shape.sh", .metadata, ["cl", "closed", "d", "ind", "ix", "mn"])
+    add("shape.sh", .gap, ["bm"])
+
+    add("shape.sr", .lowered, ["d", "hd", "ir", "is", "nm", "or", "os", "p", "pt", "r", "sy", "ty"])
+    add("shape.sr", .metadata, ["closed", "ix", "mn"])
+    add("shape.sr", .reported, ["bm"])
 
     add("shape.st", .lowered, ["c", "hd", "nm", "o", "ty", "w"])
     add("shape.st", .reported, ["bm", "d", "lc", "lj", "ml", "ml2"])
@@ -862,7 +866,7 @@ private let semanticLedger: [ObservedField: SemanticDisposition] = {
     // Unsupported shape types are currently reported by type/name at import
     // time. Their interior fields are classified as reported because the whole
     // shape operation is not lowered yet.
-    for scope in ["shape.gf", "shape.gs", "shape.mm", "shape.rd", "shape.rp", "shape.sr"] {
+    for scope in ["shape.gf", "shape.gs", "shape.mm", "shape.rd", "shape.rp"] {
         add(
             scope,
             .reported,

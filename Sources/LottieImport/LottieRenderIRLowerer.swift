@@ -313,31 +313,7 @@ private final class RenderIRLoweringContext {
 
     private func path(for fragment: LottieRenderGeometryFragment) -> Path? {
         var path = Path()
-        switch fragment.geometry {
-        case let .path(bezier):
-            PathBuilder.path(from: bezier, into: &path)
-        case let .rectangle(center, size, roundness):
-            let width = size.scalar(0)
-            let height = size.scalar(1)
-            let rect = Rect(
-                x: center.scalar(0) - width / 2,
-                y: center.scalar(1) - height / 2,
-                width: width,
-                height: height
-            )
-            if roundness > 0 {
-                path.addRoundedRect(in: rect, cornerWidth: roundness, cornerHeight: roundness)
-            } else {
-                path.addRect(rect)
-            }
-        case let .ellipse(center, size):
-            path.addEllipse(in: Rect(
-                x: center.scalar(0) - size.scalar(0) / 2,
-                y: center.scalar(1) - size.scalar(1) / 2,
-                width: size.scalar(0),
-                height: size.scalar(1)
-            ))
-        }
+        PathBuilder.path(from: fragment.sourceGeometry.bezier, into: &path)
         guard !path.isEmpty else { return nil }
         return path.applying(affine(for: fragment.transformStack))
     }

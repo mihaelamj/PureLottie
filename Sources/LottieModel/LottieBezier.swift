@@ -14,6 +14,18 @@ public struct LottieBezier: Decodable, Sendable, Equatable {
     public var inTangents: [[Double]]
     public var outTangents: [[Double]]
 
+    public init(
+        isClosed: Bool,
+        vertices: [[Double]],
+        inTangents: [[Double]],
+        outTangents: [[Double]]
+    ) {
+        self.isClosed = isClosed
+        self.vertices = vertices
+        self.inTangents = inTangents
+        self.outTangents = outTangents
+    }
+
     private enum CodingKeys: String, CodingKey {
         case isClosed = "c"
         case vertices = "v"

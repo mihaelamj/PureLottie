@@ -48,6 +48,12 @@ or timing-handle sets become semantic diagnostics instead of exact claims.
 lottie-web row-vector matrices, with trace records for authored initial values,
 sampled frame values, normalized matrix operands, operation order, parent
 chains, and point application before any PureLayer lowering.
+`LottieSourceGeometryEvaluator` expands paths, rectangles, ellipses, polygons,
+and stars into frame-sampled source-space contours with vertices, relative and
+absolute tangents, exact cubic bounds, source JSON paths, direction evidence,
+and lottie-web compatibility constants. RenderIR carries this trace beside its
+compatibility geometry payload, and the PureLayer lowerers consume the same
+trace-derived Bezier path so source intent and rendered input stay comparable.
 
 ## Backend Gap Evidence
 

@@ -186,13 +186,37 @@ matrix conversion.
 
 ## Geometry And Style
 
+`LottieSourceGeometryEvaluator` expands modeled Lottie geometry into a contour
+trace before any PureDraw or PureLayer object is created. The trace records the
+primitive, source frame, source path, JSON path, consumed fields, direction
+branch, closed flag, vertices, relative in/out tangents, absolute in/out
+control points, cubic bounds, and compatibility constants.
+
+Primitive geometry follows the lottie-web algorithms inspected in
+`player/js/utils/shapes/ShapeProperty.js`:
+
+- Ellipses start at noon. `d == 3` reverses the side order while preserving the
+  noon start vertex.
+- Rectangles start on the right edge. When `d` is missing, lottie-web takes the
+  reversed rectangle branch; `d == 1 || d == 2` uses the forward branch. Rounded
+  rectangle radius is clamped by `min(width / 2, height / 2, r)` and uses
+  `roundCorner = 0.5519`.
+- Polystars use `sy == 1` for star and `sy == 2` for polygon, floor `pt`, start
+  at `rotation - 90deg`, advance angle by `d == 3 ? -1 : 1`, and scale `os/is`
+  roundness percentages by `0.01`.
+- Raw `sh` paths preserve the authored `v/i/o/c` arrays. The `d` field is
+  retained as evidence, but lottie-web does not regenerate raw Bezier path order
+  from `d`.
+
 Geometry records preserve the source primitive:
 
 | Kind | Required payload |
 | --- | --- |
-| `rectangle` | `primitive = "rc"`, `parameters.center`, `parameters.size`, `parameters.roundness`. |
-| `ellipse` | `primitive = "el"`, `parameters.center`, `parameters.size`. |
-| `path` | A `path` object with `closed`, `vertices`, `inTangents`, and `outTangents`. |
+| `rectangle` | `primitive = "rc"`, consumed `p`, `s`, `r`, `d`, expanded contour, radius clamp, and direction branch. |
+| `ellipse` | `primitive = "el"`, consumed `p`, `s`, `d`, expanded contour, and `roundCorner`. |
+| `path` | `primitive = "sh"`, `closed`, `vertices`, `inTangents`, `outTangents`, and retained direction evidence. |
+| `polygon` | `primitive = "sr"`, `sy == 2`, consumed `pt`, `p`, `r`, `or`, `os`, `d`, expanded contour, and point floor. |
+| `star` | `primitive = "sr"`, `sy == 1`, consumed `pt`, `p`, `r`, `or`, `os`, `ir`, `is`, `d`, expanded contour, and point floor. |
 | `unsupported` | A diagnostic with the unsupported JSON path. |
 
 Style records preserve source style intent: fill/stroke kind, RGBA color,
