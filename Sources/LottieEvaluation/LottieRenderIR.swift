@@ -310,6 +310,8 @@ public struct LottieRenderGeometryFragment: Sendable, Equatable {
     public var source: LottieRenderSource
     /// Evaluated geometry payload.
     public var geometry: LottieRenderGeometry
+    /// Expanded Lottie source-space contour before PureDraw/PureLayer lowering.
+    public var sourceGeometry: LottieSourceGeometryTrace
     /// Evaluated shape transforms active on this fragment.
     public var transformStack: [LottieRenderShapeTransform]
     /// Evaluated shape modifiers active on this fragment.
@@ -386,6 +388,7 @@ private struct LottieRenderFrameEmitter {
     let animation: LottieAnimation
     let frameEvaluator: LottieFrameEvaluator
     let transformEvaluator: LottieTransformEvaluator
+    let geometryEvaluator: LottieSourceGeometryEvaluator
     var diagnostics: [ValidationError] = []
     var nextNodeID = 1
     var precompositionStack: [String] = []
@@ -394,6 +397,7 @@ private struct LottieRenderFrameEmitter {
         self.animation = animation
         frameEvaluator = LottieFrameEvaluator(animation: animation)
         transformEvaluator = LottieTransformEvaluator(animation: animation)
+        geometryEvaluator = LottieSourceGeometryEvaluator(animation: animation)
     }
 
     mutating func frame(at sourceFrame: Double) -> LottieRenderFrame {
@@ -927,38 +931,43 @@ private struct LottieRenderFrameEmitter {
     }
 
     private mutating func evaluatedFragment(_ fragment: LottieShapeProgram.GeometryFragment, at localFrame: Double) -> LottieRenderGeometryFragment? {
-        guard let geometry = evaluatedGeometry(fragment.geometry, at: localFrame, jsonPath: fragment.jsonPath) else {
+        let sourceGeometry = geometryEvaluator.evaluate(
+            fragment.geometry,
+            at: localFrame,
+            sourcePath: fragment.sourcePath,
+            jsonPath: fragment.jsonPath
+        )
+        diagnostics.append(contentsOf: sourceGeometry.diagnostics)
+        guard let geometry = evaluatedGeometry(fragment.geometry, sourceGeometry: sourceGeometry.value) else {
             return nil
         }
         return LottieRenderGeometryFragment(
             source: LottieRenderSource(sourcePath: fragment.sourcePath, jsonPath: fragment.jsonPath, sourceRange: nil),
             geometry: geometry,
+            sourceGeometry: sourceGeometry.value,
             transformStack: fragment.transformStack.map { evaluatedTransform($0, at: localFrame) },
             modifiers: fragment.modifiers.map { evaluatedModifier($0, at: localFrame) }
         )
     }
 
-    private mutating func evaluatedGeometry(_ geometry: LottieShapeProgram.Geometry, at localFrame: Double, jsonPath: JSONPath) -> LottieRenderGeometry? {
+    private mutating func evaluatedGeometry(
+        _ geometry: LottieShapeProgram.Geometry,
+        sourceGeometry: LottieSourceGeometryTrace
+    ) -> LottieRenderGeometry? {
         switch geometry {
-        case let .path(path):
-            let result = frameEvaluator.evaluate(path.shape, at: localFrame, path: jsonPath.appending(.key("ks")))
-            diagnostics.append(contentsOf: result.diagnostics)
-            return result.value.map(LottieRenderGeometry.path)
-        case let .rectangle(rectangle):
-            let center = frameEvaluator.evaluate(rectangle.position, at: localFrame, path: jsonPath.appending(.key("p")))
-            let size = frameEvaluator.evaluate(rectangle.size, at: localFrame, path: jsonPath.appending(.key("s")))
-            diagnostics.append(contentsOf: center.diagnostics + size.diagnostics)
-            let roundness = rectangle.roundness.map { value -> Double in
-                let result = frameEvaluator.evaluate(value, at: localFrame, path: jsonPath.appending(.key("r")))
-                diagnostics.append(contentsOf: result.diagnostics)
-                return result.value
-            } ?? 0
-            return .rectangle(center: center.value, size: size.value, roundness: roundness)
-        case let .ellipse(ellipse):
-            let center = frameEvaluator.evaluate(ellipse.position, at: localFrame, path: jsonPath.appending(.key("p")))
-            let size = frameEvaluator.evaluate(ellipse.size, at: localFrame, path: jsonPath.appending(.key("s")))
-            diagnostics.append(contentsOf: center.diagnostics + size.diagnostics)
-            return .ellipse(center: center.value, size: size.value)
+        case .path, .polystar:
+            .path(sourceGeometry.bezier)
+        case .rectangle:
+            .rectangle(
+                center: sourceGeometry.fieldValue("p") ?? [],
+                size: sourceGeometry.fieldValue("s") ?? [],
+                roundness: sourceGeometry.fieldValue("r")?.first ?? 0
+            )
+        case .ellipse:
+            .ellipse(
+                center: sourceGeometry.fieldValue("p") ?? [],
+                size: sourceGeometry.fieldValue("s") ?? []
+            )
         }
     }
 
@@ -1084,11 +1093,18 @@ private struct LottieRenderFrameEmitter {
     private func isHandledByRenderIR(_ diagnostic: ValidationError) -> Bool {
         switch diagnostic.ruleID {
         case "lottie.evaluation.shape.rectangle.animated-geometry.unsupported",
-             "lottie.evaluation.shape.ellipse.animated-geometry.unsupported":
+             "lottie.evaluation.shape.ellipse.animated-geometry.unsupported",
+             "lottie.evaluation.shape.polystar.animated-geometry.unsupported":
             true
         default:
             false
         }
+    }
+}
+
+private extension LottieSourceGeometryTrace {
+    func fieldValue(_ field: String) -> [Double]? {
+        sourceFields.first { $0.field == field }?.value
     }
 }
 

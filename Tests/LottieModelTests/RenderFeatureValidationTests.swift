@@ -126,8 +126,8 @@ struct RenderFeatureValidationTests {
             "op": 30,
             "ks": {},
             "shapes": [
-              { "ty": "sr", "nm": "Star" },
-              { "ty": "sh", "nm": "Directed path", "d": 3, "ks": { "a": 0, "k": {} } },
+              { "ty": "sr", "nm": "Star", "sy": 3 },
+              { "ty": "sh", "nm": "Directed path", "d": 4, "ks": { "a": 0, "k": {} } },
               { "ty": "st", "nm": "Stroke", "c": { "a": 1, "k": [] }, "o": { "a": 0, "k": 100 }, "w": { "a": 1, "k": [] }, "lc": 2, "lj": 3, "ml": 4, "ml2": { "a": 0, "k": 4 }, "bm": 1, "d": [{ "n": "d", "v": { "a": 0, "k": 2 } }] },
               { "ty": "tm", "nm": "Offset trim", "s": { "a": 0, "k": 0 }, "e": { "a": 0, "k": 100 }, "o": { "a": 0, "k": 15 }, "m": 2 },
               { "ty": "tr", "nm": "Animated transform", "p": { "a": 1, "k": [] } }
@@ -137,7 +137,7 @@ struct RenderFeatureValidationTests {
         }
         """)
 
-        expect(errors, contains: "lottie.shape.type-modeled", at: "$.layers[0].shapes[0].ty")
+        expect(errors, contains: "lottie.shape.geometry-field", at: "$.layers[0].shapes[0].sy")
         expect(errors, contains: "lottie.shape.geometry-field", at: "$.layers[0].shapes[1].d")
         expect(errors, contains: "lottie.shape.style-field", at: "$.layers[0].shapes[2].bm")
         expect(errors, contains: "lottie.shape.style-field", at: "$.layers[0].shapes[2].c")

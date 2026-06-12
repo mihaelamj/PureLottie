@@ -282,7 +282,9 @@ final class ImportReportBuilder {
     }
 
     func reportShapeDiagnostics(_ diagnostics: [ValidationError]) {
-        for diagnostic in diagnostics where diagnostic.ruleID.hasPrefix("lottie.evaluation.shape.") {
+        for diagnostic in diagnostics where diagnostic.ruleID.hasPrefix("lottie.evaluation.shape.")
+            || diagnostic.ruleID.hasPrefix("lottie.evaluation.geometry.")
+        {
             let path = diagnostic.evidence ?? diagnostic.codingPath.description
             switch diagnostic.classification {
             case .approximate:

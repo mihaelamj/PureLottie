@@ -13,6 +13,7 @@ public indirect enum LottieShape: Sendable, Equatable {
     case path(ShapePath)
     case rectangle(ShapeRectangle)
     case ellipse(ShapeEllipse)
+    case polystar(ShapePolystar)
     case fill(ShapeFill)
     case stroke(ShapeStroke)
     case trim(ShapeTrim)
@@ -26,6 +27,7 @@ public indirect enum LottieShape: Sendable, Equatable {
         case let .path(path): path.name
         case let .rectangle(rectangle): rectangle.name
         case let .ellipse(ellipse): ellipse.name
+        case let .polystar(polystar): polystar.name
         case let .fill(fill): fill.name
         case let .stroke(stroke): stroke.name
         case let .trim(trim): trim.name
@@ -42,6 +44,7 @@ public indirect enum LottieShape: Sendable, Equatable {
         case let .path(path): path.isHidden == true
         case let .rectangle(rectangle): rectangle.isHidden == true
         case let .ellipse(ellipse): ellipse.isHidden == true
+        case let .polystar(polystar): polystar.isHidden == true
         case let .fill(fill): fill.isHidden == true
         case let .stroke(stroke): stroke.isHidden == true
         case let .trim(trim): trim.isHidden == true
@@ -69,6 +72,8 @@ extension LottieShape: Decodable {
             self = try .rectangle(ShapeRectangle(from: decoder))
         case "el":
             self = try .ellipse(ShapeEllipse(from: decoder))
+        case "sr":
+            self = try .polystar(ShapePolystar(from: decoder))
         case "fl":
             self = try .fill(ShapeFill(from: decoder))
         case "st":
@@ -101,11 +106,14 @@ public struct ShapeGroup: Decodable, Sendable, Equatable {
 public struct ShapePath: Decodable, Sendable, Equatable {
     public var name: String?
     public var isHidden: Bool?
+    /// Authored path direction (`d`), when present.
+    public var direction: Int?
     public var shape: AnimatedBezier
 
     private enum CodingKeys: String, CodingKey {
         case name = "nm"
         case isHidden = "hd"
+        case direction = "d"
         case shape = "ks"
     }
 }
@@ -114,6 +122,8 @@ public struct ShapePath: Decodable, Sendable, Equatable {
 public struct ShapeRectangle: Decodable, Sendable, Equatable {
     public var name: String?
     public var isHidden: Bool?
+    /// Authored path direction (`d`), when present.
+    public var direction: Int?
     public var position: AnimatedVector
     public var size: AnimatedVector
     public var roundness: AnimatedDouble?
@@ -121,6 +131,7 @@ public struct ShapeRectangle: Decodable, Sendable, Equatable {
     private enum CodingKeys: String, CodingKey {
         case name = "nm"
         case isHidden = "hd"
+        case direction = "d"
         case position = "p"
         case size = "s"
         case roundness = "r"
@@ -131,14 +142,47 @@ public struct ShapeRectangle: Decodable, Sendable, Equatable {
 public struct ShapeEllipse: Decodable, Sendable, Equatable {
     public var name: String?
     public var isHidden: Bool?
+    /// Authored path direction (`d`), when present.
+    public var direction: Int?
     public var position: AnimatedVector
     public var size: AnimatedVector
 
     private enum CodingKeys: String, CodingKey {
         case name = "nm"
         case isHidden = "hd"
+        case direction = "d"
         case position = "p"
         case size = "s"
+    }
+}
+
+/// An `sr` polystar primitive. Lottie uses `sy: 1` for star and `sy: 2` for
+/// polygon; semantic interpretation is done by `LottieEvaluation`.
+public struct ShapePolystar: Decodable, Sendable, Equatable {
+    public var name: String?
+    public var isHidden: Bool?
+    public var starType: Int?
+    public var direction: Int?
+    public var points: AnimatedDouble?
+    public var position: AnimatedVector?
+    public var rotation: AnimatedDouble?
+    public var innerRadius: AnimatedDouble?
+    public var innerRoundness: AnimatedDouble?
+    public var outerRadius: AnimatedDouble?
+    public var outerRoundness: AnimatedDouble?
+
+    private enum CodingKeys: String, CodingKey {
+        case name = "nm"
+        case isHidden = "hd"
+        case starType = "sy"
+        case direction = "d"
+        case points = "pt"
+        case position = "p"
+        case rotation = "r"
+        case innerRadius = "ir"
+        case innerRoundness = "is"
+        case outerRadius = "or"
+        case outerRoundness = "os"
     }
 }
 
