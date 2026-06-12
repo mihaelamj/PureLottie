@@ -95,3 +95,21 @@ The harness compares pixels only when validation, `ImportReport`, RenderIR
 diagnostics, and RenderIR-to-PureLayer backend evidence are clean. Generated
 artifacts live under
 `Tools/LottieOracle/artifacts/`.
+
+## APNG Export
+
+`LottieAPNGDump` imports a validated Lottie file into PureLayer and writes an
+animated PNG using PureLayer's `MovieExporter`.
+
+```sh
+swift run LottieAPNGDump \
+  --input Tests/Fixtures/LottieOracle/eligible-shape-position.json \
+  --output .build/exports/lottie-apng/eligible-shape-position.png \
+  --fps 12 \
+  --scale 2
+```
+
+The command writes a sibling `.report.json` with frame count, timing, pixel
+size, and import findings. A clean report plus APNG chunks (`acTL`, `fdAT`) is
+the direct proof that Lottie imported through PureLayer into a playable
+animation.
