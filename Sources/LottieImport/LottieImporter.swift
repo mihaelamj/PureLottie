@@ -59,6 +59,23 @@ final class ImportContext {
 public struct LottieImporter {
     public init() {}
 
+    /// Validates source JSON before decoding and importing.
+    ///
+    /// This is the safe entry point for external Lottie files. Validation
+    /// failures are thrown before any PureLayer tree is built; `ImportReport`
+    /// remains reserved for lowering limitations after validation succeeds.
+    public func scene(
+        from data: Data,
+        validator: LottieValidator = LottieValidator()
+    ) throws -> LottieScene {
+        let animation = try LottieAnimation.decodeValidated(from: data, using: validator)
+        return scene(from: animation)
+    }
+
+    /// Imports an already-decoded document.
+    ///
+    /// This low-level entry point assumes the caller has already validated the
+    /// source or intentionally wants raw model-level behavior for tests.
     public func scene(from animation: LottieAnimation) -> LottieScene {
         let context = ImportContext(animation: animation)
         let root = Layer()
