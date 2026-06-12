@@ -224,6 +224,9 @@ public struct LottieTransformEvaluator: Sendable {
 
     private func appendUnsupportedDiagnostics(for layer: LottieLayer, at path: JSONPath, diagnostics: inout [ValidationError]) {
         guard let transform = layer.transform else {
+            if let path = unsupported3DPath(for: layer, transform: nil, at: path) {
+                diagnostics.append(unsupported3DDiagnostic(at: path))
+            }
             if layer.isAutoOriented {
                 diagnostics.append(autoOrientDiagnostic(at: path))
             }
@@ -250,22 +253,42 @@ public struct LottieTransformEvaluator: Sendable {
             )
         }
 
-        if layer.is3D || transform.rotationX?.hasEffect == true || transform.rotationY?.hasEffect == true || transform.rotationZ?.hasEffect == true || transform.orientation?
-            .hasEffect == true
-        {
-            diagnostics.append(
-                diagnostic(
-                    ruleID: "lottie.evaluation.transform.3d.unsupported",
-                    reason: "3D transform/orientation must be lowered into PureLayer 2.5D semantics before exact frame evaluation.",
-                    path: path.appending(.key("ks")),
-                    classification: .gap
-                )
-            )
+        if let path = unsupported3DPath(for: layer, transform: transform, at: path) {
+            diagnostics.append(unsupported3DDiagnostic(at: path))
         }
 
         if layer.isAutoOriented {
             diagnostics.append(autoOrientDiagnostic(at: path))
         }
+    }
+
+    private func unsupported3DPath(for layer: LottieLayer, transform: LottieTransform?, at path: JSONPath) -> JSONPath? {
+        if layer.is3D {
+            return path.appending(.key("ddd"))
+        }
+        guard let transform else { return nil }
+        if transform.rotationX?.hasEffect == true {
+            return path.appending(.key("ks")).appending(.key("rx"))
+        }
+        if transform.rotationY?.hasEffect == true {
+            return path.appending(.key("ks")).appending(.key("ry"))
+        }
+        if transform.rotationZ?.hasEffect == true {
+            return path.appending(.key("ks")).appending(.key("rz"))
+        }
+        if transform.orientation?.hasEffect == true {
+            return path.appending(.key("ks")).appending(.key("or"))
+        }
+        return nil
+    }
+
+    private func unsupported3DDiagnostic(at path: JSONPath) -> ValidationError {
+        diagnostic(
+            ruleID: "lottie.evaluation.transform.3d.unsupported",
+            reason: "3D transform/orientation must be lowered into PureLayer 2.5D semantics before exact frame evaluation.",
+            path: path,
+            classification: .gap
+        )
     }
 
     private func autoOrientDiagnostic(at path: JSONPath) -> ValidationError {

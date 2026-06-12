@@ -175,8 +175,76 @@ struct LottieTransformEvaluatorTests {
         ])
         #expect(result.diagnostics.map(\.codingPath.description) == [
             "$.layers[0].ks.sk",
-            "$.layers[0].ks",
+            "$.layers[0].ddd",
             "$.layers[0].ao",
+        ])
+    }
+
+    @Test("3D layer flag reports even when ks is absent")
+    func threeDLayerFlagReportsWithoutTransform() throws {
+        let animation = try decode("""
+        {
+          "v": "5.7.4",
+          "fr": 30,
+          "ip": 0,
+          "op": 20,
+          "w": 200,
+          "h": 200,
+          "layers": [{
+            "ty": 3,
+            "ind": 1,
+            "ddd": 1,
+            "ip": 0,
+            "op": 20
+          }]
+        }
+        """)
+
+        let result = try LottieTransformEvaluator(animation: animation).localTransform(
+            for: #require(animation.layers.first),
+            at: 0,
+            path: JSONPath([.key("layers"), .index(0)])
+        )
+
+        #expect(result.diagnostics.map(\.ruleID) == [
+            "lottie.evaluation.transform.3d.unsupported",
+        ])
+        #expect(result.diagnostics.map(\.codingPath.description) == [
+            "$.layers[0].ddd",
+        ])
+    }
+
+    @Test("3D transform fields report their exact key path")
+    func threeDTransformFieldsUseExactPath() throws {
+        let animation = try decode("""
+        {
+          "v": "5.7.4",
+          "fr": 30,
+          "ip": 0,
+          "op": 20,
+          "w": 200,
+          "h": 200,
+          "layers": [{
+            "ty": 4,
+            "ind": 1,
+            "ip": 0,
+            "op": 20,
+            "ks": {
+              "rx": { "a": 0, "k": 15 }
+            },
+            "shapes": []
+          }]
+        }
+        """)
+
+        let result = try LottieTransformEvaluator(animation: animation).localTransform(
+            for: #require(animation.layers.first),
+            at: 0,
+            path: JSONPath([.key("layers"), .index(0)])
+        )
+
+        #expect(result.diagnostics.map(\.codingPath.description) == [
+            "$.layers[0].ks.rx",
         ])
     }
 
