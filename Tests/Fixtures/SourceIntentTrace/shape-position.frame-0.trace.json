@@ -1,0 +1,200 @@
+{
+  "schema" : {
+    "name" : "purelottie.source-intent-trace",
+    "version" : 1
+  },
+  "source" : {
+    "identity" : "shape-position",
+    "path" : "Tests/Fixtures/LottieOracle/eligible-shape-position.json",
+    "revision" : "fixture-v1",
+    "sha256" : null,
+    "byteCount" : null
+  },
+  "composition" : {
+    "name" : "Shape Position",
+    "version" : "5.7.4",
+    "width" : 64,
+    "height" : 64,
+    "inPoint" : 0,
+    "outPoint" : 10,
+    "frameRate" : 10,
+    "frameWindow" : "ipInclusiveOpExclusive",
+    "provenance" : {
+      "sourcePath" : "root",
+      "jsonPath" : "$",
+      "sourceRange" : null,
+      "consumedFields" : [
+        "$.v",
+        "$.w",
+        "$.h",
+        "$.ip",
+        "$.op",
+        "$.fr",
+        "$.layers"
+      ],
+      "preservedFields" : [
+        "$.nm"
+      ],
+      "unrepresentedFields" : []
+    }
+  },
+  "frames" : [
+    {
+      "sourceFrame" : 0,
+      "localTimeSeconds" : 0,
+      "visibleLayers" : [
+        {
+          "id" : "render#1",
+          "name" : "Moving Box",
+          "index" : 1,
+          "type" : "shape",
+          "renderOrder" : 0,
+          "localFrame" : 0,
+          "opacity" : 1,
+          "transform" : {
+            "anchor" : [ 0, 0, 0 ],
+            "position" : [ 0, 0, 0 ],
+            "scale" : [ 100, 100, 100 ],
+            "rotationZDegrees" : 0,
+            "is3DLayer" : false,
+            "matrix" : [
+              1, 0, 0, 0,
+              0, 1, 0, 0,
+              0, 0, 1, 0,
+              0, 0, 0, 1
+            ],
+            "matrixConvention" : {
+              "storageOrder" : "row-major-4x4",
+              "vectorConvention" : "row-vector",
+              "concatenationOrder" : "left-to-right",
+              "pointApplication" : "x'=x*m0+y*m4+z*m8+m12; y'=x*m1+y*m5+z*m9+m13"
+            },
+            "provenance" : {
+              "sourcePath" : "root > layer 'Moving Box' > transform",
+              "jsonPath" : "$.layers[0].ks",
+              "sourceRange" : null,
+              "consumedFields" : [
+                "$.layers[0].ks.a",
+                "$.layers[0].ks.p",
+                "$.layers[0].ks.s",
+                "$.layers[0].ks.r",
+                "$.layers[0].ks.o"
+              ],
+              "preservedFields" : [],
+              "unrepresentedFields" : []
+            }
+          },
+          "geometry" : [
+            {
+              "id" : "geometry#1",
+              "kind" : "rectangle",
+              "primitive" : "rc",
+              "parameters" : {
+                "center" : [ 32, 32 ],
+                "size" : [ 24, 24 ],
+                "roundness" : [ 0 ]
+              },
+              "path" : null,
+              "transformStack" : [],
+              "modifiers" : [],
+              "provenance" : {
+                "sourcePath" : "root > layer 'Moving Box' > rectangle 'Box'",
+                "jsonPath" : "$.layers[0].shapes[0]",
+                "sourceRange" : null,
+                "consumedFields" : [
+                  "$.layers[0].shapes[0].p",
+                  "$.layers[0].shapes[0].s",
+                  "$.layers[0].shapes[0].r"
+                ],
+                "preservedFields" : [
+                  "$.layers[0].shapes[0].nm",
+                  "$.layers[0].shapes[0].ty"
+                ],
+                "unrepresentedFields" : []
+              }
+            }
+          ],
+          "styles" : [
+            {
+              "id" : "style#1",
+              "kind" : "fill",
+              "color" : [ 0.95, 0.15, 0.2, 1 ],
+              "opacity" : 1,
+              "width" : null,
+              "lineCap" : null,
+              "lineJoin" : null,
+              "miterLimit" : null,
+              "dashPattern" : [],
+              "blendMode" : null,
+              "provenance" : {
+                "sourcePath" : "root > layer 'Moving Box' > fill 'Red'",
+                "jsonPath" : "$.layers[0].shapes[1]",
+                "sourceRange" : null,
+                "consumedFields" : [
+                  "$.layers[0].shapes[1].c",
+                  "$.layers[0].shapes[1].o"
+                ],
+                "preservedFields" : [
+                  "$.layers[0].shapes[1].nm",
+                  "$.layers[0].shapes[1].ty"
+                ],
+                "unrepresentedFields" : []
+              }
+            }
+          ],
+          "masks" : [],
+          "matte" : null,
+          "diagnostics" : [
+            {
+              "ruleID" : "lottie.evaluation.transform.skew.unsupported",
+              "severity" : "warning",
+              "phase" : "semantic",
+              "classification" : "reported",
+              "reason" : "Transform skew is present in source and is retained as an unsupported render-affecting fact.",
+              "evidence" : "The trace records the exact JSON path instead of silently lowering it.",
+              "provenance" : {
+                "sourcePath" : "root > layer 'Moving Box' > transform",
+                "jsonPath" : "$.layers[0].ks.sk",
+                "sourceRange" : null,
+                "consumedFields" : [],
+                "preservedFields" : [],
+                "unrepresentedFields" : [
+                  "$.layers[0].ks.sk"
+                ]
+              }
+            }
+          ],
+          "provenance" : {
+            "sourcePath" : "root > layer 'Moving Box'",
+            "jsonPath" : "$.layers[0]",
+            "sourceRange" : null,
+            "consumedFields" : [
+              "$.layers[0].ty",
+              "$.layers[0].ip",
+              "$.layers[0].op",
+              "$.layers[0].st",
+              "$.layers[0].ks",
+              "$.layers[0].shapes"
+            ],
+            "preservedFields" : [
+              "$.layers[0].nm",
+              "$.layers[0].ind"
+            ],
+            "unrepresentedFields" : []
+          }
+        }
+      ],
+      "diagnostics" : []
+    }
+  ],
+  "diagnostics" : [],
+  "roundTrip" : {
+    "laws" : [
+      "parse(traceJSON) preserves every trace field",
+      "encode(decode(traceJSON)) decodes to the same trace model",
+      "Every render-affecting loss is listed under unrepresentedFields or diagnostics"
+    ],
+    "normalForm" : "schema-v1-json",
+    "lossyFields" : []
+  }
+}
