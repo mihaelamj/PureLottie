@@ -25,7 +25,15 @@ The macOS full package gate requires access to the private PureLayer dependency.
 - `PURELAYER_TOKEN`: a GitHub token with read access to `mihaelamj/PureLayer` and any private transitive dependencies.
 - `PURELAYER_DEPLOY_KEY`: an SSH deploy key for `mihaelamj/PureLayer`. Prefer `PURELAYER_TOKEN` if transitive dependencies are private too.
 
-macOS, Linux, and Wasm model jobs intentionally run through `scripts/ci-model-only.swift`; Windows uses the equivalent `scripts/ci-model-only.ps1` because Swift script JIT is not reliable on the Windows runner. Both scripts create `.build/ci/model-only`, a temporary package containing only `Sources/LottieModel`, `Tests/LottieModelTests`, and `Tests/Fixtures`. This keeps cross-platform model checks honest while PureLayer resolution is still a dependency-gated full-package concern.
+macOS, Linux, and Wasm model jobs intentionally run through `scripts/ci-model-only.swift`; Windows uses the equivalent `scripts/ci-model-only.ps1` because Swift script JIT is not reliable on the Windows runner. Both scripts create `.build/ci/model-only`, a temporary package containing `Sources/LottieModel`, `Tests/LottieModelTests`, `Tests/Fixtures`, and conformance docs needed by model tests. This keeps cross-platform model checks honest while PureLayer resolution is still a dependency-gated full-package concern.
+
+## VM Debugger
+
+`LottieCompositionVM` emits backend-independent trace records in source-frame
+units. `LottieVMDebugger` consumes those records and provides deterministic
+step into, step over, step out, step back, breakpoint, and watch semantics for
+tests and a future IDE. Debugging stays inside `LottieEvaluation`; it does not
+import PureLayer or PureDraw.
 
 ## Local Gate
 
