@@ -35,6 +35,16 @@ step into, step over, step out, step back, breakpoint, and watch semantics for
 tests and a future IDE. Debugging stays inside `LottieEvaluation`; it does not
 import PureLayer or PureDraw.
 
+## Source-Intent Evaluation
+
+`LottieFrameEvaluator` evaluates modeled Lottie properties before backend
+lowering and returns typed `LottiePropertyEvaluationTrace` evidence with the
+source frame, offset/local frame, selected keyframe span, linear progress,
+Bezier timing result, final value, and spatial arc-length data when position
+`to`/`ti` tangents form a motion path. Spatial position follows lottie-web's
+sampled 150-segment arc-length algorithm for curved paths; incomplete tangent
+or timing-handle sets become semantic diagnostics instead of exact claims.
+
 ## Backend Gap Evidence
 
 `LottieRenderIRLowerer` reports unsupported PureLayer/PureDraw backend behavior
