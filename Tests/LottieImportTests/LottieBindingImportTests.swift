@@ -101,6 +101,26 @@ struct LottieBindingImportTests {
         #expect(sourceFinding?.sourceRange != nil)
     }
 
+    @Test("Track matte mode zero is not reported as unsupported")
+    func trackMatteModeZeroIsNotReportedAsUnsupported() throws {
+        let scene = try LottieImporter().scene(from: Data("""
+        {
+          "v": "5.7.4",
+          "fr": 30,
+          "ip": 0,
+          "op": 30,
+          "w": 64,
+          "h": 64,
+          "layers": [
+            { "ty": 4, "nm": "Shape", "ind": 1, "tt": 0, "ip": 0, "op": 30, "ks": {}, "shapes": [] }
+          ],
+          "assets": []
+        }
+        """.utf8))
+
+        #expect(scene.report.findings.isEmpty)
+    }
+
     @Test("Precomposition layer indices bind in their own namespace")
     func precompositionLayerIndicesBindInTheirOwnNamespace() throws {
         let scene = try importRaw("""

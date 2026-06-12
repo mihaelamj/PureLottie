@@ -258,6 +258,7 @@ final class LottieBinder {
 
     private func resolveMatte(for layer: BoundLayer, in composition: BoundComposition) -> BoundMatte? {
         guard let mode = layer.layer.trackMatteType else { return nil }
+        guard mode != 0 else { return nil }
 
         if let explicitIndex = layer.layer.trackMatteParent {
             guard let source = composition.layersByIndex[explicitIndex] else {
