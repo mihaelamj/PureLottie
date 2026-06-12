@@ -87,7 +87,7 @@ struct LottieFrameDump {
         importFindings: [ImportReport.Finding],
         dumpedFrames: [DumpFrameSummary]
     ) throws {
-        let renderFrames = optionsRenderFrames(animation: animation, frames: dumpedFrames.map(\.frame))
+        let renderFrames = optionsRenderFrames(animation: animation, input: input, dumpedFrames: dumpedFrames)
         let summary = DumpSummary(
             input: input.path,
             scale: scale,
@@ -121,11 +121,23 @@ struct LottieFrameDump {
         try data.write(to: output.appendingPathComponent("oracle-summary.json"))
     }
 
-    private static func optionsRenderFrames(animation: LottieAnimation, frames: [Double]) -> [RenderFrameSummary] {
+    private static func optionsRenderFrames(
+        animation: LottieAnimation,
+        input: URL,
+        dumpedFrames: [DumpFrameSummary]
+    ) -> [RenderFrameSummary] {
         let builder = LottieRenderIRBuilder(animation: animation)
-        return frames.map { frame in
-            let renderFrame = builder.frame(at: frame)
-            return RenderFrameSummary(frame: renderFrame)
+        return dumpedFrames.map { dumpedFrame in
+            let renderFrame = builder.frame(at: dumpedFrame.frame)
+            let evidenceContext = LottieBackendEvidenceContext(
+                sourceFixture: input.path,
+                expectedLottieWebFrameArtifact: "../reference/\(dumpedFrame.file)",
+                pureLayerFrameArtifact: dumpedFrame.rendered ? dumpedFrame.file : nil
+            )
+            let backendReport = LottieRenderIRLowerer()
+                .lower(renderFrame, evidenceContext: evidenceContext)
+                .report
+            return RenderFrameSummary(frame: renderFrame, backendReport: backendReport)
         }
     }
 }
@@ -259,6 +271,7 @@ private struct ImportFindingSummary: Encodable {
     var sourceRange: SourceRangeSummary?
     var feature: String
     var disposition: String
+    var evidence: BackendGapEvidenceSummary?
 
     init(_ finding: ImportReport.Finding) {
         path = finding.path
@@ -266,6 +279,97 @@ private struct ImportFindingSummary: Encodable {
         sourceRange = finding.sourceRange.map(SourceRangeSummary.init)
         feature = finding.feature
         disposition = finding.disposition.rawValue
+        evidence = finding.evidence.map(BackendGapEvidenceSummary.init)
+    }
+}
+
+private struct BackendGapEvidenceSummary: Encodable {
+    var owner: String
+    var sourceFixture: String?
+    var sourceFrame: Double
+    var frameRate: Double
+    var lottiePath: String
+    var jsonPath: String?
+    var sourceRange: SourceRangeSummary?
+    var vmTrace: BackendVMTraceSummary?
+    var renderNode: BackendRenderNodeSummary?
+    var renderTerm: BackendRenderTermSummary?
+    var expectedLottieWebFrameArtifact: String?
+    var pureLayerFrameArtifact: String?
+
+    init(_ evidence: LottieBackendGapEvidence) {
+        owner = evidence.owner.rawValue
+        sourceFixture = evidence.sourceFixture
+        sourceFrame = evidence.sourceFrame
+        frameRate = evidence.frameRate
+        lottiePath = evidence.lottiePath
+        jsonPath = evidence.jsonPath
+        sourceRange = evidence.sourceRange.map(SourceRangeSummary.init)
+        vmTrace = evidence.vmTrace.map(BackendVMTraceSummary.init)
+        renderNode = evidence.renderNode.map(BackendRenderNodeSummary.init)
+        renderTerm = evidence.renderTerm.map(BackendRenderTermSummary.init)
+        expectedLottieWebFrameArtifact = evidence.expectedLottieWebFrameArtifact
+        pureLayerFrameArtifact = evidence.pureLayerFrameArtifact
+    }
+}
+
+private struct BackendVMTraceSummary: Encodable {
+    var nodeID: String?
+    var instruction: String?
+    var compositionStack: [String]
+    var layerStack: [String]
+    var transformStack: [String]
+    var styleStack: [String]
+    var matteStack: [String]
+    var reason: String?
+
+    init(_ trace: LottieBackendGapEvidence.VMTrace) {
+        nodeID = trace.nodeID
+        instruction = trace.instruction
+        compositionStack = trace.compositionStack
+        layerStack = trace.layerStack
+        transformStack = trace.transformStack
+        styleStack = trace.styleStack
+        matteStack = trace.matteStack
+        reason = trace.reason
+    }
+}
+
+private struct BackendRenderNodeSummary: Encodable {
+    var nodeID: String
+    var kind: String
+    var layerName: String
+    var layerIndex: Int?
+    var sourcePath: String
+    var jsonPath: String
+    var localFrame: Double
+    var opacity: Double
+    var explanation: String
+
+    init(_ node: LottieBackendGapEvidence.RenderNode) {
+        nodeID = node.nodeID
+        kind = node.kind
+        layerName = node.layerName
+        layerIndex = node.layerIndex
+        sourcePath = node.sourcePath
+        jsonPath = node.jsonPath
+        localFrame = node.localFrame
+        opacity = node.opacity
+        explanation = node.explanation
+    }
+}
+
+private struct BackendRenderTermSummary: Encodable {
+    var kind: String
+    var sourcePath: String
+    var jsonPath: String
+    var values: [String: String]
+
+    init(_ term: LottieBackendGapEvidence.RenderTerm) {
+        kind = term.kind
+        sourcePath = term.sourcePath
+        jsonPath = term.jsonPath
+        values = term.values
     }
 }
 
@@ -281,13 +385,17 @@ private struct RenderFrameSummary: Encodable {
     var nodeCount: Int
     var diagnosticCount: Int
     var diagnostics: [ValidationErrorSummary]
+    var backendEvidenceFindingCount: Int
+    var backendEvidenceFindings: [ImportFindingSummary]
     var nodes: [RenderNodeSummary]
 
-    init(frame: LottieRenderFrame) {
+    init(frame: LottieRenderFrame, backendReport: ImportReport) {
         self.frame = frame.sourceFrame
         nodeCount = frame.nodes.count
         diagnosticCount = frame.diagnostics.count
         diagnostics = frame.diagnostics.map(ValidationErrorSummary.init)
+        backendEvidenceFindingCount = backendReport.findings.count
+        backendEvidenceFindings = backendReport.findings.map(ImportFindingSummary.init)
         nodes = frame.nodes.map(RenderNodeSummary.init)
     }
 }

@@ -24,8 +24,11 @@ public struct LottieRenderIRLowerer {
     public init() {}
 
     /// Builds a PureLayer tree for one evaluated frame.
-    public func lower(_ frame: LottieRenderFrame) -> LottieRenderLayerTree {
-        let context = RenderIRLoweringContext(frame: frame)
+    public func lower(
+        _ frame: LottieRenderFrame,
+        evidenceContext: LottieBackendEvidenceContext = .init()
+    ) -> LottieRenderLayerTree {
+        let context = RenderIRLoweringContext(frame: frame, evidenceContext: evidenceContext)
         context.reportFrameDiagnostics(frame.diagnostics)
 
         let root = Layer()
@@ -44,10 +47,12 @@ public struct LottieRenderIRLowerer {
 
 private final class RenderIRLoweringContext {
     let frame: LottieRenderFrame
+    let evidenceContext: LottieBackendEvidenceContext
     let report = ImportReportBuilder()
 
-    init(frame: LottieRenderFrame) {
+    init(frame: LottieRenderFrame, evidenceContext: LottieBackendEvidenceContext) {
         self.frame = frame
+        self.evidenceContext = evidenceContext
     }
 
     func reportFrameDiagnostics(_ diagnostics: [ValidationError]) {
@@ -77,35 +82,43 @@ private final class RenderIRLoweringContext {
             layer = carrierLayer()
         case let .imagePlaceholder(asset):
             let suffix = asset.map { " '\($0.id)'" } ?? ""
-            report.skip("image layer\(suffix)", at: node.source.sourcePath, sourcePath: node.source.jsonPath)
+            skipBackend("image layer\(suffix)", at: node.source, node: node)
             layer = nil
         case .textPlaceholder:
-            report.skip("text layer", at: node.source.sourcePath, sourcePath: node.source.jsonPath)
+            skipBackend("text layer", at: node.source, node: node)
             layer = nil
         case let .precompositionBoundary(precomposition):
-            report.approximate(
+            approximateBackend(
                 "precomposition boundary '\(precomposition.assetID)' flattened into evaluated child nodes",
-                at: node.source.sourcePath,
-                sourcePath: node.source.jsonPath
+                at: node.source,
+                node: node
             )
             layer = carrierLayer()
         case let .unsupportedLayer(rawType):
-            report.skip("layer type \(rawType)", at: node.source.sourcePath, sourcePath: node.source.jsonPath)
+            skipBackend("layer type \(rawType)", at: node.source, node: node)
             layer = nil
         }
 
         guard let layer else { return nil }
         apply(node, to: layer)
-        applyMasks(node.masks, to: layer, at: node.source)
+        applyMasks(node.masks, to: layer, at: node)
         return layer
     }
 
     private func reportNodeGaps(_ node: LottieRenderNode) {
         if let marker = node.matteSourceMarker {
-            report.skip(
+            let jsonPath = node.source.jsonPath.appending(.key("td"))
+            skipBackend(
                 "track matte source marker \(marker)",
-                at: node.source.sourcePath,
-                sourcePath: node.source.jsonPath.appending(.key("td"))
+                at: node.source,
+                node: node,
+                jsonPath: jsonPath,
+                term: evidenceTerm(
+                    "matteSourceMarker",
+                    source: node.source,
+                    jsonPath: jsonPath,
+                    values: ["marker": "\(marker)"]
+                )
             )
         }
         if let matte = node.matte {
@@ -113,13 +126,47 @@ private final class RenderIRLoweringContext {
             if let sourcePath = matte.sourcePath {
                 feature += " using \(sourcePath)"
             }
-            report.skip(feature, at: node.source.sourcePath, sourcePath: node.source.jsonPath.appending(.key("tt")))
+            let jsonPath = node.source.jsonPath.appending(.key("tt"))
+            skipBackend(
+                feature,
+                at: node.source,
+                node: node,
+                jsonPath: jsonPath,
+                term: evidenceTerm(
+                    "trackMatte",
+                    source: node.source,
+                    jsonPath: jsonPath,
+                    values: [
+                        "explicitSource": "\(matte.isExplicitSource)",
+                        "mode": "\(matte.mode)",
+                        "sourceLayerIndex": matte.sourceLayerIndex.map(String.init) ?? "",
+                        "sourcePath": matte.sourcePath ?? "",
+                    ]
+                )
+            )
         }
         if let blendMode = node.compositing.blendMode, blendMode != 0 {
-            report.skip("layer blend mode \(blendMode)", at: node.source.sourcePath, sourcePath: node.source.jsonPath)
+            skipBackend(
+                "layer blend mode \(blendMode)",
+                at: node.source,
+                node: node,
+                term: evidenceTerm("layerCompositing", source: node.source, values: ["blendMode": "\(blendMode)"])
+            )
         }
         for filter in node.filters {
-            report.skip("filter '\(filter.type)'", at: filter.source.sourcePath, sourcePath: filter.source.jsonPath)
+            skipBackend(
+                "filter '\(filter.type)'",
+                at: filter.source,
+                node: node,
+                term: evidenceTerm(
+                    "filter",
+                    source: filter.source,
+                    values: [
+                        "name": filter.name ?? "",
+                        "type": filter.type,
+                    ]
+                )
+            )
         }
     }
 
@@ -137,9 +184,9 @@ private final class RenderIRLoweringContext {
         return layer
     }
 
-    private func shapeLayerContainer(for shape: LottieRenderShape, node _: LottieRenderNode) -> Layer {
+    private func shapeLayerContainer(for shape: LottieRenderShape, node: LottieRenderNode) -> Layer {
         let layer = carrierLayer()
-        for sublayer in shapeLayers(for: shape.nodes, bounds: layer.bounds) {
+        for sublayer in shapeLayers(for: shape.nodes, bounds: layer.bounds, node: node) {
             layer.addSublayer(sublayer)
         }
         return layer
@@ -164,23 +211,38 @@ private final class RenderIRLoweringContext {
         )
     }
 
-    private func applyMasks(_ masks: [LottieRenderMask], to layer: Layer, at source: LottieRenderSource) {
+    private func applyMasks(_ masks: [LottieRenderMask], to layer: Layer, at node: LottieRenderNode) {
         guard !masks.isEmpty else { return }
         guard masks.count == 1, let mask = masks.first else {
-            report.skip("multiple masks", at: source.sourcePath, sourcePath: source.jsonPath)
+            skipBackend("multiple masks", at: node.source, node: node)
             return
         }
         guard mask.mode == "a" || mask.mode == "n" else {
-            report.skip("mask mode '\(mask.mode)'", at: mask.source.sourcePath, sourcePath: mask.source.jsonPath)
+            skipBackend(
+                "mask mode '\(mask.mode)'",
+                at: mask.source,
+                node: node,
+                term: evidenceTerm("mask", source: mask.source, values: maskEvidenceValues(mask))
+            )
             return
         }
         guard mask.mode != "n" else { return }
         guard !mask.isInverted else {
-            report.skip("inverted mask", at: mask.source.sourcePath, sourcePath: mask.source.jsonPath)
+            skipBackend(
+                "inverted mask",
+                at: mask.source,
+                node: node,
+                term: evidenceTerm("mask", source: mask.source, values: maskEvidenceValues(mask))
+            )
             return
         }
         guard let bezier = mask.path else {
-            report.skip("missing mask path", at: mask.source.sourcePath, sourcePath: mask.source.jsonPath)
+            skipBackend(
+                "missing mask path",
+                at: mask.source,
+                node: node,
+                term: evidenceTerm("mask", source: mask.source, values: maskEvidenceValues(mask))
+            )
             return
         }
 
@@ -194,26 +256,26 @@ private final class RenderIRLoweringContext {
         layer.mask = maskLayer
     }
 
-    private func shapeLayers(for nodes: [LottieRenderShapeNode], bounds: Rect) -> [Layer] {
-        nodes.flatMap { node -> [Layer] in
-            switch node {
+    private func shapeLayers(for nodes: [LottieRenderShapeNode], bounds: Rect, node: LottieRenderNode) -> [Layer] {
+        nodes.flatMap { shapeNode -> [Layer] in
+            switch shapeNode {
             case let .draw(draw):
-                shapeLayers(for: draw, bounds: bounds)
+                shapeLayers(for: draw, bounds: bounds, node: node)
             case let .transparencyGroup(group):
-                transparencyLayer(for: group, bounds: bounds)
+                transparencyLayer(for: group, bounds: bounds, node: node)
             }
         }
     }
 
-    private func shapeLayers(for draw: LottieRenderShapeDraw, bounds: Rect) -> [Layer] {
+    private func shapeLayers(for draw: LottieRenderShapeDraw, bounds: Rect, node: LottieRenderNode) -> [Layer] {
         let runs = pathRuns(for: draw)
         return runs.compactMap { run in
-            shapeLayer(for: run.path, trim: run.trim, style: draw.style, bounds: bounds, source: draw.source)
+            shapeLayer(for: run.path, trim: run.trim, style: draw.style, bounds: bounds, source: draw.source, node: node)
         }
     }
 
-    private func transparencyLayer(for group: LottieRenderShapeGroup, bounds: Rect) -> [Layer] {
-        let childLayers = shapeLayers(for: group.nodes, bounds: bounds)
+    private func transparencyLayer(for group: LottieRenderShapeGroup, bounds: Rect, node: LottieRenderNode) -> [Layer] {
+        let childLayers = shapeLayers(for: group.nodes, bounds: bounds, node: node)
         guard !childLayers.isEmpty else { return [] }
         guard abs(group.opacity - 1) > 0.0001 else { return childLayers }
 
@@ -307,7 +369,8 @@ private final class RenderIRLoweringContext {
         trim: LottieRenderTrim?,
         style: LottieRenderShapeStyle,
         bounds: Rect,
-        source: LottieRenderSource
+        source: LottieRenderSource,
+        node: LottieRenderNode
     ) -> ShapeLayer? {
         let layer = ShapeLayer()
         layer.bounds = bounds
@@ -317,56 +380,106 @@ private final class RenderIRLoweringContext {
 
         switch style {
         case let .fill(fill):
-            apply(fill, to: layer, at: source)
+            apply(fill, to: layer, at: source, node: node)
             if let trim, !isIdentity(trim) {
-                report.skip("trimmed fill path", at: source.sourcePath, sourcePath: source.jsonPath)
+                skipBackend(
+                    "trimmed fill path",
+                    at: source,
+                    node: node,
+                    term: evidenceTerm("trimmedFill", source: trim.source, values: trimEvidenceValues(trim))
+                )
             }
         case let .stroke(stroke):
-            apply(stroke, to: layer, at: source)
+            apply(stroke, to: layer, at: source, node: node)
             if let trim {
-                apply(trim, to: layer)
+                apply(trim, to: layer, node: node)
             }
         }
         return layer
     }
 
-    private func apply(_ fill: LottieRenderFillStyle, to layer: ShapeLayer, at source: LottieRenderSource) {
+    private func apply(_ fill: LottieRenderFillStyle, to layer: ShapeLayer, at source: LottieRenderSource, node: LottieRenderNode) {
         if let blendMode = fill.blendMode, blendMode != 0 {
-            report.skip("fill blend mode", at: source.sourcePath, sourcePath: source.jsonPath)
+            skipBackend(
+                "fill blend mode",
+                at: source,
+                node: node,
+                term: evidenceTerm("fillStyle", source: source, values: fillEvidenceValues(fill))
+            )
         }
         layer.fillColor = color(from: fill.color, opacity: fill.opacity)
         layer.fillRule = fill.fillRule == 2 ? .evenOdd : .winding
     }
 
-    private func apply(_ stroke: LottieRenderStrokeStyle, to layer: ShapeLayer, at source: LottieRenderSource) {
+    private func apply(_ stroke: LottieRenderStrokeStyle, to layer: ShapeLayer, at source: LottieRenderSource, node: LottieRenderNode) {
         if let blendMode = stroke.blendMode, blendMode != 0 {
-            report.skip("stroke blend mode", at: source.sourcePath, sourcePath: source.jsonPath)
+            skipBackend(
+                "stroke blend mode",
+                at: source,
+                node: node,
+                term: evidenceTerm("strokeStyle", source: source, values: strokeEvidenceValues(stroke))
+            )
         }
         if let lineCap = stroke.lineCap, lineCap != 1 {
-            report.skip("stroke line cap", at: source.sourcePath, sourcePath: source.jsonPath)
+            skipBackend(
+                "stroke line cap",
+                at: source,
+                node: node,
+                term: evidenceTerm("strokeStyle", source: source, values: strokeEvidenceValues(stroke))
+            )
         }
         if let lineJoin = stroke.lineJoin, lineJoin != 1 {
-            report.skip("stroke line join", at: source.sourcePath, sourcePath: source.jsonPath)
+            skipBackend(
+                "stroke line join",
+                at: source,
+                node: node,
+                term: evidenceTerm("strokeStyle", source: source, values: strokeEvidenceValues(stroke))
+            )
         }
         if let miterLimit = stroke.miterLimit, abs(miterLimit - 10) > 0.0001 {
-            report.skip("stroke miter limit", at: source.sourcePath, sourcePath: source.jsonPath)
+            skipBackend(
+                "stroke miter limit",
+                at: source,
+                node: node,
+                term: evidenceTerm("strokeStyle", source: source, values: strokeEvidenceValues(stroke))
+            )
         }
         if stroke.secondaryMiterLimit != nil {
-            report.skip("secondary stroke miter limit", at: source.sourcePath, sourcePath: source.jsonPath)
+            skipBackend(
+                "secondary stroke miter limit",
+                at: source,
+                node: node,
+                term: evidenceTerm("strokeStyle", source: source, values: strokeEvidenceValues(stroke))
+            )
         }
         if hasDashPattern(stroke.dashPattern) {
-            report.skip("stroke dash pattern", at: source.sourcePath, sourcePath: source.jsonPath)
+            skipBackend(
+                "stroke dash pattern",
+                at: source,
+                node: node,
+                term: evidenceTerm("strokeStyle", source: source, values: strokeEvidenceValues(stroke))
+            )
         }
         layer.strokeColor = color(from: stroke.color, opacity: stroke.opacity)
         layer.lineWidth = stroke.width
     }
 
-    private func apply(_ trim: LottieRenderTrim, to layer: ShapeLayer) {
+    private func apply(_ trim: LottieRenderTrim, to layer: ShapeLayer, node: LottieRenderNode) {
         if trim.multiple == 2 {
-            report.approximate("individual trim (trimmed as one length)", at: trim.source.sourcePath, sourcePath: trim.source.jsonPath)
+            approximateBackend(
+                "individual trim (trimmed as one length)",
+                at: trim.source,
+                node: node,
+                term: evidenceTerm("trimPath", source: trim.source, values: trimEvidenceValues(trim))
+            )
         }
         if abs(trim.offset) > 0.0001 {
-            report.skip("trim offset", at: trim.source.sourcePath, sourcePath: trim.source.jsonPath)
+            skipBackend(
+                "trim offset",
+                at: trim.source,
+                node: node,
+                term: evidenceTerm("trimPath", source: trim.source, values: trimEvidenceValues(trim))
+            )
         }
         layer.strokeStart = fraction(trim.start)
         layer.strokeEnd = fraction(trim.end)
@@ -391,6 +504,156 @@ private final class RenderIRLoweringContext {
         }
     }
 
+    private func skipBackend(
+        _ feature: String,
+        at source: LottieRenderSource,
+        node: LottieRenderNode?,
+        jsonPath: JSONPath? = nil,
+        term: LottieBackendGapEvidence.RenderTerm? = nil
+    ) {
+        let findingJSONPath = jsonPath ?? source.jsonPath
+        report.skip(
+            feature,
+            at: source.sourcePath,
+            sourcePath: findingJSONPath,
+            sourceRange: source.sourceRange,
+            evidence: backendEvidence(
+                owner: .backendCapability,
+                at: source,
+                jsonPath: findingJSONPath,
+                node: node,
+                term: term
+            )
+        )
+    }
+
+    private func approximateBackend(
+        _ feature: String,
+        at source: LottieRenderSource,
+        node: LottieRenderNode?,
+        jsonPath: JSONPath? = nil,
+        term: LottieBackendGapEvidence.RenderTerm? = nil
+    ) {
+        let findingJSONPath = jsonPath ?? source.jsonPath
+        report.approximate(
+            feature,
+            at: source.sourcePath,
+            sourcePath: findingJSONPath,
+            sourceRange: source.sourceRange,
+            evidence: backendEvidence(
+                owner: .intentionalApproximation,
+                at: source,
+                jsonPath: findingJSONPath,
+                node: node,
+                term: term
+            )
+        )
+    }
+
+    private func backendEvidence(
+        owner: LottieBackendGapEvidence.Owner,
+        at source: LottieRenderSource,
+        jsonPath: JSONPath,
+        node: LottieRenderNode?,
+        term: LottieBackendGapEvidence.RenderTerm?
+    ) -> LottieBackendGapEvidence {
+        LottieBackendGapEvidence(
+            owner: owner,
+            sourceFixture: evidenceContext.sourceFixture,
+            sourceFrame: frame.sourceFrame,
+            frameRate: frame.frameRate,
+            lottiePath: source.sourcePath,
+            jsonPath: jsonPath.description,
+            sourceRange: source.sourceRange,
+            vmTrace: node.map(traceEvidence),
+            renderNode: node.map(renderNodeEvidence),
+            renderTerm: term,
+            expectedLottieWebFrameArtifact: evidenceContext.expectedLottieWebFrameArtifact,
+            pureLayerFrameArtifact: evidenceContext.pureLayerFrameArtifact
+        )
+    }
+
+    private func traceEvidence(for node: LottieRenderNode) -> LottieBackendGapEvidence.VMTrace {
+        LottieBackendGapEvidence.VMTrace(
+            nodeID: node.trace.nodeID.description,
+            instruction: node.trace.instruction.rawValue,
+            compositionStack: node.trace.compositionStack,
+            layerStack: node.trace.layerStack,
+            transformStack: node.trace.transformStack,
+            styleStack: node.trace.styleStack,
+            matteStack: node.trace.matteStack,
+            reason: node.trace.reason
+        )
+    }
+
+    private func renderNodeEvidence(for node: LottieRenderNode) -> LottieBackendGapEvidence.RenderNode {
+        LottieBackendGapEvidence.RenderNode(
+            nodeID: node.id.description,
+            kind: node.kind.evidenceKind,
+            layerName: node.layerName,
+            layerIndex: node.layerIndex,
+            sourcePath: node.source.sourcePath,
+            jsonPath: node.source.jsonPath.description,
+            localFrame: node.localFrame,
+            opacity: node.opacity,
+            explanation: node.explanation
+        )
+    }
+
+    private func evidenceTerm(
+        _ kind: String,
+        source: LottieRenderSource,
+        jsonPath: JSONPath? = nil,
+        values: [String: String] = [:]
+    ) -> LottieBackendGapEvidence.RenderTerm {
+        LottieBackendGapEvidence.RenderTerm(
+            kind: kind,
+            sourcePath: source.sourcePath,
+            jsonPath: (jsonPath ?? source.jsonPath).description,
+            values: values
+        )
+    }
+
+    private func maskEvidenceValues(_ mask: LottieRenderMask) -> [String: String] {
+        [
+            "inverted": "\(mask.isInverted)",
+            "mode": mask.mode,
+            "name": mask.name ?? "",
+            "opacity": "\(mask.opacity)",
+            "pathEvaluated": "\(mask.path != nil)",
+        ]
+    }
+
+    private func fillEvidenceValues(_ fill: LottieRenderFillStyle) -> [String: String] {
+        [
+            "blendMode": fill.blendMode.map { String($0) } ?? "",
+            "color": fill.color.map { String($0) }.joined(separator: ","),
+            "fillRule": fill.fillRule.map { String($0) } ?? "",
+            "opacity": "\(fill.opacity)",
+        ]
+    }
+
+    private func strokeEvidenceValues(_ stroke: LottieRenderStrokeStyle) -> [String: String] {
+        [
+            "blendMode": stroke.blendMode.map { String($0) } ?? "",
+            "dashCount": "\(stroke.dashPattern.count)",
+            "lineCap": stroke.lineCap.map { String($0) } ?? "",
+            "lineJoin": stroke.lineJoin.map { String($0) } ?? "",
+            "miterLimit": stroke.miterLimit.map { String($0) } ?? "",
+            "secondaryMiterLimit": stroke.secondaryMiterLimit.map { String($0) } ?? "",
+            "width": "\(stroke.width)",
+        ]
+    }
+
+    private func trimEvidenceValues(_ trim: LottieRenderTrim) -> [String: String] {
+        [
+            "end": "\(trim.end)",
+            "multiple": trim.multiple.map { String($0) } ?? "",
+            "offset": "\(trim.offset)",
+            "start": "\(trim.start)",
+        ]
+    }
+
     private func color(from components: [Double], opacity: Double) -> Color {
         Color(
             red: components.scalar(0),
@@ -402,6 +665,27 @@ private final class RenderIRLoweringContext {
 
     private func fraction(_ percent: Double) -> Double {
         min(max(percent / 100, 0), 1)
+    }
+}
+
+private extension LottieRenderNode.Kind {
+    var evidenceKind: String {
+        switch self {
+        case .shape:
+            "shape"
+        case .solid:
+            "solid"
+        case .null:
+            "null"
+        case .imagePlaceholder:
+            "imagePlaceholder"
+        case .textPlaceholder:
+            "textPlaceholder"
+        case .precompositionBoundary:
+            "precompositionBoundary"
+        case let .unsupportedLayer(rawType):
+            "unsupportedLayer(\(rawType))"
+        }
     }
 }
 

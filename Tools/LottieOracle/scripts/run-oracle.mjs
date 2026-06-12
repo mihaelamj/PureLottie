@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { comparePngDirectories } from './compare-images.mjs';
+import { backendEvidenceFindingCount, comparisonEligibility } from './eligibility.mjs';
 import { renderReferenceFrames } from './render-reference.mjs';
 
 const require = createRequire(import.meta.url);
@@ -50,31 +51,6 @@ function resolveFromOracleRoot(relativePath) {
   return path.resolve(oracleRoot, relativePath);
 }
 
-function comparisonEligibility(summary) {
-  const validationEligible = summary.validation?.eligible === true;
-  const importClean = summary.importReport?.clean === true;
-  const renderIRClean = (summary.renderIR ?? []).every((frame) => frame.diagnosticCount === 0);
-
-  const reasons = [];
-  if (!validationEligible) {
-    reasons.push('validation reported silent-risk or invalid source features');
-  }
-  if (!importClean) {
-    reasons.push('PureLayer import report contains skipped or approximated features');
-  }
-  if (!renderIRClean) {
-    reasons.push('RenderIR contains semantic diagnostics for selected frames');
-  }
-
-  return {
-    allowed: reasons.length === 0,
-    validationEligible,
-    importClean,
-    renderIRClean,
-    reasons
-  };
-}
-
 function writeJson(file, value) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`);
@@ -115,6 +91,7 @@ ${frameRows}
 - Validation errors: \`${report.validation.errorCount}\`
 - Import findings: \`${report.importReport.findingCount}\`
 - RenderIR diagnostics: \`${report.renderIRDiagnosticCount}\`
+- RenderIR backend evidence findings: \`${report.backendEvidenceFindingCount}\`
 - Reference non-empty check: \`${report.referenceIntegrity.status}\`
 
 ${reasons}
@@ -192,6 +169,7 @@ async function runFixture(fixture, options) {
     (count, frame) => count + Number(frame.diagnosticCount ?? 0),
     0
   );
+  const backendEvidenceCount = backendEvidenceFindingCount(summary);
   const semanticTraces = {
     id: fixture.id,
     frames: summary.renderIR
@@ -229,6 +207,7 @@ async function runFixture(fixture, options) {
     validation: summary.validation,
     importReport: summary.importReport,
     renderIRDiagnosticCount,
+    backendEvidenceFindingCount: backendEvidenceCount,
     referenceIntegrity,
     comparisonEligibility: eligibility,
     comparison: {

@@ -31,8 +31,8 @@ Artifacts are written to `Tools/LottieOracle/artifacts/<fixture-id>/`:
 | `reference/` | PNG frames rendered by pinned `lottie-web`. |
 | `purelayer/` | PNG frames rendered by `swift run LottieFrameDump`, plus `oracle-summary.json`. |
 | `diff/` | Pixel-difference PNGs, one per compared frame. |
-| `semantic-traces.json` | RenderIR node and trace summaries for every selected frame. |
-| `mismatch-traces.json` | RenderIR trace summaries only for frames that differ. |
+| `semantic-traces.json` | RenderIR node, trace, and backend evidence summaries for every selected frame. |
+| `mismatch-traces.json` | RenderIR trace and backend evidence summaries only for frames that differ. |
 | `comparison-report.json` | Machine-readable report. |
 | `comparison-report.md` | Human-readable report. |
 
@@ -43,6 +43,7 @@ The harness compares pixels only when all of these are true:
 - `LottieValidator` reports no validation errors.
 - `ImportReport` is clean, so PureLayer lowering did not skip or approximate a feature.
 - RenderIR diagnostics are empty for the selected frames.
+- RenderIR-to-PureLayer backend evidence is empty for the selected frames.
 - Fixtures marked `expectReferenceNonEmpty` produce non-empty lottie-web reference frames.
 
 A pretty image is not evidence by itself. The report records validation eligibility, import findings, RenderIR diagnostics, selected frame numbers, and the reason each frame was selected.
