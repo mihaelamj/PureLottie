@@ -52,6 +52,17 @@ final class CorpusSemanticLedgerTests: XCTestCase {
         )
     }
 
+    func testConformanceMatrixStatusParserAcceptsCRLFLineEndings() {
+        let matrix = """
+        area,original_semantics,corpus_evidence,purelottie_model,purelottie_import,target,status,required_validation
+        Timing,"Frames, not seconds.",1,Model,Import,Layer,lowered,"Unit test."
+        Transform,"Target has, comma.",1,Model,Import,"Layer, Path",approx,"Matrix test."
+        """
+        let windowsMatrix = matrix.replacingOccurrences(of: "\n", with: "\r\n")
+
+        XCTAssertEqual(conformanceMatrixStatuses(from: windowsMatrix), Set(["lowered", "approx"]))
+    }
+
     private func ledgerReport() throws -> CorpusLedgerReport {
         try Self.cachedReport.get()
     }
@@ -77,13 +88,20 @@ final class CorpusSemanticLedgerTests: XCTestCase {
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .appendingPathComponent("docs/lottie-format/conformance-matrix.csv")
-        let rows = try String(contentsOf: matrix, encoding: .utf8)
-            .split(separator: "\n", omittingEmptySubsequences: true)
+        let contents = try String(contentsOf: matrix, encoding: .utf8)
+
+        return conformanceMatrixStatuses(from: contents)
+    }
+
+    private func conformanceMatrixStatuses(from contents: String) -> Set<String> {
+        let rows = contents
+            .components(separatedBy: .newlines)
+            .filter { !$0.isEmpty }
             .dropFirst()
         return Set(rows.compactMap { row in
-            let columns = csvColumns(String(row))
+            let columns = csvColumns(row)
             guard columns.count > 6 else { return nil }
-            return columns[6]
+            return columns[6].trimmingCharacters(in: .whitespacesAndNewlines)
         })
     }
 }
