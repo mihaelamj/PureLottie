@@ -44,6 +44,10 @@ Bezier timing result, final value, and spatial arc-length data when position
 `to`/`ti` tangents form a motion path. Spatial position follows lottie-web's
 sampled 150-segment arc-length algorithm for curved paths; incomplete tangent
 or timing-handle sets become semantic diagnostics instead of exact claims.
+`LottieTransformEvaluator` evaluates layer and shape-group transforms into
+lottie-web row-vector matrices, with trace records for authored initial values,
+sampled frame values, normalized matrix operands, operation order, parent
+chains, and point application before any PureLayer lowering.
 
 ## Backend Gap Evidence
 
