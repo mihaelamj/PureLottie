@@ -438,14 +438,7 @@ public enum BuiltinValidation {
             ruleID: "lottie.shape.stroke-style-field",
             description: "Stroke style fields are modeled or reported before rendering",
             phase: .semantic,
-            fields: [
-                "bm": "Shape blend mode changes compositing.",
-                "d": "Stroke dash pattern changes stroke pixels.",
-                "lc": "Line cap changes stroke endpoints.",
-                "lj": "Line join changes stroke corners.",
-                "ml": "Miter limit changes stroke joins.",
-                "ml2": "Secondary miter metadata must be classified before rendering.",
-            ],
+            fields: [:],
             when: { $0.subject.member("ty")?.stringValue == "st" }
         )
     }

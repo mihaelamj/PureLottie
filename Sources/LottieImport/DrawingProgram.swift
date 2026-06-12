@@ -3,6 +3,7 @@
 //  PureLottie
 //
 
+import LottieEvaluation
 import LottieModel
 import PureLayer
 
@@ -44,14 +45,9 @@ struct DrawingProgramBuilder {
     let context: ImportContext
 
     func program(for items: [LottieShape], at sourcePath: String) -> DrawingProgram {
-        let scope = DrawingProgramScope(context: context)
-        return DrawingProgram(nodes: scope.nodes(
-            for: items,
-            at: sourcePath,
-            inheritedStyles: [],
-            inheritedTransform: .identity,
-            inheritedTrim: nil
-        ))
+        let semantic = LottieShapeProgramBuilder().program(for: items, sourcePath: sourcePath)
+        context.report.reportShapeDiagnostics(semantic.diagnostics)
+        return DrawingProgram(nodes: DrawingProgramLowerer(context: context).nodes(for: semantic.nodes))
     }
 }
 
@@ -95,126 +91,74 @@ private final class DrawingStyleAccumulator {
     }
 }
 
-private enum DrawingProgramNodeBuilder {
-    case style(DrawingStyleAccumulator)
-    case transparencyLayer(DrawingProgram.TransparencyLayer)
-
-    var nodes: [DrawingProgram.Node] {
-        switch self {
-        case let .style(style):
-            style.nodes()
-        case let .transparencyLayer(layer):
-            layer.nodes.isEmpty ? [] : [.transparencyLayer(layer)]
-        }
-    }
-}
-
-private struct DrawingProgramScope {
+private struct DrawingProgramLowerer {
     let context: ImportContext
 
-    func nodes(
-        for items: [LottieShape],
-        at sourcePath: String,
-        inheritedStyles: [DrawingStyleAccumulator],
-        inheritedTransform: AffineTransform,
-        inheritedTrim: ShapeTrim?
-    ) -> [DrawingProgram.Node] {
-        var builders: [DrawingProgramNodeBuilder] = []
-        var activeStyles = inheritedStyles
-        var activeTransform = inheritedTransform
-        var activeTrim = inheritedTrim
-        var hasLocalTransform = false
-
-        for item in items.reversed() {
-            switch item {
+    func nodes(for nodes: [LottieShapeProgram.Node]) -> [DrawingProgram.Node] {
+        nodes.flatMap { node -> [DrawingProgram.Node] in
+            switch node {
+            case let .styleRun(run):
+                return styleNodes(for: run)
             case let .group(group):
-                guard group.isHidden != true else { continue }
-                let groupSourcePath = "\(sourcePath) > group '\(group.name ?? "?")'"
-                let groupNodes = nodes(
-                    for: group.items,
-                    at: groupSourcePath,
-                    inheritedStyles: activeStyles,
-                    inheritedTransform: activeTransform,
-                    inheritedTrim: activeTrim
-                )
-                builders.append(.transparencyLayer(DrawingProgram.TransparencyLayer(
-                    sourcePath: groupSourcePath,
-                    opacity: group.transform?.opacity,
-                    nodes: groupNodes
-                )))
-            case let .path(shapePath):
-                guard shapePath.isHidden != true else { continue }
-                if shapePath.shape.isAnimated {
-                    context.report.skip("path morph", at: "\(sourcePath) > path '\(shapePath.name ?? "?")'")
-                }
-                if let bezier = shapePath.shape.initialValue {
-                    var path = Path()
-                    PathBuilder.path(from: bezier, into: &path)
-                    append(path, to: activeStyles, transform: activeTransform, trim: activeTrim)
-                }
-            case let .rectangle(rectangle):
-                guard rectangle.isHidden != true else { continue }
-                if rectangle.position.isAnimated || rectangle.size.isAnimated {
-                    context.report.skip("animated rectangle geometry", at: "\(sourcePath) > rectangle '\(rectangle.name ?? "?")'")
-                }
-                var path = Path()
-                PathBuilder.rectangle(rectangle, into: &path)
-                append(path, to: activeStyles, transform: activeTransform, trim: activeTrim)
-            case let .ellipse(ellipse):
-                guard ellipse.isHidden != true else { continue }
-                if ellipse.position.isAnimated || ellipse.size.isAnimated {
-                    context.report.skip("animated ellipse geometry", at: "\(sourcePath) > ellipse '\(ellipse.name ?? "?")'")
-                }
-                var path = Path()
-                PathBuilder.ellipse(ellipse, into: &path)
-                append(path, to: activeStyles, transform: activeTransform, trim: activeTrim)
-            case let .fill(fill):
-                guard fill.isHidden != true else { continue }
-                let style = DrawingStyleAccumulator(
-                    sourcePath: "\(sourcePath) > fill '\(fill.name ?? "?")'",
-                    paint: .fill(fill)
-                )
-                activeStyles.append(style)
-                builders.append(.style(style))
-            case let .stroke(stroke):
-                guard stroke.isHidden != true else { continue }
-                let style = DrawingStyleAccumulator(
-                    sourcePath: "\(sourcePath) > stroke '\(stroke.name ?? "?")'",
-                    paint: .stroke(stroke)
-                )
-                activeStyles.append(style)
-                builders.append(.style(style))
-            case let .trim(trim):
-                guard trim.isHidden != true else { continue }
-                if activeTrim != nil {
-                    context.report.approximate("stacked trim paths", at: "\(sourcePath) > trim '\(trim.name ?? "?")'")
-                }
-                activeTrim = trim
-            case let .transform(transform):
-                guard transform.isHidden != true else { continue }
-                if hasLocalTransform {
-                    context.report.approximate("multiple shape transforms", at: "\(sourcePath) > transform '\(transform.name ?? "?")'")
-                }
-                hasLocalTransform = true
-                activeTransform = affine(for: transform, at: "\(sourcePath) > transform '\(transform.name ?? "?")'")
-                    .concatenating(activeTransform)
-            case let .unsupported(type, name):
-                context.report.skip("shape type '\(type)'", at: "\(sourcePath) > '\(name ?? "?")'")
+                return groupNode(for: group).map { [$0] } ?? []
             }
         }
-
-        return builders.flatMap(\.nodes)
     }
 
-    private func append(
-        _ path: Path,
-        to styles: [DrawingStyleAccumulator],
-        transform: AffineTransform,
-        trim: ShapeTrim?
-    ) {
-        let transformed = path.applying(transform)
-        for style in styles {
-            style.append(transformed, trim: trim)
+    private func styleNodes(for run: LottieShapeProgram.StyleRun) -> [DrawingProgram.Node] {
+        let accumulator = DrawingStyleAccumulator(sourcePath: run.sourcePath, paint: paint(for: run.style))
+        for fragment in run.fragments {
+            guard let path = path(for: fragment) else { continue }
+            accumulator.append(path, trim: trim(in: fragment.modifiers))
+        }
+        return accumulator.nodes()
+    }
+
+    private func groupNode(for group: LottieShapeProgram.Group) -> DrawingProgram.Node? {
+        let childNodes = nodes(for: group.nodes)
+        guard !childNodes.isEmpty else { return nil }
+        return .transparencyLayer(DrawingProgram.TransparencyLayer(
+            sourcePath: group.sourcePath,
+            opacity: group.opacity,
+            nodes: childNodes
+        ))
+    }
+
+    private func paint(for style: LottieShapeProgram.Style) -> DrawingProgram.Paint {
+        switch style {
+        case let .fill(fill):
+            .fill(fill)
+        case let .stroke(stroke):
+            .stroke(stroke)
+        }
+    }
+
+    private func path(for fragment: LottieShapeProgram.GeometryFragment) -> Path? {
+        var path = Path()
+        switch fragment.geometry {
+        case let .path(shapePath):
+            guard let bezier = shapePath.shape.initialValue else { return nil }
+            PathBuilder.path(from: bezier, into: &path)
+        case let .rectangle(rectangle):
+            PathBuilder.rectangle(rectangle, into: &path)
+        case let .ellipse(ellipse):
+            PathBuilder.ellipse(ellipse, into: &path)
+        }
+
+        guard !path.isEmpty else { return nil }
+        return path.applying(affine(for: fragment.transformStack))
+    }
+
+    private func trim(in modifiers: [LottieShapeProgram.Modifier]) -> ShapeTrim? {
+        modifiers.compactMap { modifier -> ShapeTrim? in
+            if case let .trim(trim) = modifier { return trim }
+            return nil
+        }.last
+    }
+
+    private func affine(for transformStack: [LottieShapeProgram.AppliedTransform]) -> AffineTransform {
+        transformStack.reduce(.identity) { result, applied in
+            result.concatenating(affine(for: applied.transform, at: applied.sourcePath))
         }
     }
 
@@ -236,14 +180,5 @@ private struct DrawingProgramScope {
             .concatenating(.scale(x: (scale.component(0) ?? 100) / 100, y: (scale.component(1) ?? 100) / 100))
             .concatenating(.rotation(angle: rotation))
             .concatenating(.translation(x: position.component(0) ?? 0, y: position.component(1) ?? 0))
-    }
-}
-
-private extension ShapeGroup {
-    var transform: ShapeTransform? {
-        items.reversed().compactMap { item -> ShapeTransform? in
-            if case let .transform(transform) = item, transform.isHidden != true { return transform }
-            return nil
-        }.first
     }
 }

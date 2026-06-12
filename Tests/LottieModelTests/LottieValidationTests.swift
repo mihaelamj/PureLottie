@@ -131,10 +131,55 @@ final class LottieValidationTests: XCTestCase {
         } catch let collection as ValidationErrorCollection {
             XCTAssertTrue(collection.values.contains { $0.ruleID == "lottie.layer.silent-risk-field" && $0.codingPath.description == "$.layers[0].tt" })
             XCTAssertTrue(collection.values.contains { $0.ruleID == "lottie.transform.silent-risk-field" && $0.codingPath.description == "$.layers[0].ks.sk" })
-            XCTAssertTrue(collection.values.contains { $0.ruleID == "lottie.shape.stroke-style-field" && $0.codingPath.description == "$.layers[0].shapes[0].lc" })
-            XCTAssertTrue(collection.values.contains { $0.ruleID == "lottie.shape.stroke-style-field" && $0.codingPath.description == "$.layers[0].shapes[0].d" })
             XCTAssertTrue(collection.values.allSatisfy { $0.range != nil })
         }
+    }
+
+    func testModeledStrokeStyleFieldsPassSourceValidation() throws {
+        let document = try LottieSourceDocument.parse("""
+        {
+          "v": "5.7.4",
+          "fr": 30,
+          "ip": 0,
+          "op": 30,
+          "w": 64,
+          "h": 64,
+          "layers": [{
+            "ty": 4,
+            "ind": 1,
+            "ip": 0,
+            "op": 30,
+            "ks": {},
+            "shapes": [{
+              "ty": "st",
+              "nm": "Dashed stroke",
+              "c": { "a": 0, "k": [1, 0, 0, 1] },
+              "o": { "a": 0, "k": 100 },
+              "w": { "a": 0, "k": 2 },
+              "lc": 2,
+              "lj": 3,
+              "ml": 4,
+              "ml2": { "a": 0, "k": 4 },
+              "bm": 2,
+              "d": [{ "n": "d", "v": { "a": 0, "k": 3 } }]
+            }]
+          }],
+          "assets": []
+        }
+        """)
+
+        try document.validate(using: LottieValidator.blank.validating(\.strokeStyleFieldsAreModeledOrReported))
+        let animation = try document.decodeAnimation()
+        guard case let .stroke(stroke) = animation.layers[0].shapes?[0] else {
+            XCTFail("Expected stroke shape.")
+            return
+        }
+        XCTAssertEqual(stroke.lineCap, 2)
+        XCTAssertEqual(stroke.lineJoin, 3)
+        XCTAssertEqual(stroke.miterLimit, 4)
+        XCTAssertEqual(stroke.secondaryMiterLimit?.initialValue, 4)
+        XCTAssertEqual(stroke.blendMode, 2)
+        XCTAssertEqual(stroke.dashPattern?.first?.type, "d")
     }
 
     func testLayerReferencesAreResolvedBeforeImport() throws {
