@@ -115,9 +115,19 @@ public enum BuiltinValidation {
             AnyValidation(layerParentReferencesDoNotCycle),
             AnyValidation(layerAssetReferencesResolve),
             AnyValidation(layerMatteReferencesResolve),
+            AnyValidation(layerTypesAreModeledOrReported),
+            AnyValidation(layerMatteFieldsAreModeledOrReported),
             AnyValidation(layerSilentRiskFieldsAreModeledOrReported),
             AnyValidation(layerTimeFieldsAreModeled),
+            AnyValidation(layerMaskFieldsAreModeledOrReported),
+            AnyValidation(layerTransformFieldsAreModeledOrReported),
             AnyValidation(transformSilentRiskFieldsAreModeledOrReported),
+            AnyValidation(assetRenderFieldsAreModeledOrReported),
+            AnyValidation(shapeTypesAreModeledOrReported),
+            AnyValidation(shapeGeometryFieldsAreModeledOrReported),
+            AnyValidation(shapeStyleFieldsAreModeledOrReported),
+            AnyValidation(shapeModifierFieldsAreModeledOrReported),
+            AnyValidation(shapeTransformFieldsAreModeledOrReported),
             AnyValidation(strokeStyleFieldsAreModeledOrReported),
         ]
     }
@@ -558,39 +568,317 @@ public enum BuiltinValidation {
         )
     }
 
-    public static var layerTimeFieldsAreModeled: Validation<LottieSourceDocument, JSONValue> {
+    public static var layerTypesAreModeledOrReported: Validation<LottieSourceDocument, JSONValue> {
         Validation(
-            ruleID: "lottie.layer.time-locality",
-            description: "Non-default layer stretch and start time are modeled before rendering",
+            ruleID: "lottie.layer.type-modeled",
+            description: "Layer types are modeled or reported before rendering",
+            phase: .semantic,
+            check: { context in
+                guard context.subject.objectMembers != nil, isLayerPath(context.codingPath) else { return [] }
+                guard let typeValue = context.subject.member("ty") else {
+                    return [
+                        ValidationError(
+                            ruleID: "lottie.layer.type-modeled",
+                            reason: "Layer must declare numeric type field `ty`.",
+                            at: context.codingPath.appending(.key("ty")),
+                            range: context.subject.range,
+                            phase: .semantic,
+                            classification: .gap
+                        ),
+                    ]
+                }
+                guard let type = integralNumber(typeValue) else {
+                    return [
+                        ValidationError(
+                            ruleID: "lottie.layer.type-modeled",
+                            reason: "Layer type field `ty` must be an integer.",
+                            at: context.codingPath.appending(.key("ty")),
+                            range: typeValue.range,
+                            phase: .semantic,
+                            classification: .gap
+                        ),
+                    ]
+                }
+                guard [0, 1, 3, 4].contains(type) else {
+                    return [
+                        ValidationError(
+                            ruleID: "lottie.layer.type-modeled",
+                            reason: "Layer type `\(type)` is not modeled by the validated importer.",
+                            at: context.codingPath.appending(.key("ty")),
+                            range: typeValue.range,
+                            phase: .semantic,
+                            classification: .gap
+                        ),
+                    ]
+                }
+                return []
+            }
+        )
+    }
+
+    public static var layerMatteFieldsAreModeledOrReported: Validation<LottieSourceDocument, JSONValue> {
+        Validation(
+            ruleID: "lottie.layer.matte-field",
+            description: "Track matte fields are modeled or reported before rendering",
             phase: .semantic,
             check: { context in
                 guard context.subject.objectMembers != nil, isLayerPath(context.codingPath) else { return [] }
                 var errors: [ValidationError] = []
-                if let stretch = context.subject.member("sr"), stretch.numberValue != nil, stretch.numberValue != 1 {
-                    errors.append(
-                        ValidationError(
-                            ruleID: "lottie.layer.time-locality",
-                            reason: "Non-default layer stretch `sr` must scale source time before rendering.",
-                            at: context.codingPath.appending(.key("sr")),
-                            range: stretch.range,
+                if let matteType = context.subject.member("tt") {
+                    if let mode = integralNumber(matteType) {
+                        if mode != 0 {
+                            errors.append(ValidationError(
+                                ruleID: "lottie.layer.matte-field",
+                                reason: "Track matte mode `tt` changes compositing and is not lowered by the validated importer.",
+                                at: context.codingPath.appending(.key("tt")),
+                                range: matteType.range,
+                                phase: .semantic,
+                                classification: .gap
+                            ))
+                        }
+                    } else {
+                        errors.append(ValidationError(
+                            ruleID: "lottie.layer.matte-field",
+                            reason: "Track matte mode `tt` must be an integer.",
+                            at: context.codingPath.appending(.key("tt")),
+                            range: matteType.range,
                             phase: .semantic,
                             classification: .gap
-                        )
-                    )
+                        ))
+                    }
                 }
-                if let startTime = context.subject.member("st"), startTime.numberValue != nil, startTime.numberValue != 0 {
+                if let matteSource = context.subject.member("td") {
+                    if let marker = integralNumber(matteSource) {
+                        if marker != 0 {
+                            errors.append(ValidationError(
+                                ruleID: "lottie.layer.matte-field",
+                                reason: "Track matte source marker `td` changes compositing and is not lowered by the validated importer.",
+                                at: context.codingPath.appending(.key("td")),
+                                range: matteSource.range,
+                                phase: .semantic,
+                                classification: .gap
+                            ))
+                        }
+                    } else {
+                        errors.append(ValidationError(
+                            ruleID: "lottie.layer.matte-field",
+                            reason: "Track matte source marker `td` must be an integer.",
+                            at: context.codingPath.appending(.key("td")),
+                            range: matteSource.range,
+                            phase: .semantic,
+                            classification: .gap
+                        ))
+                    }
+                }
+                return errors
+            }
+        )
+    }
+
+    public static var layerTimeFieldsAreModeled: Validation<LottieSourceDocument, JSONValue> {
+        Validation(
+            ruleID: "lottie.layer.time-locality",
+            description: "Layer local-time fields are modeled before rendering",
+            phase: .semantic,
+            check: { context in
+                guard context.subject.objectMembers != nil, isLayerPath(context.codingPath) else { return [] }
+                var errors: [ValidationError] = []
+                if let stretch = context.subject.member("sr") {
+                    if let value = stretch.numberValue {
+                        if value != 1 {
+                            errors.append(
+                                ValidationError(
+                                    ruleID: "lottie.layer.time-locality",
+                                    reason: "Non-default layer stretch `sr` must scale source time before rendering.",
+                                    at: context.codingPath.appending(.key("sr")),
+                                    range: stretch.range,
+                                    phase: .semantic,
+                                    classification: .gap
+                                )
+                            )
+                        }
+                    } else {
+                        errors.append(numberFieldError(
+                            ruleID: "lottie.layer.time-locality",
+                            field: "Layer stretch `sr`",
+                            key: "sr",
+                            value: stretch,
+                            path: context.codingPath
+                        ))
+                    }
+                }
+                if let startTime = context.subject.member("st") {
+                    if let value = startTime.numberValue {
+                        if value != 0 {
+                            errors.append(
+                                ValidationError(
+                                    ruleID: "lottie.layer.time-locality",
+                                    reason: "Non-zero layer start time `st` must offset source time before rendering.",
+                                    at: context.codingPath.appending(.key("st")),
+                                    range: startTime.range,
+                                    phase: .semantic,
+                                    classification: .gap
+                                )
+                            )
+                        }
+                    } else {
+                        errors.append(numberFieldError(
+                            ruleID: "lottie.layer.time-locality",
+                            field: "Layer start time `st`",
+                            key: "st",
+                            value: startTime,
+                            path: context.codingPath
+                        ))
+                    }
+                }
+                if let timeRemap = context.subject.member("tm") {
                     errors.append(
                         ValidationError(
                             ruleID: "lottie.layer.time-locality",
-                            reason: "Non-zero layer start time `st` must offset source time before rendering.",
-                            at: context.codingPath.appending(.key("st")),
-                            range: startTime.range,
+                            reason: "Layer time remap `tm` must remap source time before rendering.",
+                            at: context.codingPath.appending(.key("tm")),
+                            range: timeRemap.range,
                             phase: .semantic,
                             classification: .gap
                         )
                     )
                 }
                 return errors
+            }
+        )
+    }
+
+    public static var layerMaskFieldsAreModeledOrReported: Validation<LottieSourceDocument, JSONValue> {
+        Validation(
+            ruleID: "lottie.layer.mask-field",
+            description: "Layer mask fields are modeled or reported before rendering",
+            phase: .semantic,
+            check: { context in
+                if context.subject.objectMembers != nil, isLayerPath(context.codingPath),
+                   let masks = context.subject.member("masksProperties")
+                {
+                    guard let values = masks.arrayValues else {
+                        return [
+                            ValidationError(
+                                ruleID: "lottie.layer.mask-field",
+                                reason: "Layer masks field `masksProperties` must be an array.",
+                                at: context.codingPath.appending(.key("masksProperties")),
+                                range: masks.range,
+                                phase: .semantic,
+                                classification: .gap
+                            ),
+                        ]
+                    }
+                    guard values.count <= 1 else {
+                        return [
+                            ValidationError(
+                                ruleID: "lottie.layer.mask-field",
+                                reason: "Multiple masks require mask compositing that is not lowered by the validated importer.",
+                                at: context.codingPath.appending(.key("masksProperties")),
+                                range: masks.range,
+                                phase: .semantic,
+                                classification: .gap
+                            ),
+                        ]
+                    }
+                    return []
+                }
+
+                guard context.subject.objectMembers != nil, isMaskPath(context.codingPath) else { return [] }
+                var errors: [ValidationError] = []
+                if let modeValue = context.subject.member("mode") {
+                    if let mode = modeValue.stringValue {
+                        if !["a", "n"].contains(mode) {
+                            errors.append(ValidationError(
+                                ruleID: "lottie.layer.mask-field",
+                                reason: "Mask mode `\(mode)` changes compositing and is not lowered by the validated importer.",
+                                at: context.codingPath.appending(.key("mode")),
+                                range: modeValue.range,
+                                phase: .semantic,
+                                classification: .gap
+                            ))
+                        }
+                    } else {
+                        errors.append(ValidationError(
+                            ruleID: "lottie.layer.mask-field",
+                            reason: "Mask mode field `mode` must be a string.",
+                            at: context.codingPath.appending(.key("mode")),
+                            range: modeValue.range,
+                            phase: .semantic,
+                            classification: .gap
+                        ))
+                    }
+                }
+                if let inverted = context.subject.member("inv") {
+                    if inverted.boolValue == true {
+                        errors.append(ValidationError(
+                            ruleID: "lottie.layer.mask-field",
+                            reason: "Inverted masks require compositing that is not lowered by the validated importer.",
+                            at: context.codingPath.appending(.key("inv")),
+                            range: inverted.range,
+                            phase: .semantic,
+                            classification: .gap
+                        ))
+                    } else if inverted.boolValue == nil {
+                        errors.append(ValidationError(
+                            ruleID: "lottie.layer.mask-field",
+                            reason: "Mask inversion field `inv` must be a boolean.",
+                            at: context.codingPath.appending(.key("inv")),
+                            range: inverted.range,
+                            phase: .semantic,
+                            classification: .gap
+                        ))
+                    }
+                }
+                for key in ["pt", "o"] where animatedPropertyIsAnimated(context.subject.member(key)) {
+                    errors.append(ValidationError(
+                        ruleID: "lottie.layer.mask-field",
+                        reason: "Animated mask field `\(key)` is approximated by the importer.",
+                        at: context.codingPath.appending(.key(key)),
+                        range: context.subject.member(key)?.range,
+                        phase: .semantic,
+                        classification: .approximate
+                    ))
+                }
+                return errors
+            }
+        )
+    }
+
+    public static var layerTransformFieldsAreModeledOrReported: Validation<LottieSourceDocument, JSONValue> {
+        Validation(
+            ruleID: "lottie.layer.transform-field",
+            description: "Layer transform mode fields are modeled or reported before rendering",
+            phase: .semantic,
+            check: { context in
+                guard context.subject.objectMembers != nil,
+                      isLayerPath(context.codingPath),
+                      let mode = context.subject.member("ddd")
+                else {
+                    return []
+                }
+                guard let value = mode.numberValue else {
+                    return [
+                        numberFieldError(
+                            ruleID: "lottie.layer.transform-field",
+                            field: "Layer 3D mode `ddd`",
+                            key: "ddd",
+                            value: mode,
+                            path: context.codingPath
+                        ),
+                    ]
+                }
+                guard value != 0 else { return [] }
+                return [
+                    ValidationError(
+                        ruleID: "lottie.layer.transform-field",
+                        reason: "Layer 3D mode `ddd` changes transform evaluation and is not lowered by the validated importer.",
+                        at: context.codingPath.appending(.key("ddd")),
+                        range: mode.range,
+                        phase: .semantic,
+                        classification: .gap
+                    ),
+                ]
             }
         )
     }
@@ -609,6 +897,245 @@ public enum BuiltinValidation {
                 "sk": "Skew amount changes transform evaluation.",
             ],
             when: { isLayerTransformPath($0.codingPath) || isShapeTransformPath($0.codingPath, subject: $0.subject) }
+        )
+    }
+
+    public static var assetRenderFieldsAreModeledOrReported: Validation<LottieSourceDocument, JSONValue> {
+        objectFieldRule(
+            ruleID: "lottie.asset.render-field",
+            description: "Asset render fields are modeled or reported before rendering",
+            phase: .semantic,
+            fields: [
+                "e": "Embedded image asset flags change image resolution.",
+                "p": "Image asset payloads change rendered pixels.",
+                "t": "Image asset sequence metadata changes rendered pixels.",
+                "u": "Image asset base paths change rendered pixels.",
+            ],
+            when: { isAssetPath($0.codingPath) }
+        )
+    }
+
+    public static var shapeTypesAreModeledOrReported: Validation<LottieSourceDocument, JSONValue> {
+        Validation(
+            ruleID: "lottie.shape.type-modeled",
+            description: "Shape item types are modeled or reported before rendering",
+            phase: .semantic,
+            check: { context in
+                guard context.subject.objectMembers != nil,
+                      isShapeItemPath(context.codingPath),
+                      let typeValue = context.subject.member("ty")
+                else {
+                    return []
+                }
+                guard let type = typeValue.stringValue else {
+                    return [
+                        ValidationError(
+                            ruleID: "lottie.shape.type-modeled",
+                            reason: "Shape item type field `ty` must be a string.",
+                            at: context.codingPath.appending(.key("ty")),
+                            range: typeValue.range,
+                            phase: .semantic,
+                            classification: .gap
+                        ),
+                    ]
+                }
+                let supported = Set(["el", "fl", "gr", "rc", "sh", "st", "tm", "tr"])
+                guard !supported.contains(type) else { return [] }
+                return [
+                    ValidationError(
+                        ruleID: "lottie.shape.type-modeled",
+                        reason: "Shape item type `\(type)` is not modeled by the validated importer.",
+                        at: context.codingPath.appending(.key("ty")),
+                        range: typeValue.range,
+                        phase: .semantic,
+                        classification: .gap
+                    ),
+                ]
+            }
+        )
+    }
+
+    public static var shapeGeometryFieldsAreModeledOrReported: Validation<LottieSourceDocument, JSONValue> {
+        Validation(
+            ruleID: "lottie.shape.geometry-field",
+            description: "Shape geometry fields are modeled or reported before rendering",
+            phase: .semantic,
+            check: { context in
+                guard context.subject.objectMembers != nil,
+                      isShapeItemPath(context.codingPath),
+                      let type = context.subject.member("ty")?.stringValue,
+                      ["el", "rc", "sh"].contains(type),
+                      let direction = context.subject.member("d")
+                else {
+                    return []
+                }
+                guard let value = integralNumber(direction) else {
+                    return [
+                        ValidationError(
+                            ruleID: "lottie.shape.geometry-field",
+                            reason: "Shape path direction field `d` must be an integer.",
+                            at: context.codingPath.appending(.key("d")),
+                            range: direction.range,
+                            phase: .semantic,
+                            classification: .gap
+                        ),
+                    ]
+                }
+                guard value != 1 else { return [] }
+                return [
+                    ValidationError(
+                        ruleID: "lottie.shape.geometry-field",
+                        reason: "Non-default path direction `d` changes trim and winding behavior.",
+                        at: context.codingPath.appending(.key("d")),
+                        range: direction.range,
+                        phase: .semantic,
+                        classification: .gap
+                    ),
+                ]
+            }
+        )
+    }
+
+    public static var shapeStyleFieldsAreModeledOrReported: Validation<LottieSourceDocument, JSONValue> {
+        Validation(
+            ruleID: "lottie.shape.style-field",
+            description: "Shape style fields are modeled or reported before rendering",
+            phase: .semantic,
+            check: { context in
+                guard context.subject.objectMembers != nil,
+                      isShapeItemPath(context.codingPath),
+                      let type = context.subject.member("ty")?.stringValue
+                else {
+                    return []
+                }
+                var errors: [ValidationError] = []
+                if ["fl", "gr", "st"].contains(type),
+                   let blendMode = context.subject.member("bm")
+                {
+                    if let mode = integralNumber(blendMode) {
+                        if mode != 0 {
+                            errors.append(ValidationError(
+                                ruleID: "lottie.shape.style-field",
+                                reason: "Shape blend mode `bm` changes compositing and is not lowered by the validated importer.",
+                                at: context.codingPath.appending(.key("bm")),
+                                range: blendMode.range,
+                                phase: .semantic,
+                                classification: .gap
+                            ))
+                        }
+                    } else {
+                        errors.append(integerFieldError(
+                            ruleID: "lottie.shape.style-field",
+                            field: "Shape blend mode `bm`",
+                            key: "bm",
+                            value: blendMode,
+                            path: context.codingPath
+                        ))
+                    }
+                }
+                if type == "fl" {
+                    appendAnimatedFieldErrors(["c", "o"], subject: context.subject, path: context.codingPath, label: "fill", ruleID: "lottie.shape.style-field", errors: &errors)
+                }
+                if type == "st" {
+                    appendAnimatedFieldErrors(
+                        ["c", "o", "w"],
+                        subject: context.subject,
+                        path: context.codingPath,
+                        label: "stroke",
+                        ruleID: "lottie.shape.style-field",
+                        errors: &errors
+                    )
+                    appendUnsupportedStrokeStyleErrors(subject: context.subject, path: context.codingPath, errors: &errors)
+                }
+                return errors
+            }
+        )
+    }
+
+    public static var shapeModifierFieldsAreModeledOrReported: Validation<LottieSourceDocument, JSONValue> {
+        Validation(
+            ruleID: "lottie.shape.modifier-field",
+            description: "Shape modifier fields are modeled or reported before rendering",
+            phase: .semantic,
+            check: { context in
+                guard context.subject.objectMembers != nil,
+                      isShapeItemPath(context.codingPath),
+                      context.subject.member("ty")?.stringValue == "tm"
+                else {
+                    return []
+                }
+                var errors: [ValidationError] = []
+                if let offset = context.subject.member("o"),
+                   animatedPropertyIsAnimated(offset) || abs(scalarInitialValue(offset) ?? 0) > 0.0001
+                {
+                    errors.append(ValidationError(
+                        ruleID: "lottie.shape.modifier-field",
+                        reason: "Trim path offset `o` is not lowered by the validated importer.",
+                        at: context.codingPath.appending(.key("o")),
+                        range: offset.range,
+                        phase: .semantic,
+                        classification: .gap
+                    ))
+                }
+                if let multiple = context.subject.member("m") {
+                    if let mode = integralNumber(multiple) {
+                        if mode == 2 {
+                            errors.append(ValidationError(
+                                ruleID: "lottie.shape.modifier-field",
+                                reason: "Individual trim mode `m: 2` is approximated by the importer.",
+                                at: context.codingPath.appending(.key("m")),
+                                range: multiple.range,
+                                phase: .semantic,
+                                classification: .approximate
+                            ))
+                        } else if mode != 1 {
+                            errors.append(ValidationError(
+                                ruleID: "lottie.shape.modifier-field",
+                                reason: "Trim path mode `m` must be 1 or 2.",
+                                at: context.codingPath.appending(.key("m")),
+                                range: multiple.range,
+                                phase: .semantic,
+                                classification: .gap
+                            ))
+                        }
+                    } else {
+                        errors.append(integerFieldError(
+                            ruleID: "lottie.shape.modifier-field",
+                            field: "Trim path mode `m`",
+                            key: "m",
+                            value: multiple,
+                            path: context.codingPath
+                        ))
+                    }
+                }
+                return errors
+            }
+        )
+    }
+
+    public static var shapeTransformFieldsAreModeledOrReported: Validation<LottieSourceDocument, JSONValue> {
+        Validation(
+            ruleID: "lottie.shape.transform-field",
+            description: "Shape transform fields are modeled or reported before rendering",
+            phase: .semantic,
+            check: { context in
+                guard context.subject.objectMembers != nil,
+                      isShapeItemPath(context.codingPath),
+                      context.subject.member("ty")?.stringValue == "tr"
+                else {
+                    return []
+                }
+                var errors: [ValidationError] = []
+                appendAnimatedFieldErrors(
+                    ["a", "p", "s", "r", "o"],
+                    subject: context.subject,
+                    path: context.codingPath,
+                    label: "shape transform",
+                    ruleID: "lottie.shape.transform-field",
+                    errors: &errors
+                )
+                return errors
+            }
         )
     }
 
@@ -733,6 +1260,140 @@ private extension BuiltinValidation {
 
     static func isShapeTransformPath(_: JSONPath, subject: JSONValue) -> Bool {
         subject.member("ty")?.stringValue == "tr"
+    }
+
+    static func isAssetPath(_ path: JSONPath) -> Bool {
+        guard case .index = path.components.last else { return false }
+        let parent = Array(path.components.dropLast())
+        return parent == [.key("assets")]
+    }
+
+    static func isMaskPath(_ path: JSONPath) -> Bool {
+        guard case .index = path.components.last else { return false }
+        let masksPath = JSONPath(Array(path.components.dropLast()))
+        guard masksPath.components.last == .key("masksProperties") else { return false }
+        let layerPath = JSONPath(Array(masksPath.components.dropLast()))
+        return isLayerPath(layerPath)
+    }
+
+    static func isShapeItemPath(_ path: JSONPath) -> Bool {
+        guard case .index = path.components.last else { return false }
+        let parent = Array(path.components.dropLast())
+        guard parent.last == .key("shapes") || parent.last == .key("it") else { return false }
+        return parent.contains(.key("layers")) || parent.contains(.key("assets"))
+    }
+
+    static func animatedPropertyIsAnimated(_ value: JSONValue?) -> Bool {
+        value?.member("a")?.numberValue == 1
+    }
+
+    static func integralNumber(_ value: JSONValue) -> Int? {
+        guard let number = value.numberValue,
+              number.rounded(.towardZero) == number,
+              number >= Double(Int.min),
+              number <= Double(Int.max)
+        else {
+            return nil
+        }
+        return Int(number)
+    }
+
+    static func scalarInitialValue(_ value: JSONValue?) -> Double? {
+        guard let value else { return nil }
+        if let number = value.numberValue { return number }
+        guard let key = value.member("k") else { return nil }
+        if let number = key.numberValue { return number }
+        return key.arrayValues?.first?.numberValue
+    }
+
+    static func appendAnimatedFieldErrors(
+        _ fields: [String],
+        subject: JSONValue,
+        path: JSONPath,
+        label: String,
+        ruleID: String,
+        errors: inout [ValidationError]
+    ) {
+        for key in fields where animatedPropertyIsAnimated(subject.member(key)) {
+            let value = subject.member(key)
+            errors.append(ValidationError(
+                ruleID: ruleID,
+                reason: "Animated \(label) field `\(key)` is not lowered by the validated importer.",
+                at: path.appending(.key(key)),
+                range: value?.range,
+                phase: .semantic,
+                classification: .gap
+            ))
+        }
+    }
+
+    static func appendUnsupportedStrokeStyleErrors(subject: JSONValue, path: JSONPath, errors: inout [ValidationError]) {
+        if let lineCap = subject.member("lc") {
+            if let value = integralNumber(lineCap) {
+                if value != 1 {
+                    errors.append(unsupportedStrokeStyleError("Stroke line cap `lc`", key: "lc", value: lineCap, path: path))
+                }
+            } else {
+                errors.append(integerFieldError(ruleID: "lottie.shape.style-field", field: "Stroke line cap `lc`", key: "lc", value: lineCap, path: path))
+            }
+        }
+        if let lineJoin = subject.member("lj") {
+            if let value = integralNumber(lineJoin) {
+                if value != 1 {
+                    errors.append(unsupportedStrokeStyleError("Stroke line join `lj`", key: "lj", value: lineJoin, path: path))
+                }
+            } else {
+                errors.append(integerFieldError(ruleID: "lottie.shape.style-field", field: "Stroke line join `lj`", key: "lj", value: lineJoin, path: path))
+            }
+        }
+        if let miterLimit = subject.member("ml") {
+            if let value = miterLimit.numberValue {
+                if abs(value - 10) > 0.0001 {
+                    errors.append(unsupportedStrokeStyleError("Stroke miter limit `ml`", key: "ml", value: miterLimit, path: path))
+                }
+            } else {
+                errors.append(numberFieldError(ruleID: "lottie.shape.style-field", field: "Stroke miter limit `ml`", key: "ml", value: miterLimit, path: path))
+            }
+        }
+        if let secondaryMiterLimit = subject.member("ml2") {
+            errors.append(unsupportedStrokeStyleError("Secondary stroke miter limit `ml2`", key: "ml2", value: secondaryMiterLimit, path: path))
+        }
+        if let dashPattern = subject.member("d"), dashPattern.arrayValues?.isEmpty == false {
+            errors.append(unsupportedStrokeStyleError("Stroke dash pattern `d`", key: "d", value: dashPattern, path: path))
+        }
+    }
+
+    static func integerFieldError(ruleID: String, field: String, key: String, value: JSONValue, path: JSONPath) -> ValidationError {
+        ValidationError(
+            ruleID: ruleID,
+            reason: "\(field) must be an integer.",
+            at: path.appending(.key(key)),
+            range: value.range,
+            phase: .semantic,
+            classification: .gap
+        )
+    }
+
+    static func numberFieldError(ruleID: String, field: String, key: String, value: JSONValue, path: JSONPath) -> ValidationError {
+        ValidationError(
+            ruleID: ruleID,
+            reason: "\(field) must be numeric.",
+            at: path.appending(.key(key)),
+            range: value.range,
+            phase: .semantic,
+            classification: .gap
+        )
+    }
+
+    static func unsupportedStrokeStyleError(_ feature: String, key: String, value: JSONValue, path: JSONPath) -> ValidationError {
+        ValidationError(
+            ruleID: "lottie.shape.style-field",
+            reason: "\(feature) is not lowered by the validated importer.",
+            at: path.appending(.key(key)),
+            range: value.range,
+            phase: .semantic,
+            classification: .gap
+        )
     }
 
     static func layerSiblings(for layerPath: JSONPath, in source: JSONValue) -> [JSONValue] {

@@ -75,30 +75,29 @@ struct LottieBindingImportTests {
         #expect(scene.root.sublayers.first?.sublayers.count == 1)
     }
 
-    @Test("Validated data import reports unsupported mattes with source ranges")
-    func dataImportReportsUnsupportedMattesWithSourceRanges() throws {
-        let scene = try LottieImporter().scene(from: Data("""
-        {
-          "v": "5.7.4",
-          "fr": 30,
-          "ip": 0,
-          "op": 30,
-          "w": 64,
-          "h": 64,
-          "layers": [
-            { "ty": 4, "nm": "Matte", "ind": 1, "td": 1, "ip": 0, "op": 30, "ks": {}, "shapes": [] },
-            { "ty": 4, "nm": "Target", "ind": 2, "tt": 1, "tp": 1, "ip": 0, "op": 30, "ks": {}, "shapes": [] }
-          ],
-          "assets": []
+    @Test("Validated data import rejects unsupported mattes with source ranges")
+    func dataImportRejectsUnsupportedMattesWithSourceRanges() throws {
+        do {
+            _ = try LottieImporter().scene(from: Data("""
+            {
+              "v": "5.7.4",
+              "fr": 30,
+              "ip": 0,
+              "op": 30,
+              "w": 64,
+              "h": 64,
+              "layers": [
+                { "ty": 4, "nm": "Matte", "ind": 1, "td": 1, "ip": 0, "op": 30, "ks": {}, "shapes": [] },
+                { "ty": 4, "nm": "Target", "ind": 2, "tt": 1, "tp": 1, "ip": 0, "op": 30, "ks": {}, "shapes": [] }
+              ],
+              "assets": []
+            }
+            """.utf8))
+            Issue.record("Expected validated import to reject track mattes.")
+        } catch let collection as ValidationErrorCollection {
+            #expect(collection.values.contains { $0.ruleID == "lottie.layer.matte-field" && $0.codingPath.description == "$.layers[1].tt" && $0.range != nil })
+            #expect(collection.values.contains { $0.ruleID == "lottie.layer.matte-field" && $0.codingPath.description == "$.layers[0].td" && $0.range != nil })
         }
-        """.utf8))
-
-        let matteFinding = scene.report.findings.first { $0.feature.hasPrefix("track matte mode 1") }
-        #expect(matteFinding?.sourcePath == "$.layers[1].tt")
-        #expect(matteFinding?.sourceRange != nil)
-        let sourceFinding = scene.report.findings.first { $0.feature == "track matte source marker 1" }
-        #expect(sourceFinding?.sourcePath == "$.layers[0].td")
-        #expect(sourceFinding?.sourceRange != nil)
     }
 
     @Test("Track matte mode zero is not reported as unsupported")
