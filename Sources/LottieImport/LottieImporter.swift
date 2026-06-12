@@ -266,7 +266,7 @@ public struct LottieImporter {
         switch position {
         case let .vector(vector):
             guard case let .keyframed(keyframes) = vector else { return }
-            if keyframes.contains(where: { ($0.spatialOut ?? []).contains(where: { abs($0) > 0.0001 }) || ($0.spatialIn ?? []).contains(where: { abs($0) > 0.0001 }) }) {
+            if SpatialInterpolationClassifier.containsUnsupportedSpatialInterpolation(keyframes) {
                 context.report.approximate("spatial position curve (linearized)", at: path)
             }
             add(

@@ -1,6 +1,7 @@
 import Foundation
 import LottieImport
 import LottieModel
+import PureLayer
 import XCTest
 
 final class ValidatedImportTests: XCTestCase {
@@ -37,6 +38,116 @@ final class ValidatedImportTests: XCTestCase {
         XCTAssertEqual(scene.height, 64)
         XCTAssertEqual(scene.frameRate, 30)
         XCTAssertTrue(scene.report.isClean)
+    }
+
+    func testImporterSamplesVectorEasingPerComponent() throws {
+        let scene = try LottieImporter().scene(from: Data("""
+        {
+          "v": "5.7.4",
+          "fr": 10,
+          "ip": 0,
+          "op": 10,
+          "w": 64,
+          "h": 64,
+          "layers": [{
+            "ty": 4,
+            "nm": "Moving",
+            "ind": 1,
+            "ip": 0,
+            "op": 10,
+            "st": 0,
+            "ks": {
+              "p": { "a": 1, "k": [
+                {
+                  "t": 0,
+                  "s": [0, 0],
+                  "e": [100, 100],
+                  "o": { "x": [0, 0.333], "y": [0, 0] },
+                  "i": { "x": [1, 0.667], "y": [1, 1] }
+                },
+                { "t": 10, "s": [100, 100] }
+              ]},
+              "o": { "a": 0, "k": 100 }
+            },
+            "shapes": []
+          }],
+          "assets": []
+        }
+        """.utf8))
+
+        let layer = try XCTUnwrap(scene.root.sublayers.first)
+        let x = try XCTUnwrap(layer.animation(forKey: "lottie.position.x") as? KeyframeAnimation)
+        let y = try XCTUnwrap(layer.animation(forKey: "lottie.position.y") as? KeyframeAnimation)
+
+        XCTAssertEqual(x.values, [0, 100])
+        XCTAssertEqual(y.values.count, 9)
+        XCTAssertEqual(y.keyTimes?[2], 0.25)
+        XCTAssertEqual(y.values[2], 15.635546873187725, accuracy: 0.00001)
+    }
+
+    func testImporterDoesNotReportCollinearSpatialTangents() throws {
+        let scene = try LottieImporter().scene(from: Data("""
+        {
+          "v": "5.7.4",
+          "fr": 10,
+          "ip": 0,
+          "op": 10,
+          "w": 64,
+          "h": 64,
+          "layers": [{
+            "ty": 4,
+            "nm": "Moving",
+            "ind": 1,
+            "ip": 0,
+            "op": 10,
+            "st": 0,
+            "ks": {
+              "p": { "a": 1, "k": [
+                { "t": 0, "s": [0, 0], "e": [100, 0], "to": [50, 0], "ti": [-50, 0] },
+                { "t": 10, "s": [100, 0] }
+              ]},
+              "o": { "a": 0, "k": 100 }
+            },
+            "shapes": []
+          }],
+          "assets": []
+        }
+        """.utf8))
+
+        XCTAssertTrue(scene.report.isClean)
+    }
+
+    func testImporterReportsCurvedSpatialTangents() throws {
+        let scene = try LottieImporter().scene(from: Data("""
+        {
+          "v": "5.7.4",
+          "fr": 10,
+          "ip": 0,
+          "op": 10,
+          "w": 64,
+          "h": 64,
+          "layers": [{
+            "ty": 4,
+            "nm": "Moving",
+            "ind": 1,
+            "ip": 0,
+            "op": 10,
+            "st": 0,
+            "ks": {
+              "p": { "a": 1, "k": [
+                { "t": 0, "s": [0, 0], "e": [100, 0], "to": [50, 50], "ti": [-50, -50] },
+                { "t": 10, "s": [100, 0] }
+              ]},
+              "o": { "a": 0, "k": 100 }
+            },
+            "shapes": []
+          }],
+          "assets": []
+        }
+        """.utf8))
+
+        XCTAssertEqual(scene.report.findings.first?.feature, "spatial position curve (linearized)")
+        XCTAssertEqual(scene.report.findings.first?.disposition, .approximated)
     }
 
     func testDataImportThrowsValidationErrorsBeforeImporterReport() throws {

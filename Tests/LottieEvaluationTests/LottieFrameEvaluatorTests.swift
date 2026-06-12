@@ -128,6 +128,45 @@ struct LottieFrameEvaluatorTests {
         #expect(abs(result.value[1] - 51.27109374637545) < 0.000001)
     }
 
+    @Test("vector easing uses lottie-web per-component handle arrays")
+    func vectorEasingUsesPerComponentHandles() throws {
+        let animation = try decode("""
+        {
+          "v": "5.7.4",
+          "fr": 30,
+          "ip": 0,
+          "op": 20,
+          "w": 64,
+          "h": 64,
+          "layers": [{
+            "ty": 4,
+            "ind": 1,
+            "ip": 0,
+            "op": 20,
+            "ks": {
+              "p": { "k": [
+                {
+                  "t": 0,
+                  "s": [0, 0],
+                  "e": [100, 100],
+                  "o": { "x": [0, 0.333], "y": [0, 0] },
+                  "i": { "x": [1, 0.667], "y": [1, 1] }
+                },
+                { "t": 10, "s": [100, 100] }
+              ]}
+            },
+            "shapes": []
+          }]
+        }
+        """)
+        let position = try #require(animation.layers.first?.transform?.position)
+        let result = LottieFrameEvaluator(animation: animation).evaluate(position, at: 2.5)
+
+        #expect(result.diagnostics.isEmpty)
+        #expect(abs(result.value[0] - 25) < 0.000001)
+        #expect(abs(result.value[1] - 15.635546873187725) < 0.000001)
+    }
+
     @Test("lottie-web banner fixture opacity evaluates to the selected reference value")
     func fixtureEasingMatchesLottieWeb() throws {
         let animation = try decodeFixture("airbnb-lottie-web/test/animations/banner.json")
@@ -175,6 +214,72 @@ struct LottieFrameEvaluatorTests {
         #expect(result.value == [50, 0])
         #expect(result.diagnostics.map(\.ruleID) == ["lottie.evaluation.spatial-interpolation.unsupported"])
         #expect(result.diagnostics.first?.codingPath.description == "$.layers[0].ks.p")
+    }
+
+    @Test("collinear spatial tangents are exact lottie-web linear segments")
+    func collinearSpatialTangentsAreExact() throws {
+        let animation = try decode("""
+        {
+          "v": "5.7.4",
+          "fr": 30,
+          "ip": 0,
+          "op": 20,
+          "w": 64,
+          "h": 64,
+          "layers": [{
+            "ty": 4,
+            "ind": 1,
+            "ip": 0,
+            "op": 20,
+            "ks": {
+              "p": { "k": [
+                { "t": 0, "s": [0, 0], "e": [100, 0], "to": [50, 0], "ti": [-50, 0] },
+                { "t": 10, "s": [100, 0] }
+              ]}
+            },
+            "shapes": []
+          }]
+        }
+        """)
+        let position = try #require(animation.layers.first?.transform?.position)
+        let result = LottieFrameEvaluator(animation: animation).evaluate(position, at: 5)
+
+        #expect(result.value == [50, 0])
+        #expect(result.diagnostics.isEmpty)
+    }
+
+    @Test("collinear 3D spatial tangents are exact lottie-web linear segments")
+    func collinear3DSpatialTangentsAreExact() throws {
+        let animation = try decode("""
+        {
+          "v": "5.7.4",
+          "fr": 30,
+          "ip": 0,
+          "op": 20,
+          "w": 64,
+          "h": 64,
+          "ddd": 1,
+          "layers": [{
+            "ty": 4,
+            "ind": 1,
+            "ddd": 1,
+            "ip": 0,
+            "op": 20,
+            "ks": {
+              "p": { "k": [
+                { "t": 0, "s": [0, 0, 0], "e": [0, 100, 100], "to": [0, 25, 25], "ti": [0, -25, -25] },
+                { "t": 10, "s": [0, 100, 100] }
+              ]}
+            },
+            "shapes": []
+          }]
+        }
+        """)
+        let position = try #require(animation.layers.first?.transform?.position)
+        let result = LottieFrameEvaluator(animation: animation).evaluate(position, at: 5)
+
+        #expect(result.value == [0, 50, 50])
+        #expect(result.diagnostics.isEmpty)
     }
 
     @Test("animated Bezier path morphing is diagnosed")

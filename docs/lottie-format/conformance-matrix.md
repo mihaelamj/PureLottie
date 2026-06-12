@@ -51,6 +51,9 @@ correctly or reported with the offending layer/shape path.
 - Shapes without an applicable style are not rendered.
 - Shape geometry and keyframe values must be evaluated at the requested frame,
   not just at initial value.
+- Vector keyframe easing may use per-component `i/o.x` and `i/o.y` arrays.
+- lottie-web treats spatial `to`/`ti` tangents on a straight segment as linear
+  when both control points are collinear with the segment.
 
 ## Corpus Snapshot
 
@@ -122,7 +125,7 @@ Observed in `Tests/Fixtures/LottieCorpus`:
 | Merge paths | `mm` boolean path operations. | 1,946 | Unsupported shape type. | Reports `shape type 'mm'`. | PureDraw boolean operations or report. | reported | Boolean geometry fixtures for add/subtract/intersect/exclude. |
 | Repeater | `rp` clones preceding elements with transform and opacity interpolation. | 56 | Unsupported shape type. | Reports `shape type 'rp'`. | Layer replication or generated draw commands. | reported | Repeater source fixtures before lowering. |
 | Rounded corners modifier | `rd` modifies preceding path corners. | 58 | Unsupported shape type. | Reports `shape type 'rd'`. | Path modifier. | reported | Corner modifier geometry tests. |
-| Animated scalar/vector properties | Keyframes ordered by `t`, easing via `i/o`, hold via `h`; values hold outside keyframe span. | Corpus-wide | `AnimatedDouble`, `AnimatedVector`, `LottieKeyframe`; `LottieEvaluation` evaluates hold and lottie-web BezierEaser curves at a requested frame. | `ScalarTimeline` samples to PureLayer keyframes; spatial position curves linearized/reported. | `KeyframeAnimation`. | approx | Direct value evaluator tests against lottie-web for easing, hold, overshoot, spatial path. |
+| Animated scalar/vector properties | Keyframes ordered by `t`, easing via `i/o`, hold via `h`; vector easing can be per component; values hold outside keyframe span. | Corpus-wide | `AnimatedDouble`, `AnimatedVector`, `LottieKeyframe`; `EasingHandle` preserves scalar or per-component handles; `LottieEvaluation` evaluates hold and lottie-web BezierEaser curves at a requested frame. | `ScalarTimeline` samples each PureLayer dimension with its matching easing component; curved spatial position paths are linearized/reported, while lottie-web-linear collinear tangents are not reported. | `KeyframeAnimation`. | approx | Direct value evaluator tests against lottie-web for easing, hold, per-component easing, and spatial path classification. |
 | Animated Bezier properties | Path keyframes interpolate vertices/tangents at frame time. | Many `sh.ks` keyframes | `AnimatedBezier` decodes keyframes; `LottieEvaluation` emits a path-morph diagnostic and returns the initial path until exact morphing exists. | Reports `path morph`, uses initial path. | Frame-evaluated PureDraw path animation if supported. | reported | Morph oracle tests before lowering. |
 | Slots | `slots` substitute property values by `sid`. | Root `slots` observed rarely/not yet classified | Not decoded. | Not reported. | Pre-import property substitution. | gap | Slot substitution validator tests. |
 | Effects/expressions | lottie-web supports effects and expressions outside core spec/security-sensitive. | 355 `ef`; expressions possible | Not decoded. | Not reported. | Report-only unless explicitly supported. | gap | Detect and report with path. |

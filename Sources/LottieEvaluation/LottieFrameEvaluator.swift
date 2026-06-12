@@ -224,7 +224,7 @@ public struct LottieFrameEvaluator: Sendable {
         }
 
         var diagnostics: [ValidationError] = []
-        if reportSpatialInterpolation, keyframes.contains(where: hasSpatialInterpolation) {
+        if reportSpatialInterpolation, hasUnsupportedSpatialInterpolation(in: keyframes) {
             diagnostics.append(
                 diagnostic(
                     ruleID: "lottie.evaluation.spatial-interpolation.unsupported",
@@ -266,18 +266,17 @@ public struct LottieFrameEvaluator: Sendable {
 
         let startFrame = keyframe.time - offsetFrame
         let endFrame = next.time - offsetFrame
-        let progress: Double
-        if sourceFrame >= endFrame {
-            progress = 1
-        } else if sourceFrame < startFrame || endFrame <= startFrame {
-            progress = 0
-        } else {
-            let linearProgress = (sourceFrame - startFrame) / (endFrame - startFrame)
-            progress = easedProgress(linearProgress, out: keyframe.easeOut, in: keyframe.easeIn)
-        }
-
         let count = max(start.count, end.count)
         let value = (0 ..< count).map { index in
+            let progress: Double
+            if sourceFrame >= endFrame {
+                progress = 1
+            } else if sourceFrame < startFrame || endFrame <= startFrame {
+                progress = 0
+            } else {
+                let linearProgress = (sourceFrame - startFrame) / (endFrame - startFrame)
+                progress = easedProgress(linearProgress, out: keyframe.easeOut, in: keyframe.easeIn, component: index)
+            }
             let startComponent = start.component(index) ?? 0
             let endComponent = end.component(index) ?? startComponent
             return startComponent + (endComponent - startComponent) * progress
@@ -285,14 +284,178 @@ public struct LottieFrameEvaluator: Sendable {
         return LottieEvaluationResult(value: value, diagnostics: diagnostics)
     }
 
-    private func easedProgress(_ progress: Double, out: EasingHandle?, in easeIn: EasingHandle?) -> Double {
+    private func easedProgress(_ progress: Double, out: EasingHandle?, in easeIn: EasingHandle?, component: Int = 0) -> Double {
         guard let out, let easeIn else { return progress }
-        return BezierEasing(x1: out.x, y1: out.y, x2: easeIn.x, y2: easeIn.y).value(at: progress)
+        return BezierEasing(
+            x1: out.xComponent(component),
+            y1: out.yComponent(component),
+            x2: easeIn.xComponent(component),
+            y2: easeIn.yComponent(component)
+        ).value(at: progress)
     }
 
-    private func hasSpatialInterpolation(_ keyframe: LottieKeyframe<[Double]>) -> Bool {
-        (keyframe.spatialOut ?? []).contains { abs($0) > Self.epsilon }
-            || (keyframe.spatialIn ?? []).contains { abs($0) > Self.epsilon }
+    private func hasUnsupportedSpatialInterpolation(in keyframes: [LottieKeyframe<[Double]>]) -> Bool {
+        guard keyframes.count > 1 else { return false }
+        return keyframes.indices.dropLast().contains { index in
+            let keyframe = keyframes[index]
+            guard let spatialOut = keyframe.spatialOut else { return false }
+            let spatialIn = keyframe.spatialIn ?? []
+            guard hasSpatialTangent(spatialOut) || hasSpatialTangent(spatialIn) else { return false }
+            guard let start = keyframe.startValue, let end = keyframes[index + 1].startValue else {
+                return true
+            }
+            return !isEffectivelyLinearSpatialSegment(
+                start: start,
+                end: end,
+                spatialOut: spatialOut,
+                spatialIn: spatialIn
+            )
+        }
+    }
+
+    private func hasSpatialTangent(_ values: [Double]) -> Bool {
+        values.contains { abs($0) > Self.epsilon }
+    }
+
+    private func isEffectivelyLinearSpatialSegment(
+        start: [Double],
+        end: [Double],
+        spatialOut: [Double],
+        spatialIn: [Double]
+    ) -> Bool {
+        switch start.count {
+        case 2:
+            isLinear2D(start: start, end: end, spatialOut: spatialOut, spatialIn: spatialIn)
+        case 3:
+            isLinear3D(start: start, end: end, spatialOut: spatialOut, spatialIn: spatialIn)
+        default:
+            false
+        }
+    }
+
+    private func isLinear2D(start: [Double], end: [Double], spatialOut: [Double], spatialIn: [Double]) -> Bool {
+        guard
+            let startX = start.exactComponent(0),
+            let startY = start.exactComponent(1),
+            let endX = end.exactComponent(0),
+            let endY = end.exactComponent(1),
+            let outX = spatialOut.exactComponent(0),
+            let outY = spatialOut.exactComponent(1),
+            let inX = spatialIn.exactComponent(0),
+            let inY = spatialIn.exactComponent(1)
+        else { return false }
+
+        if approximatelyEqual(startX, endX), approximatelyEqual(startY, endY) {
+            return approximatelyZero(outX) && approximatelyZero(outY)
+                && approximatelyZero(inX) && approximatelyZero(inY)
+        }
+
+        return pointOnLine2D(startX, startY, endX, endY, startX + outX, startY + outY)
+            && pointOnLine2D(startX, startY, endX, endY, endX + inX, endY + inY)
+    }
+
+    private func isLinear3D(start: [Double], end: [Double], spatialOut: [Double], spatialIn: [Double]) -> Bool {
+        guard
+            let startX = start.exactComponent(0),
+            let startY = start.exactComponent(1),
+            let startZ = start.exactComponent(2),
+            let endX = end.exactComponent(0),
+            let endY = end.exactComponent(1),
+            let endZ = end.exactComponent(2),
+            let outX = spatialOut.exactComponent(0),
+            let outY = spatialOut.exactComponent(1),
+            let outZ = spatialOut.exactComponent(2),
+            let inX = spatialIn.exactComponent(0),
+            let inY = spatialIn.exactComponent(1),
+            let inZ = spatialIn.exactComponent(2)
+        else { return false }
+
+        if approximatelyEqual(startX, endX), approximatelyEqual(startY, endY), approximatelyEqual(startZ, endZ) {
+            return approximatelyZero(outX) && approximatelyZero(outY) && approximatelyZero(outZ)
+                && approximatelyZero(inX) && approximatelyZero(inY) && approximatelyZero(inZ)
+        }
+
+        return pointOnLine3D(
+            startX,
+            startY,
+            startZ,
+            endX,
+            endY,
+            endZ,
+            startX + outX,
+            startY + outY,
+            startZ + outZ
+        )
+            && pointOnLine3D(
+                startX,
+                startY,
+                startZ,
+                endX,
+                endY,
+                endZ,
+                endX + inX,
+                endY + inY,
+                endZ + inZ
+            )
+    }
+
+    private func pointOnLine2D(_ x1: Double, _ y1: Double, _ x2: Double, _ y2: Double, _ x3: Double, _ y3: Double) -> Bool {
+        let determinant = (x1 * y2) + (y1 * x3) + (x2 * y3) - (x3 * y2) - (y3 * x1) - (x2 * y1)
+        return abs(determinant) < 0.001
+    }
+
+    private func pointOnLine3D(
+        _ x1: Double,
+        _ y1: Double,
+        _ z1: Double,
+        _ x2: Double,
+        _ y2: Double,
+        _ z2: Double,
+        _ x3: Double,
+        _ y3: Double,
+        _ z3: Double
+    ) -> Bool {
+        if approximatelyZero(z1), approximatelyZero(z2), approximatelyZero(z3) {
+            return pointOnLine2D(x1, y1, x2, y2, x3, y3)
+        }
+
+        let dist1 = distance3D(x1, y1, z1, x2, y2, z2)
+        let dist2 = distance3D(x1, y1, z1, x3, y3, z3)
+        let dist3 = distance3D(x2, y2, z2, x3, y3, z3)
+        let diffDist: Double = if dist1 > dist2 {
+            if dist1 > dist3 {
+                dist1 - dist2 - dist3
+            } else {
+                dist3 - dist2 - dist1
+            }
+        } else if dist3 > dist2 {
+            dist3 - dist2 - dist1
+        } else {
+            dist2 - dist1 - dist3
+        }
+        return abs(diffDist) < 0.0001
+    }
+
+    private func distance3D(
+        _ x1: Double,
+        _ y1: Double,
+        _ z1: Double,
+        _ x2: Double,
+        _ y2: Double,
+        _ z2: Double
+    ) -> Double {
+        let x = x2 - x1
+        let y = y2 - y1
+        let z = z2 - z1
+        return (x * x + y * y + z * z).squareRoot()
+    }
+
+    private func approximatelyEqual(_ left: Double, _ right: Double) -> Bool {
+        abs(left - right) <= Self.epsilon
+    }
+
+    private func approximatelyZero(_ value: Double) -> Bool {
+        abs(value) <= Self.epsilon
     }
 
     private func diagnostic(
@@ -414,5 +577,10 @@ private extension [Double] {
     func component(_ index: Int) -> Double? {
         if indices.contains(index) { return self[index] }
         return last
+    }
+
+    func exactComponent(_ index: Int) -> Double? {
+        if indices.contains(index) { return self[index] }
+        return nil
     }
 }
