@@ -151,7 +151,7 @@ private struct DrawingProgramLowerer {
 
     private func trim(in modifiers: [LottieShapeProgram.Modifier]) -> ShapeTrim? {
         modifiers.compactMap { modifier -> ShapeTrim? in
-            if case let .trim(trim) = modifier { return trim }
+            if case let .trim(applied) = modifier { return applied.trim }
             return nil
         }.last
     }

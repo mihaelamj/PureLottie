@@ -19,7 +19,7 @@ correctly or reported with the offending layer/shape path.
   `player/js/utils/shapes/TrimModifier.js`, and
   `player/js/utils/shapes/RepeaterModifier.js`.
 - PureLottie current implementation inspected in `Sources/LottieModel` and
-  `Sources/LottieImport`.
+  `Sources/LottieEvaluation` plus `Sources/LottieImport`.
 
 ## Status Legend
 
@@ -51,6 +51,9 @@ correctly or reported with the offending layer/shape path.
 - Shapes without an applicable style are not rendered.
 - Shape geometry and keyframe values must be evaluated at the requested frame,
   not just at initial value.
+- A debugger trace must be tied to one selected source frame and must record the
+  composition/layer/group/style/modifier/matte/precomp decisions made before
+  backend lowering.
 - Vector keyframe easing may use per-component `i/o.x` and `i/o.y` arrays.
 - lottie-web treats spatial `to`/`ti` tangents on a straight segment as linear
   when both control points are collinear with the segment.
@@ -106,6 +109,7 @@ Observed in `Tests/Fixtures/LottieCorpus`:
 | Precomp layers | `ty:0` instantiates asset layers with local timing, stretch, remap. | 2,469 | `refId`, `w`, `h`, `sr`, `st`, `tm`; asset layers. | Builds asset layers; reports non-1 stretch and time remap until lowering consumes local-frame evaluation. | Nested `Layer`, time-shifted animations. | approx | Precomp local frame tests, stretch/remap fixtures. |
 | Time stretch | `sr` changes layer local time: `t' = t / sr - st`. | 14,692 `sr` keys | `stretch`; `LottieEvaluation.localFrame` applies `st` and `sr` in source-frame space. | Reports stretch when not 1, but still renders unstretched. | Animation timing scaling. | reported | Expected report plus no silent render claim. |
 | Time remap | `tm` remaps layer time in seconds, multiplied by `fr` to local frames. | 135 layer `tm` | `timeRemap`; `LottieEvaluation.localFrame` evaluates scalar remap and clamps exact `op` to `op - 1` like lottie-web. | Reports `time remap` until lowering consumes the evaluator. | Animation local-time evaluator. | reported | Model field, evaluator, and ImportReport tests. |
+| Composition VM trace | For a selected source frame, traversal must expose composition, layer, group, style, modifier, matte, precomp, semantic decision, evaluated value, and emitted render node state before rendering. | All composition/layer fixtures | `LottieCompositionVM` runs independently of PureLayer, with explicit VM instructions, frame clock, composition/layer/transform/style/opacity/matte stacks, JSON paths, source ranges when available, diagnostics, checkpoints, and deterministic render node ids. | Not a backend lowering step; the importer remains separate. The VM emits trace records and placeholder render nodes for future RenderIR/PureLayer lowering. | Future RenderIR and IDE debugger stepping. | modeled | Swift Testing coverage for readable debug traces, fast traces, JSON path links, trim modifiers, masks, precomps, skipped layers, render ids, and checkpoints. |
 | Image layers | `ty:2` references image asset; asset may be external or embedded data URL. | 361 | Type known, asset image payload not modeled. | Reports `layer type 2`. | Image-backed layer or report. | reported | Fixture checks include asset path and layer path in report. |
 | Text layers | `ty:5` has text document and animators. | 222 | Type known, text payload not modeled. | Reports `layer type 5`. | Text drawing or report. | reported | Fixture checks include text layer path in report. |
 | Masks | Layer masks support add, subtract, intersect, lighten/darken/difference variants, opacity, inversion. | 1,336 masks; modes `a`, `f`, `s`, `n`, `i`, `l`, `d` | Mode, path, opacity, inversion decoded. | Supports one non-inverted additive mask; reports multiple, unsupported modes, inverted, animated path/opacity as approximate. | `Layer.mask` with `ShapeLayer`. | approx | Per-mode fixtures and path/opacity animation report tests. |

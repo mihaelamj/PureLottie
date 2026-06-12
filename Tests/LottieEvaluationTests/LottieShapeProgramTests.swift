@@ -39,9 +39,17 @@ struct LottieShapeProgramTests {
             "layer 'Shapes' > fill 'Blue'",
             "layer 'Shapes' > fill 'Red'",
         ])
+        #expect(runs.map(\.jsonPath.description) == [
+            "$.layers[0].shapes[3]",
+            "$.layers[0].shapes[1]",
+        ])
         #expect(runs[0].fragments.map(\.sourcePath) == [
             "layer 'Shapes' > rectangle 'Right'",
             "layer 'Shapes' > rectangle 'Left'",
+        ])
+        #expect(runs[0].fragments.map(\.jsonPath.description) == [
+            "$.layers[0].shapes[2]",
+            "$.layers[0].shapes[0]",
         ])
         #expect(runs[1].fragments.map(\.sourcePath) == [
             "layer 'Shapes' > rectangle 'Left'",
@@ -91,6 +99,7 @@ struct LottieShapeProgramTests {
             "layer 'Shapes' > group 'Half' > transform 'Transform'",
         ])
         #expect(group.sourcePath == "layer 'Shapes' > group 'Half'")
+        #expect(group.jsonPath.description == "$.layers[0].shapes[0]")
         #expect(group.compositing == .atomicTransparency)
         #expect(group.opacity?.initialValue == 50)
         #expect(group.transform?.position?.initialValue == [20, 0])
@@ -203,6 +212,53 @@ struct LottieShapeProgramTests {
         #expect(stroke.dashPattern?.map(\.type) == ["d", "g", "o"])
         #expect(stroke.dashPattern?.map { $0.value?.initialValue ?? -1 } == [4, 2, 1])
         #expect(run.fragments.map(\.sourcePath) == ["layer 'Shapes' > rectangle 'Box'"])
+    }
+
+    @Test("trim modifiers retain their authored source path")
+    func trimModifiersRetainSourcePath() throws {
+        let layer = try shapeLayer("""
+        {
+          "v": "5.7.4",
+          "fr": 30,
+          "ip": 0,
+          "op": 30,
+          "w": 100,
+          "h": 100,
+          "layers": [{
+            "ty": 4,
+            "ind": 1,
+            "ip": 0,
+            "op": 30,
+            "ks": {},
+            "shapes": [
+              { "ty": "rc", "nm": "Box", "p": { "a": 0, "k": [10, 10] }, "s": { "a": 0, "k": [10, 10] }, "r": { "a": 0, "k": 0 } },
+              { "ty": "tm", "nm": "Half", "s": { "a": 0, "k": 10 }, "e": { "a": 0, "k": 60 }, "o": { "a": 0, "k": 5 }, "m": 1 },
+              {
+                "ty": "st",
+                "nm": "Stroke",
+                "c": { "a": 0, "k": [0, 0, 1, 1] },
+                "o": { "a": 0, "k": 100 },
+                "w": { "a": 0, "k": 2 }
+              }
+            ]
+          }]
+        }
+        """)
+
+        let run = try #require(try styleRuns(in: program(for: layer).nodes).first)
+        let fragment = try #require(run.fragments.first)
+        let modifier = try #require(fragment.modifiers.first)
+        guard case let .trim(trim) = modifier else {
+            Issue.record("Expected trim modifier.")
+            return
+        }
+
+        #expect(fragment.jsonPath.description == "$.layers[0].shapes[0]")
+        #expect(trim.sourcePath == "layer 'Shapes' > trim 'Half'")
+        #expect(trim.jsonPath.description == "$.layers[0].shapes[1]")
+        #expect(trim.trim.start.initialValue == 10)
+        #expect(trim.trim.end.initialValue == 60)
+        #expect(trim.trim.offset?.initialValue == 5)
     }
 
     private func shapeLayer(_ source: String) throws -> LottieLayer {
