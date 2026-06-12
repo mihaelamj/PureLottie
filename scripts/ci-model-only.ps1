@@ -12,6 +12,8 @@ New-Item -ItemType Directory -Force -Path (Join-Path $packageRoot "Tests") | Out
 Copy-Item -Recurse "Sources/LottieModel" (Join-Path $packageRoot "Sources/LottieModel")
 Copy-Item -Recurse "Tests/LottieModelTests" (Join-Path $packageRoot "Tests/LottieModelTests")
 Copy-Item -Recurse "Tests/Fixtures" (Join-Path $packageRoot "Tests/Fixtures")
+New-Item -ItemType Directory -Force -Path (Join-Path $packageRoot "docs") | Out-Null
+Copy-Item -Recurse "docs/lottie-format" (Join-Path $packageRoot "docs/lottie-format")
 
 $manifest = @'
 // swift-tools-version: 6.0
