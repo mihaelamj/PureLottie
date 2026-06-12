@@ -12,6 +12,7 @@ test('oracle dependencies are exact external pins', () => {
   assert.equal(packageJson.dependencies['lottie-web'], '5.13.0');
   assert.equal(packageJson.dependencies.playwright, '1.60.0');
   assert.equal(packageJson.dependencies.pngjs, '7.0.0');
+  assert.equal(packageJson.scripts['build-corpus'], 'node scripts/build-curated-corpus.mjs');
   assert.equal(packageJson.scripts['extract-intent'], 'node scripts/extract-intent.mjs');
 
   for (const version of Object.values(packageJson.dependencies)) {
@@ -19,21 +20,65 @@ test('oracle dependencies are exact external pins', () => {
   }
 });
 
-test('selected fixtures declare frame rationale and resolve to files', () => {
+test('curated fixtures declare frame rationale and resolve to committed traces', () => {
   const fixtures = JSON.parse(fs.readFileSync(path.join(oracleRoot, 'oracle-fixtures.json'), 'utf8'));
-  assert.ok(fixtures.length >= 1);
+  assert.ok(fixtures.length >= 30);
 
   for (const fixture of fixtures) {
     assert.ok(fixture.id.length > 0);
-    assert.ok(fs.existsSync(path.resolve(oracleRoot, fixture.lottie)));
-    assert.ok(fs.existsSync(path.resolve(oracleRoot, fixture.lottieWebIntent)));
-    assert.equal(fixture.expectedValidationEligible, true);
+    assert.ok(fixture.description.length > 30);
+    assert.ok(fixture.bugClass.length > 30);
+    assert.ok(['modeled', 'diagnosed'].includes(fixture.semanticStatus));
+    assert.ok(Array.isArray(fixture.coverage));
+    assert.ok(fixture.coverage.length > 0);
+    assert.equal(typeof fixture.expectedValidationEligible, 'boolean');
     assert.equal(fixture.expectReferenceNonEmpty, true);
-    assert.ok(fixture.frames.length > 0);
+    assert.ok(fixture.frames.length >= 3);
+    assert.ok(fs.existsSync(path.resolve(oracleRoot, fixture.lottie)));
+
+    const intentPath = path.resolve(oracleRoot, fixture.lottieWebIntent);
+    assert.ok(fs.existsSync(intentPath));
+    const intent = JSON.parse(fs.readFileSync(intentPath, 'utf8'));
+    assert.equal(intent.schema.name, 'purelottie.lottie-web-intent');
+    assert.equal(intent.schema.version, 1);
+    assert.equal(intent.source, fixture.lottie);
+    assert.equal(intent.renderer, fixture.renderer);
+    assert.equal(intent.lottieWeb.version, '5.13.0');
+    assert.deepEqual(intent.frames.map((frame) => frame.frame), fixture.frames.map((frame) => frame.frame));
+    assert.ok(intent.frames.some((frame) => frame.pathCount > 0));
+
     for (const frame of fixture.frames) {
       assert.equal(typeof frame.frame, 'number');
       assert.ok(frame.rationale.length > 20);
     }
+  }
+});
+
+test('curated fixture corpus covers required source-intent feature families', () => {
+  const fixtures = JSON.parse(fs.readFileSync(path.join(oracleRoot, 'oracle-fixtures.json'), 'utf8'));
+  const coverage = new Set(fixtures.flatMap((fixture) => fixture.coverage));
+  const required = [
+    'animated-position',
+    'anchor',
+    'scale',
+    'rotation',
+    'parent-transform',
+    'ellipse',
+    'rectangle',
+    'path',
+    'polygon',
+    'star',
+    'fill',
+    'stroke',
+    'trim',
+    'mask',
+    'matte',
+    'precomp',
+    'time-remap'
+  ];
+
+  for (const item of required) {
+    assert.ok(coverage.has(item), `missing coverage family ${item}`);
   }
 });
 

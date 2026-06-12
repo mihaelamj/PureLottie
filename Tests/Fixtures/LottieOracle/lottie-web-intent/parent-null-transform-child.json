@@ -1,0 +1,711 @@
+{
+  "schema": {
+    "name": "purelottie.lottie-web-intent",
+    "version": 1
+  },
+  "source": "../../Tests/Fixtures/LottieOracle/parent-null-transform-child.json",
+  "renderer": "svg",
+  "lottieWeb": {
+    "package": "npm:lottie-web@5.13.0",
+    "version": "5.13.0"
+  },
+  "width": 64,
+  "height": 64,
+  "scale": 1,
+  "coordinateSemantics": [
+    "stageBounds and svgBounds are CSS pixel coordinates with the stage origin at (0, 0).",
+    "sampledOutputBounds equals sampledCompositionBounds multiplied by deviceScaleFactor.",
+    "path.sampledCompositionBounds uses getTotalLength/getPointAtLength and getScreenCTM, not raster pixels.",
+    "path.strokeExpandedCompositionBounds expands sampled path bounds by half the computed stroke width when a stroke is visible.",
+    "layer.matrix is lottie-web finalTransform.mat.props and uses lottie-web internal matrix order."
+  ],
+  "frames": [
+    {
+      "frame": 0,
+      "currentFrame": 0,
+      "renderedFrame": 0,
+      "firstFrame": 0,
+      "frameRate": 10,
+      "stageBounds": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 64,
+        "maxY": 64,
+        "width": 64,
+        "height": 64
+      },
+      "svgBounds": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 64,
+        "maxY": 64,
+        "width": 64,
+        "height": 64
+      },
+      "svgViewBox": "0 0 64 64",
+      "layerCount": 2,
+      "pathCount": 1,
+      "layers": [
+        {
+          "index": 0,
+          "name": "Child Box",
+          "type": 4,
+          "ind": 2,
+          "inPoint": 0,
+          "outPoint": 10,
+          "startTime": 0,
+          "renderedFrame": 0,
+          "opacity": 1,
+          "matrix": [
+            0.9659258127212524,
+            0.258819043636322,
+            0,
+            0,
+            -0.258819043636322,
+            0.9659258127212524,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            -14.627416610717773,
+            -35.191837310791016,
+            0,
+            1
+          ],
+          "layerElementBounds": {
+            "minX": -6.696938514709473,
+            "minY": -10.696940422058105,
+            "maxX": 22.69693660736084,
+            "maxY": 18.696934700012207,
+            "width": 29.393875122070312,
+            "height": 29.393875122070312
+          }
+        },
+        {
+          "index": 1,
+          "name": "Parent Null",
+          "type": 3,
+          "ind": 1,
+          "inPoint": 0,
+          "outPoint": 10,
+          "startTime": 0,
+          "renderedFrame": 0,
+          "opacity": 1,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "layerElementBounds": null
+        }
+      ],
+      "paths": [
+        {
+          "index": 0,
+          "tag": "path",
+          "id": null,
+          "className": "",
+          "visible": true,
+          "d": " M44,20 C44,20 44,44 44,44 C44,44 20,44 20,44 C20,44 20,20 20,20 C20,20 44,20 44,20z",
+          "transform": null,
+          "pathLength": 96,
+          "localBBox": {
+            "minX": 20,
+            "minY": 20,
+            "maxX": 44,
+            "maxY": 44,
+            "width": 24,
+            "height": 24
+          },
+          "clientBounds": {
+            "minX": -6.696938514709473,
+            "minY": -10.696940422058105,
+            "maxX": 22.69693660736084,
+            "maxY": 18.696934700012207,
+            "width": 29.393875122070312,
+            "height": 29.393875122070312
+          },
+          "ctm": {
+            "a": 0.9659258127212524,
+            "b": 0.258819043636322,
+            "c": -0.258819043636322,
+            "d": 0.9659258127212524,
+            "e": -14.627416610717773,
+            "f": -35.191837310791016
+          },
+          "sampledLocalBounds": {
+            "minX": 20,
+            "minY": 20,
+            "maxX": 44,
+            "maxY": 44.000003814697266,
+            "width": 24,
+            "height": 24.000003814697266
+          },
+          "sampledCompositionBounds": {
+            "minX": -6.6969382762908936,
+            "minY": -10.696940183639526,
+            "maxX": 22.696938276290894,
+            "maxY": 18.69693636894226,
+            "width": 29.393876552581787,
+            "height": 29.393876552581787
+          },
+          "sampledOutputBounds": {
+            "minX": -6.6969382762908936,
+            "minY": -10.696940183639526,
+            "maxX": 22.696938276290894,
+            "maxY": 18.69693636894226,
+            "width": 29.393876552581787,
+            "height": 29.393876552581787
+          },
+          "strokeExpandedCompositionBounds": {
+            "minX": -6.6969382762908936,
+            "minY": -10.696940183639526,
+            "maxX": 22.696938276290894,
+            "maxY": 18.69693636894226,
+            "width": 29.393876552581787,
+            "height": 29.393876552581787
+          },
+          "strokeExpandedOutputBounds": {
+            "minX": -6.6969382762908936,
+            "minY": -10.696940183639526,
+            "maxX": 22.696938276290894,
+            "maxY": 18.69693636894226,
+            "width": 29.393876552581787,
+            "height": 29.393876552581787
+          },
+          "style": {
+            "fill": "rgb(25, 102, 255)",
+            "fillOpacity": 1,
+            "fillRule": "nonzero",
+            "opacity": 1,
+            "stroke": "none",
+            "strokeOpacity": 1,
+            "strokeWidth": 1,
+            "strokeLinecap": "butt",
+            "strokeLinejoin": "miter",
+            "strokeMiterlimit": 4,
+            "strokeDasharray": "none",
+            "strokeDashoffset": "0px",
+            "display": "inline",
+            "visibility": "visible"
+          },
+          "ancestors": [
+            {
+              "tag": "path",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": null
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": "matrix(1,0,0,1,0,0)",
+              "opacity": "1",
+              "style": null
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": "matrix(0.9659258127212524,0.258819043636322,-0.258819043636322,0.9659258127212524,-14.627416610717773,-35.191837310791016)",
+              "opacity": "1",
+              "style": "display: block;"
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": null
+            },
+            {
+              "tag": "svg",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": "width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px); content-visibility: visible;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 5,
+      "currentFrame": 5,
+      "renderedFrame": 5,
+      "firstFrame": 0,
+      "frameRate": 10,
+      "stageBounds": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 64,
+        "maxY": 64,
+        "width": 64,
+        "height": 64
+      },
+      "svgBounds": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 64,
+        "maxY": 64,
+        "width": 64,
+        "height": 64
+      },
+      "svgViewBox": "0 0 64 64",
+      "layerCount": 2,
+      "pathCount": 1,
+      "layers": [
+        {
+          "index": 0,
+          "name": "Child Box",
+          "type": 4,
+          "ind": 2,
+          "inPoint": 0,
+          "outPoint": 10,
+          "startTime": 0,
+          "renderedFrame": 5,
+          "opacity": 1,
+          "matrix": [
+            0.9659258127212524,
+            0.258819043636322,
+            0,
+            0,
+            -0.258819043636322,
+            0.9659258127212524,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            -14.627416610717773,
+            -35.191837310791016,
+            0,
+            1
+          ],
+          "layerElementBounds": {
+            "minX": -6.696938514709473,
+            "minY": -10.696940422058105,
+            "maxX": 22.69693660736084,
+            "maxY": 18.696934700012207,
+            "width": 29.393875122070312,
+            "height": 29.393875122070312
+          }
+        },
+        {
+          "index": 1,
+          "name": "Parent Null",
+          "type": 3,
+          "ind": 1,
+          "inPoint": 0,
+          "outPoint": 10,
+          "startTime": 0,
+          "renderedFrame": 5,
+          "opacity": 1,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "layerElementBounds": null
+        }
+      ],
+      "paths": [
+        {
+          "index": 0,
+          "tag": "path",
+          "id": null,
+          "className": "",
+          "visible": true,
+          "d": " M44,20 C44,20 44,44 44,44 C44,44 20,44 20,44 C20,44 20,20 20,20 C20,20 44,20 44,20z",
+          "transform": null,
+          "pathLength": 96,
+          "localBBox": {
+            "minX": 20,
+            "minY": 20,
+            "maxX": 44,
+            "maxY": 44,
+            "width": 24,
+            "height": 24
+          },
+          "clientBounds": {
+            "minX": -6.696938514709473,
+            "minY": -10.696940422058105,
+            "maxX": 22.69693660736084,
+            "maxY": 18.696934700012207,
+            "width": 29.393875122070312,
+            "height": 29.393875122070312
+          },
+          "ctm": {
+            "a": 0.9659258127212524,
+            "b": 0.258819043636322,
+            "c": -0.258819043636322,
+            "d": 0.9659258127212524,
+            "e": -14.627416610717773,
+            "f": -35.191837310791016
+          },
+          "sampledLocalBounds": {
+            "minX": 20,
+            "minY": 20,
+            "maxX": 44,
+            "maxY": 44.000003814697266,
+            "width": 24,
+            "height": 24.000003814697266
+          },
+          "sampledCompositionBounds": {
+            "minX": -6.6969382762908936,
+            "minY": -10.696940183639526,
+            "maxX": 22.696938276290894,
+            "maxY": 18.69693636894226,
+            "width": 29.393876552581787,
+            "height": 29.393876552581787
+          },
+          "sampledOutputBounds": {
+            "minX": -6.6969382762908936,
+            "minY": -10.696940183639526,
+            "maxX": 22.696938276290894,
+            "maxY": 18.69693636894226,
+            "width": 29.393876552581787,
+            "height": 29.393876552581787
+          },
+          "strokeExpandedCompositionBounds": {
+            "minX": -6.6969382762908936,
+            "minY": -10.696940183639526,
+            "maxX": 22.696938276290894,
+            "maxY": 18.69693636894226,
+            "width": 29.393876552581787,
+            "height": 29.393876552581787
+          },
+          "strokeExpandedOutputBounds": {
+            "minX": -6.6969382762908936,
+            "minY": -10.696940183639526,
+            "maxX": 22.696938276290894,
+            "maxY": 18.69693636894226,
+            "width": 29.393876552581787,
+            "height": 29.393876552581787
+          },
+          "style": {
+            "fill": "rgb(25, 102, 255)",
+            "fillOpacity": 1,
+            "fillRule": "nonzero",
+            "opacity": 1,
+            "stroke": "none",
+            "strokeOpacity": 1,
+            "strokeWidth": 1,
+            "strokeLinecap": "butt",
+            "strokeLinejoin": "miter",
+            "strokeMiterlimit": 4,
+            "strokeDasharray": "none",
+            "strokeDashoffset": "0px",
+            "display": "inline",
+            "visibility": "visible"
+          },
+          "ancestors": [
+            {
+              "tag": "path",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": null
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": "matrix(1,0,0,1,0,0)",
+              "opacity": "1",
+              "style": null
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": "matrix(0.9659258127212524,0.258819043636322,-0.258819043636322,0.9659258127212524,-14.627416610717773,-35.191837310791016)",
+              "opacity": "1",
+              "style": "display: block;"
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": null
+            },
+            {
+              "tag": "svg",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": "width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px); content-visibility: visible;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 9,
+      "currentFrame": 9,
+      "renderedFrame": 9,
+      "firstFrame": 0,
+      "frameRate": 10,
+      "stageBounds": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 64,
+        "maxY": 64,
+        "width": 64,
+        "height": 64
+      },
+      "svgBounds": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 64,
+        "maxY": 64,
+        "width": 64,
+        "height": 64
+      },
+      "svgViewBox": "0 0 64 64",
+      "layerCount": 2,
+      "pathCount": 1,
+      "layers": [
+        {
+          "index": 0,
+          "name": "Child Box",
+          "type": 4,
+          "ind": 2,
+          "inPoint": 0,
+          "outPoint": 10,
+          "startTime": 0,
+          "renderedFrame": 9,
+          "opacity": 1,
+          "matrix": [
+            0.9659258127212524,
+            0.258819043636322,
+            0,
+            0,
+            -0.258819043636322,
+            0.9659258127212524,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            -14.627416610717773,
+            -35.191837310791016,
+            0,
+            1
+          ],
+          "layerElementBounds": {
+            "minX": -6.696938514709473,
+            "minY": -10.696940422058105,
+            "maxX": 22.69693660736084,
+            "maxY": 18.696934700012207,
+            "width": 29.393875122070312,
+            "height": 29.393875122070312
+          }
+        },
+        {
+          "index": 1,
+          "name": "Parent Null",
+          "type": 3,
+          "ind": 1,
+          "inPoint": 0,
+          "outPoint": 10,
+          "startTime": 0,
+          "renderedFrame": 9,
+          "opacity": 1,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "layerElementBounds": null
+        }
+      ],
+      "paths": [
+        {
+          "index": 0,
+          "tag": "path",
+          "id": null,
+          "className": "",
+          "visible": true,
+          "d": " M44,20 C44,20 44,44 44,44 C44,44 20,44 20,44 C20,44 20,20 20,20 C20,20 44,20 44,20z",
+          "transform": null,
+          "pathLength": 96,
+          "localBBox": {
+            "minX": 20,
+            "minY": 20,
+            "maxX": 44,
+            "maxY": 44,
+            "width": 24,
+            "height": 24
+          },
+          "clientBounds": {
+            "minX": -6.696938514709473,
+            "minY": -10.696940422058105,
+            "maxX": 22.69693660736084,
+            "maxY": 18.696934700012207,
+            "width": 29.393875122070312,
+            "height": 29.393875122070312
+          },
+          "ctm": {
+            "a": 0.9659258127212524,
+            "b": 0.258819043636322,
+            "c": -0.258819043636322,
+            "d": 0.9659258127212524,
+            "e": -14.627416610717773,
+            "f": -35.191837310791016
+          },
+          "sampledLocalBounds": {
+            "minX": 20,
+            "minY": 20,
+            "maxX": 44,
+            "maxY": 44.000003814697266,
+            "width": 24,
+            "height": 24.000003814697266
+          },
+          "sampledCompositionBounds": {
+            "minX": -6.6969382762908936,
+            "minY": -10.696940183639526,
+            "maxX": 22.696938276290894,
+            "maxY": 18.69693636894226,
+            "width": 29.393876552581787,
+            "height": 29.393876552581787
+          },
+          "sampledOutputBounds": {
+            "minX": -6.6969382762908936,
+            "minY": -10.696940183639526,
+            "maxX": 22.696938276290894,
+            "maxY": 18.69693636894226,
+            "width": 29.393876552581787,
+            "height": 29.393876552581787
+          },
+          "strokeExpandedCompositionBounds": {
+            "minX": -6.6969382762908936,
+            "minY": -10.696940183639526,
+            "maxX": 22.696938276290894,
+            "maxY": 18.69693636894226,
+            "width": 29.393876552581787,
+            "height": 29.393876552581787
+          },
+          "strokeExpandedOutputBounds": {
+            "minX": -6.6969382762908936,
+            "minY": -10.696940183639526,
+            "maxX": 22.696938276290894,
+            "maxY": 18.69693636894226,
+            "width": 29.393876552581787,
+            "height": 29.393876552581787
+          },
+          "style": {
+            "fill": "rgb(25, 102, 255)",
+            "fillOpacity": 1,
+            "fillRule": "nonzero",
+            "opacity": 1,
+            "stroke": "none",
+            "strokeOpacity": 1,
+            "strokeWidth": 1,
+            "strokeLinecap": "butt",
+            "strokeLinejoin": "miter",
+            "strokeMiterlimit": 4,
+            "strokeDasharray": "none",
+            "strokeDashoffset": "0px",
+            "display": "inline",
+            "visibility": "visible"
+          },
+          "ancestors": [
+            {
+              "tag": "path",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": null
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": "matrix(1,0,0,1,0,0)",
+              "opacity": "1",
+              "style": null
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": "matrix(0.9659258127212524,0.258819043636322,-0.258819043636322,0.9659258127212524,-14.627416610717773,-35.191837310791016)",
+              "opacity": "1",
+              "style": "display: block;"
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": null
+            },
+            {
+              "tag": "svg",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": "width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px); content-visibility: visible;"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

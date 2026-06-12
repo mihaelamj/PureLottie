@@ -24,6 +24,12 @@ Run the selected fixture:
 npm --prefix Tools/LottieOracle run oracle -- --fixture eligible-shape-position
 ```
 
+Regenerate the curated corpus fixtures and committed lottie-web intent snapshots:
+
+```sh
+npm --prefix Tools/LottieOracle run build-corpus
+```
+
 Extract only the numeric lottie-web source-intent trace:
 
 ```sh
@@ -55,7 +61,20 @@ The harness compares pixels only when all of these are true:
 
 A pretty image is not evidence by itself. The report records validation eligibility, import findings, RenderIR diagnostics, selected frame numbers, and the reason each frame was selected.
 
-## Selected Fixture
+## Curated Fixture Corpus
+
+The manifest `Tools/LottieOracle/oracle-fixtures.json` currently selects 31
+vetted fixtures from `Tests/Fixtures/LottieOracle`. Each fixture has:
+
+- a small source Lottie JSON file;
+- selected source frames with rationale;
+- coverage tags and a bug-class explanation;
+- a committed `purelottie.lottie-web-intent` snapshot under
+  `Tests/Fixtures/LottieOracle/lottie-web-intent`;
+- a semantic status of `modeled` or `diagnosed`.
+
+The raw 857-file corpus under `Tests/Fixtures/LottieCorpus` remains discovery
+material. This curated set is the regression oracle.
 
 The first fixture is `Tests/Fixtures/LottieOracle/eligible-shape-position.json`.
 

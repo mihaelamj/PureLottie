@@ -1,0 +1,621 @@
+{
+  "schema": {
+    "name": "purelottie.lottie-web-intent",
+    "version": 1
+  },
+  "source": "../../Tests/Fixtures/LottieOracle/split-position-ellipse.json",
+  "renderer": "svg",
+  "lottieWeb": {
+    "package": "npm:lottie-web@5.13.0",
+    "version": "5.13.0"
+  },
+  "width": 64,
+  "height": 64,
+  "scale": 1,
+  "coordinateSemantics": [
+    "stageBounds and svgBounds are CSS pixel coordinates with the stage origin at (0, 0).",
+    "sampledOutputBounds equals sampledCompositionBounds multiplied by deviceScaleFactor.",
+    "path.sampledCompositionBounds uses getTotalLength/getPointAtLength and getScreenCTM, not raster pixels.",
+    "path.strokeExpandedCompositionBounds expands sampled path bounds by half the computed stroke width when a stroke is visible.",
+    "layer.matrix is lottie-web finalTransform.mat.props and uses lottie-web internal matrix order."
+  ],
+  "frames": [
+    {
+      "frame": 0,
+      "currentFrame": 0,
+      "renderedFrame": 0,
+      "firstFrame": 0,
+      "frameRate": 10,
+      "stageBounds": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 64,
+        "maxY": 64,
+        "width": 64,
+        "height": 64
+      },
+      "svgBounds": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 64,
+        "maxY": 64,
+        "width": 64,
+        "height": 64
+      },
+      "svgViewBox": "0 0 64 64",
+      "layerCount": 1,
+      "pathCount": 1,
+      "layers": [
+        {
+          "index": 0,
+          "name": "Split Ellipse",
+          "type": 4,
+          "ind": 1,
+          "inPoint": 0,
+          "outPoint": 10,
+          "startTime": 0,
+          "renderedFrame": 0,
+          "opacity": 1,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            18,
+            32,
+            0,
+            1
+          ],
+          "layerElementBounds": {
+            "minX": 10,
+            "minY": 24,
+            "maxX": 26,
+            "maxY": 40,
+            "width": 16,
+            "height": 16
+          }
+        }
+      ],
+      "paths": [
+        {
+          "index": 0,
+          "tag": "path",
+          "id": null,
+          "className": "",
+          "visible": true,
+          "d": " M0,-8 C4.415200233459473,-8 8,-4.415200233459473 8,0 C8,4.415200233459473 4.415200233459473,8 0,8 C-4.415200233459473,8 -8,4.415200233459473 -8,0 C-8,-4.415200233459473 -4.415200233459473,-8 0,-8z",
+          "transform": null,
+          "pathLength": 50.2672004699707,
+          "localBBox": {
+            "minX": -8,
+            "minY": -8,
+            "maxX": 8,
+            "maxY": 8,
+            "width": 16,
+            "height": 16
+          },
+          "clientBounds": {
+            "minX": 10,
+            "minY": 24,
+            "maxX": 26,
+            "maxY": 40,
+            "width": 16,
+            "height": 16
+          },
+          "ctm": {
+            "a": 1,
+            "b": 0,
+            "c": 0,
+            "d": 1,
+            "e": 18,
+            "f": 32
+          },
+          "sampledLocalBounds": {
+            "minX": -8,
+            "minY": -8,
+            "maxX": 8,
+            "maxY": 8,
+            "width": 16,
+            "height": 16
+          },
+          "sampledCompositionBounds": {
+            "minX": 10,
+            "minY": 24,
+            "maxX": 26,
+            "maxY": 40,
+            "width": 16,
+            "height": 16
+          },
+          "sampledOutputBounds": {
+            "minX": 10,
+            "minY": 24,
+            "maxX": 26,
+            "maxY": 40,
+            "width": 16,
+            "height": 16
+          },
+          "strokeExpandedCompositionBounds": {
+            "minX": 10,
+            "minY": 24,
+            "maxX": 26,
+            "maxY": 40,
+            "width": 16,
+            "height": 16
+          },
+          "strokeExpandedOutputBounds": {
+            "minX": 10,
+            "minY": 24,
+            "maxX": 26,
+            "maxY": 40,
+            "width": 16,
+            "height": 16
+          },
+          "style": {
+            "fill": "rgb(114, 63, 242)",
+            "fillOpacity": 1,
+            "fillRule": "nonzero",
+            "opacity": 1,
+            "stroke": "none",
+            "strokeOpacity": 1,
+            "strokeWidth": 1,
+            "strokeLinecap": "butt",
+            "strokeLinejoin": "miter",
+            "strokeMiterlimit": 4,
+            "strokeDasharray": "none",
+            "strokeDashoffset": "0px",
+            "display": "inline",
+            "visibility": "visible"
+          },
+          "ancestors": [
+            {
+              "tag": "path",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": null
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": "matrix(1,0,0,1,0,0)",
+              "opacity": "1",
+              "style": null
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": "matrix(1,0,0,1,18,32)",
+              "opacity": "1",
+              "style": "display: block;"
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": null
+            },
+            {
+              "tag": "svg",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": "width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px); content-visibility: visible;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 5,
+      "currentFrame": 5,
+      "renderedFrame": 5,
+      "firstFrame": 0,
+      "frameRate": 10,
+      "stageBounds": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 64,
+        "maxY": 64,
+        "width": 64,
+        "height": 64
+      },
+      "svgBounds": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 64,
+        "maxY": 64,
+        "width": 64,
+        "height": 64
+      },
+      "svgViewBox": "0 0 64 64",
+      "layerCount": 1,
+      "pathCount": 1,
+      "layers": [
+        {
+          "index": 0,
+          "name": "Split Ellipse",
+          "type": 4,
+          "ind": 1,
+          "inPoint": 0,
+          "outPoint": 10,
+          "startTime": 0,
+          "renderedFrame": 5,
+          "opacity": 1,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            33.55555725097656,
+            32,
+            0,
+            1
+          ],
+          "layerElementBounds": {
+            "minX": 25.555557250976562,
+            "minY": 24,
+            "maxX": 41.55555725097656,
+            "maxY": 40,
+            "width": 16,
+            "height": 16
+          }
+        }
+      ],
+      "paths": [
+        {
+          "index": 0,
+          "tag": "path",
+          "id": null,
+          "className": "",
+          "visible": true,
+          "d": " M0,-8 C4.415200233459473,-8 8,-4.415200233459473 8,0 C8,4.415200233459473 4.415200233459473,8 0,8 C-4.415200233459473,8 -8,4.415200233459473 -8,0 C-8,-4.415200233459473 -4.415200233459473,-8 0,-8z",
+          "transform": null,
+          "pathLength": 50.2672004699707,
+          "localBBox": {
+            "minX": -8,
+            "minY": -8,
+            "maxX": 8,
+            "maxY": 8,
+            "width": 16,
+            "height": 16
+          },
+          "clientBounds": {
+            "minX": 25.555557250976562,
+            "minY": 24,
+            "maxX": 41.55555725097656,
+            "maxY": 40,
+            "width": 16,
+            "height": 16
+          },
+          "ctm": {
+            "a": 1,
+            "b": 0,
+            "c": 0,
+            "d": 1,
+            "e": 33.55555725097656,
+            "f": 32
+          },
+          "sampledLocalBounds": {
+            "minX": -8,
+            "minY": -8,
+            "maxX": 8,
+            "maxY": 8,
+            "width": 16,
+            "height": 16
+          },
+          "sampledCompositionBounds": {
+            "minX": 25.555557250976562,
+            "minY": 24,
+            "maxX": 41.55555725097656,
+            "maxY": 40,
+            "width": 16,
+            "height": 16
+          },
+          "sampledOutputBounds": {
+            "minX": 25.555557250976562,
+            "minY": 24,
+            "maxX": 41.55555725097656,
+            "maxY": 40,
+            "width": 16,
+            "height": 16
+          },
+          "strokeExpandedCompositionBounds": {
+            "minX": 25.555557250976562,
+            "minY": 24,
+            "maxX": 41.55555725097656,
+            "maxY": 40,
+            "width": 16,
+            "height": 16
+          },
+          "strokeExpandedOutputBounds": {
+            "minX": 25.555557250976562,
+            "minY": 24,
+            "maxX": 41.55555725097656,
+            "maxY": 40,
+            "width": 16,
+            "height": 16
+          },
+          "style": {
+            "fill": "rgb(114, 63, 242)",
+            "fillOpacity": 1,
+            "fillRule": "nonzero",
+            "opacity": 1,
+            "stroke": "none",
+            "strokeOpacity": 1,
+            "strokeWidth": 1,
+            "strokeLinecap": "butt",
+            "strokeLinejoin": "miter",
+            "strokeMiterlimit": 4,
+            "strokeDasharray": "none",
+            "strokeDashoffset": "0px",
+            "display": "inline",
+            "visibility": "visible"
+          },
+          "ancestors": [
+            {
+              "tag": "path",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": null
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": "matrix(1,0,0,1,0,0)",
+              "opacity": "1",
+              "style": null
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": "matrix(1,0,0,1,33.55555725097656,32)",
+              "opacity": "1",
+              "style": "display: block;"
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": null
+            },
+            {
+              "tag": "svg",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": "width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px); content-visibility: visible;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 9,
+      "currentFrame": 9,
+      "renderedFrame": 9,
+      "firstFrame": 0,
+      "frameRate": 10,
+      "stageBounds": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 64,
+        "maxY": 64,
+        "width": 64,
+        "height": 64
+      },
+      "svgBounds": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 64,
+        "maxY": 64,
+        "width": 64,
+        "height": 64
+      },
+      "svgViewBox": "0 0 64 64",
+      "layerCount": 1,
+      "pathCount": 1,
+      "layers": [
+        {
+          "index": 0,
+          "name": "Split Ellipse",
+          "type": 4,
+          "ind": 1,
+          "inPoint": 0,
+          "outPoint": 10,
+          "startTime": 0,
+          "renderedFrame": 9,
+          "opacity": 1,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            46,
+            32,
+            0,
+            1
+          ],
+          "layerElementBounds": {
+            "minX": 38,
+            "minY": 24,
+            "maxX": 54,
+            "maxY": 40,
+            "width": 16,
+            "height": 16
+          }
+        }
+      ],
+      "paths": [
+        {
+          "index": 0,
+          "tag": "path",
+          "id": null,
+          "className": "",
+          "visible": true,
+          "d": " M0,-8 C4.415200233459473,-8 8,-4.415200233459473 8,0 C8,4.415200233459473 4.415200233459473,8 0,8 C-4.415200233459473,8 -8,4.415200233459473 -8,0 C-8,-4.415200233459473 -4.415200233459473,-8 0,-8z",
+          "transform": null,
+          "pathLength": 50.2672004699707,
+          "localBBox": {
+            "minX": -8,
+            "minY": -8,
+            "maxX": 8,
+            "maxY": 8,
+            "width": 16,
+            "height": 16
+          },
+          "clientBounds": {
+            "minX": 38,
+            "minY": 24,
+            "maxX": 54,
+            "maxY": 40,
+            "width": 16,
+            "height": 16
+          },
+          "ctm": {
+            "a": 1,
+            "b": 0,
+            "c": 0,
+            "d": 1,
+            "e": 46,
+            "f": 32
+          },
+          "sampledLocalBounds": {
+            "minX": -8,
+            "minY": -8,
+            "maxX": 8,
+            "maxY": 8,
+            "width": 16,
+            "height": 16
+          },
+          "sampledCompositionBounds": {
+            "minX": 38,
+            "minY": 24,
+            "maxX": 54,
+            "maxY": 40,
+            "width": 16,
+            "height": 16
+          },
+          "sampledOutputBounds": {
+            "minX": 38,
+            "minY": 24,
+            "maxX": 54,
+            "maxY": 40,
+            "width": 16,
+            "height": 16
+          },
+          "strokeExpandedCompositionBounds": {
+            "minX": 38,
+            "minY": 24,
+            "maxX": 54,
+            "maxY": 40,
+            "width": 16,
+            "height": 16
+          },
+          "strokeExpandedOutputBounds": {
+            "minX": 38,
+            "minY": 24,
+            "maxX": 54,
+            "maxY": 40,
+            "width": 16,
+            "height": 16
+          },
+          "style": {
+            "fill": "rgb(114, 63, 242)",
+            "fillOpacity": 1,
+            "fillRule": "nonzero",
+            "opacity": 1,
+            "stroke": "none",
+            "strokeOpacity": 1,
+            "strokeWidth": 1,
+            "strokeLinecap": "butt",
+            "strokeLinejoin": "miter",
+            "strokeMiterlimit": 4,
+            "strokeDasharray": "none",
+            "strokeDashoffset": "0px",
+            "display": "inline",
+            "visibility": "visible"
+          },
+          "ancestors": [
+            {
+              "tag": "path",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": null
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": "matrix(1,0,0,1,0,0)",
+              "opacity": "1",
+              "style": null
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": "matrix(1,0,0,1,46,32)",
+              "opacity": "1",
+              "style": "display: block;"
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": null
+            },
+            {
+              "tag": "svg",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": "width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px); content-visibility: visible;"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

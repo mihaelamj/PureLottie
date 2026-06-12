@@ -141,9 +141,17 @@ Each trace records:
 | `frames[].paths` | SVG path facts: `d`, path length, local and sampled composition bounds, computed fill/stroke style, CTM, and ancestor transform chain. |
 
 Committed oracle fixtures live under
-`Tests/Fixtures/LottieOracle/lottie-web-intent/`. Swift tests compare these
-browser facts against `LottieRenderIRBuilder` output: transform translation,
-opacity, source-geometry bounds, path length, and style facts. Rendered PNGs are
+`Tests/Fixtures/LottieOracle/lottie-web-intent/`. Issue #35 expands this from
+one smoke fixture to 31 curated fixtures listed in
+`Tools/LottieOracle/oracle-fixtures.json` and documented in
+`Tests/Fixtures/LottieOracle/README.md`. The corpus covers static and animated
+position, split position, anchor/scale/rotation combinations, parent transforms,
+ellipse, rectangle, path, polygon, star, fill and stroke style facts, trim paths,
+masks, mattes, precomps, and a diagnosed time-remap boundary.
+
+Swift tests decode every committed browser trace, check the selected frame list
+against the manifest, and compare directly comparable root-layer opacity and
+translation facts against `LottieRenderIRBuilder` output. Rendered PNGs are
 therefore checked only after the numeric intent layer is inspectable.
 
 ## Property Evaluation Trace
