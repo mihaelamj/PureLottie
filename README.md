@@ -54,6 +54,10 @@ absolute tangents, exact cubic bounds, source JSON paths, direction evidence,
 and lottie-web compatibility constants. RenderIR carries this trace beside its
 compatibility geometry payload, and the PureLayer lowerers consume the same
 trace-derived Bezier path so source intent and rendered input stay comparable.
+`LottieSourceTrimEvaluator` measures trim-path intent over those contours before
+lowering: original path lengths, normalized start/end/offset, parallel versus
+sequential selection order, selected segment ranges, resulting Bezier paths, and
+the named lottie-web sampling/rounding approximations used to compute them.
 
 ## Backend Gap Evidence
 

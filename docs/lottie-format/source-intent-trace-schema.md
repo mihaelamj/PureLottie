@@ -223,6 +223,42 @@ Style records preserve source style intent: fill/stroke kind, RGBA color,
 opacity, stroke width, cap, join, miter, dash pattern, blend mode, and
 provenance.
 
+## Trim Path Trace
+
+`LottieSourceTrimEvaluator` evaluates `tm` modifiers over expanded source
+geometry before any PureLayer or PureDraw object is created. It follows the
+trim code inspected in `player/js/utils/shapes/TrimModifier.js` and
+`player/js/utils/bez.js`:
+
+- `s` and `e` are authored as percentages and converted to fractions.
+- `o` is authored in degrees, reduced modulo `360`, and converted to turns.
+- Start/end fractions are clamped to `[0, 1]`, offset is added, reversed ranges
+  are swapped, and both boundaries are rounded to 4 decimals.
+- `m == 1` is parallel mode: every path receives the same normalized range.
+- `m == 2` is sequential mode: paths are measured as one continuous sequence in
+  lottie-web processing order.
+- Cubic length uses lottie-web's default 150 sample points. Generated trim
+  subsegment control points are rounded to 0.001 like `bez.getNewSegment`.
+
+Each trim trace records:
+
+| Field | Meaning |
+| --- | --- |
+| `sourcePath`, `jsonPath`, `sourceFrame` | Modifier provenance and selected Lottie frame. |
+| `authoredMultiple`, `mode` | Authored `m` value and resolved `parallel`/`sequential` mode. |
+| `normalization` | Authored start/end/offset, raw fractions, offset turns, normalized rounded fractions, swapped flag, empty/full flags. |
+| `inputPaths` | One record per source path: source path, JSON path, primitive, closure, total length, and per-cubic lengths. |
+| `totalLength` | Sum of measured input lengths, used by sequential mode. |
+| `sequenceOrder` | The source path order used for sequential selection. |
+| `selectedSegments` | Path-level selected ranges with local/global lengths, fractions, sequence ordinal, and per-cubic selected ranges. |
+| `resultPaths` | Generated Bezier paths for the selected ranges, still in Lottie source-space terms. |
+| `approximations` | Named compatibility approximations/constants, currently `lottieWebDefaultCurveSegments`, `lengthParameterization`, and `trimmedCubicRoundingDecimals`. |
+
+This trace is the measurable answer to "what did Lottie intend?" for trim
+paths. Backend lowering may still be approximate; the trace must remain present
+so the backend result can be compared against source intent rather than judged
+from pixels alone.
+
 ## Diagnostics
 
 Diagnostics carry:

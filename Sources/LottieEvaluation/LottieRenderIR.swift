@@ -230,6 +230,8 @@ public struct LottieRenderShapeDraw: Sendable, Equatable {
     public var style: LottieRenderShapeStyle
     /// Evaluated geometry fragments affected by the style.
     public var fragments: [LottieRenderGeometryFragment]
+    /// Measured trim-path source intent for the draw's trimmed fragments.
+    public var trimTraces: [LottieSourceTrimTrace]
 }
 
 /// Evaluated fill or stroke style.
@@ -389,6 +391,7 @@ private struct LottieRenderFrameEmitter {
     let frameEvaluator: LottieFrameEvaluator
     let transformEvaluator: LottieTransformEvaluator
     let geometryEvaluator: LottieSourceGeometryEvaluator
+    let trimEvaluator: LottieSourceTrimEvaluator
     var diagnostics: [ValidationError] = []
     var nextNodeID = 1
     var precompositionStack: [String] = []
@@ -398,6 +401,7 @@ private struct LottieRenderFrameEmitter {
         frameEvaluator = LottieFrameEvaluator(animation: animation)
         transformEvaluator = LottieTransformEvaluator(animation: animation)
         geometryEvaluator = LottieSourceGeometryEvaluator(animation: animation)
+        trimEvaluator = LottieSourceTrimEvaluator()
     }
 
     mutating func frame(at sourceFrame: Double) -> LottieRenderFrame {
@@ -839,10 +843,12 @@ private struct LottieRenderFrameEmitter {
         nodes.compactMap { node -> LottieRenderShapeNode? in
             switch node {
             case let .styleRun(run):
+                let fragments = run.fragments.compactMap { evaluatedFragment($0, at: localFrame) }
                 let draw = LottieRenderShapeDraw(
                     source: LottieRenderSource(sourcePath: run.sourcePath, jsonPath: run.jsonPath, sourceRange: nil),
                     style: evaluatedStyle(run.style, at: localFrame, sourcePath: run.sourcePath, jsonPath: run.jsonPath),
-                    fragments: run.fragments.compactMap { evaluatedFragment($0, at: localFrame) }
+                    fragments: fragments,
+                    trimTraces: trimTraces(for: fragments, at: localFrame)
                 )
                 return draw.fragments.isEmpty ? nil : .draw(draw)
             case let .group(group):
@@ -861,6 +867,48 @@ private struct LottieRenderFrameEmitter {
                 ))
             }
         }
+    }
+
+    private mutating func trimTraces(
+        for fragments: [LottieRenderGeometryFragment],
+        at localFrame: Double
+    ) -> [LottieSourceTrimTrace] {
+        var traces: [LottieSourceTrimTrace] = []
+        var runTrim: LottieRenderTrim?
+        var runFragments: [LottieRenderGeometryFragment] = []
+
+        func flush() {
+            guard let trim = runTrim, !runFragments.isEmpty else { return }
+            let result = trimEvaluator.evaluate(
+                trim: trim,
+                paths: runFragments.map(\.sourceGeometry),
+                sourceFrame: localFrame
+            )
+            diagnostics.append(contentsOf: result.diagnostics)
+            traces.append(result.value)
+        }
+
+        for fragment in fragments {
+            let trim = trim(in: fragment.modifiers)
+            if trim == runTrim {
+                if trim != nil {
+                    runFragments.append(fragment)
+                }
+            } else {
+                flush()
+                runTrim = trim
+                runFragments = trim == nil ? [] : [fragment]
+            }
+        }
+        flush()
+        return traces
+    }
+
+    private func trim(in modifiers: [LottieRenderShapeModifier]) -> LottieRenderTrim? {
+        modifiers.compactMap { modifier -> LottieRenderTrim? in
+            if case let .trim(trim) = modifier { return trim }
+            return nil
+        }.first
     }
 
     private mutating func evaluatedStyle(
