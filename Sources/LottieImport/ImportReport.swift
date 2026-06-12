@@ -3,6 +3,8 @@
 //  PureLottie
 //
 
+import LottieModel
+
 /// Everything the importer could not map exactly, by location.
 ///
 /// The importer's contract: a Lottie feature is either mapped correctly or
@@ -22,12 +24,24 @@ public struct ImportReport: Sendable, Equatable {
         /// Where in the document the feature was found, for example
         /// `layer 'Star' > group 'Group 1'`.
         public let path: String
+        /// Source JSON path when the importer can infer one from source order.
+        public let sourcePath: String?
+        /// Source JSON range when the importer was given source-ranged data.
+        public let sourceRange: SourceRange?
         /// The feature, for example `animated fill color`.
         public let feature: String
         public let disposition: Disposition
 
-        public init(path: String, feature: String, disposition: Disposition) {
+        public init(
+            path: String,
+            sourcePath: String? = nil,
+            sourceRange: SourceRange? = nil,
+            feature: String,
+            disposition: Disposition
+        ) {
             self.path = path
+            self.sourcePath = sourcePath
+            self.sourceRange = sourceRange
             self.feature = feature
             self.disposition = disposition
         }
@@ -48,12 +62,12 @@ public struct ImportReport: Sendable, Equatable {
 final class ImportReportBuilder {
     private(set) var findings: [ImportReport.Finding] = []
 
-    func skip(_ feature: String, at path: String) {
-        findings.append(.init(path: path, feature: feature, disposition: .skipped))
+    func skip(_ feature: String, at path: String, sourcePath: JSONPath? = nil, sourceRange: SourceRange? = nil) {
+        findings.append(.init(path: path, sourcePath: sourcePath?.description, sourceRange: sourceRange, feature: feature, disposition: .skipped))
     }
 
-    func approximate(_ feature: String, at path: String) {
-        findings.append(.init(path: path, feature: feature, disposition: .approximated))
+    func approximate(_ feature: String, at path: String, sourcePath: JSONPath? = nil, sourceRange: SourceRange? = nil) {
+        findings.append(.init(path: path, sourcePath: sourcePath?.description, sourceRange: sourceRange, feature: feature, disposition: .approximated))
     }
 
     func report() -> ImportReport {

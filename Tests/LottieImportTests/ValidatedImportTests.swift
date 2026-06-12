@@ -54,7 +54,7 @@ final class ValidatedImportTests: XCTestCase {
             "ind": 1,
             "ip": 0,
             "op": 30,
-            "tt": 1,
+            "ao": 1,
             "ks": {},
             "shapes": []
           }],
@@ -67,7 +67,7 @@ final class ValidatedImportTests: XCTestCase {
             XCTFail("Expected source validation to throw before import.")
         } catch let collection as ValidationErrorCollection {
             XCTAssertEqual(collection.values.map(\.ruleID), ["lottie.layer.silent-risk-field"])
-            XCTAssertEqual(collection.values[0].codingPath.description, "$.layers[0].tt")
+            XCTAssertEqual(collection.values[0].codingPath.description, "$.layers[0].ao")
         }
     }
 

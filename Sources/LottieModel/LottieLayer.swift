@@ -25,6 +25,12 @@ public struct LottieLayer: Decodable, Sendable, Equatable {
     public var parent: Int?
     /// The asset id a precomposition layer instantiates.
     public var referenceId: String?
+    /// Track matte mode (`tt`). Values are preserved as authored.
+    public var trackMatteType: Int?
+    /// Track matte source marker (`td`). Values are preserved as authored.
+    public var trackMatteSource: Int?
+    /// Explicit track matte source layer index (`tp`), when present.
+    public var trackMatteParent: Int?
     public var startTime: Double
     public var inPoint: Double
     public var outPoint: Double
@@ -53,6 +59,9 @@ public struct LottieLayer: Decodable, Sendable, Equatable {
         case index = "ind"
         case parent
         case referenceId = "refId"
+        case trackMatteType = "tt"
+        case trackMatteSource = "td"
+        case trackMatteParent = "tp"
         case startTime = "st"
         case inPoint = "ip"
         case outPoint = "op"
@@ -75,6 +84,9 @@ public struct LottieLayer: Decodable, Sendable, Equatable {
         index = try container.decodeIfPresent(Int.self, forKey: .index)
         parent = try container.decodeIfPresent(Int.self, forKey: .parent)
         referenceId = try container.decodeIfPresent(String.self, forKey: .referenceId)
+        trackMatteType = try container.decodeIfPresent(Int.self, forKey: .trackMatteType)
+        trackMatteSource = try container.decodeIfPresent(Int.self, forKey: .trackMatteSource)
+        trackMatteParent = try container.decodeIfPresent(Int.self, forKey: .trackMatteParent)
         startTime = try container.decodeIfPresent(Double.self, forKey: .startTime) ?? 0
         inPoint = try container.decodeIfPresent(Double.self, forKey: .inPoint) ?? 0
         outPoint = try container.decodeIfPresent(Double.self, forKey: .outPoint) ?? 0

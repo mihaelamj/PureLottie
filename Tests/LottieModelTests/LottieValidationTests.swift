@@ -102,7 +102,7 @@ final class LottieValidationTests: XCTestCase {
             "ind": 1,
             "ip": 0,
             "op": 30,
-            "tt": 1,
+            "ao": 1,
             "ks": {
               "a": { "a": 0, "k": [0, 0] },
               "p": { "a": 0, "k": [0, 0] },
@@ -129,7 +129,7 @@ final class LottieValidationTests: XCTestCase {
             try document.validate()
             XCTFail("Expected default validation to throw on silent-risk fields.")
         } catch let collection as ValidationErrorCollection {
-            XCTAssertTrue(collection.values.contains { $0.ruleID == "lottie.layer.silent-risk-field" && $0.codingPath.description == "$.layers[0].tt" })
+            XCTAssertTrue(collection.values.contains { $0.ruleID == "lottie.layer.silent-risk-field" && $0.codingPath.description == "$.layers[0].ao" })
             XCTAssertTrue(collection.values.contains { $0.ruleID == "lottie.transform.silent-risk-field" && $0.codingPath.description == "$.layers[0].ks.sk" })
             XCTAssertTrue(collection.values.contains { $0.ruleID == "lottie.shape.stroke-style-field" && $0.codingPath.description == "$.layers[0].shapes[0].lc" })
             XCTAssertTrue(collection.values.contains { $0.ruleID == "lottie.shape.stroke-style-field" && $0.codingPath.description == "$.layers[0].shapes[0].d" })
@@ -191,7 +191,7 @@ final class LottieValidationTests: XCTestCase {
           "op": 30,
           "w": 64,
           "h": 64,
-          "layers": [{ "ty": 4, "ind": 1, "ip": 0, "op": 30, "tt": 1, "ks": {}, "shapes": [] }],
+          "layers": [{ "ty": 4, "ind": 1, "ip": 0, "op": 30, "ao": 1, "ks": {}, "shapes": [] }],
           "assets": []
         }
         """)
