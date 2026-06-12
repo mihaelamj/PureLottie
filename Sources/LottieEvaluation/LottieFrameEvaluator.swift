@@ -25,10 +25,12 @@ public struct LottieFrameWindow: Sendable, Equatable {
 public struct LottieEvaluationResult<Value: Sendable & Equatable>: Sendable, Equatable {
     public let value: Value
     public let diagnostics: [ValidationError]
+    public let trace: LottiePropertyEvaluationTrace?
 
-    public init(value: Value, diagnostics: [ValidationError] = []) {
+    public init(value: Value, diagnostics: [ValidationError] = [], trace: LottiePropertyEvaluationTrace? = nil) {
         self.value = value
         self.diagnostics = diagnostics
+        self.trace = trace
     }
 
     public var isExact: Bool {
@@ -115,7 +117,10 @@ public struct LottieFrameEvaluator: Sendable {
     ) -> LottieEvaluationResult<Double> {
         switch property {
         case let .fixed(value):
-            return LottieEvaluationResult(value: value)
+            return LottieEvaluationResult(
+                value: value,
+                trace: fixedTrace(value: [value], sourceFrame: sourceFrame, offsetFrame: offsetFrame, path: path)
+            )
         case let .keyframed(keyframes):
             let result = evaluateVectorKeyframes(
                 keyframes,
@@ -124,9 +129,13 @@ public struct LottieFrameEvaluator: Sendable {
                 offsetFrame: offsetFrame,
                 reportSpatialInterpolation: false
             )
+            let value = result.value.component(0) ?? 0
+            var trace = result.trace
+            trace?.finalValue = [value]
             return LottieEvaluationResult(
-                value: result.value.component(0) ?? 0,
-                diagnostics: result.diagnostics
+                value: value,
+                diagnostics: result.diagnostics,
+                trace: trace
             )
         }
     }
@@ -140,7 +149,10 @@ public struct LottieFrameEvaluator: Sendable {
     ) -> LottieEvaluationResult<[Double]> {
         switch property {
         case let .fixed(value):
-            LottieEvaluationResult(value: value)
+            LottieEvaluationResult(
+                value: value,
+                trace: fixedTrace(value: value, sourceFrame: sourceFrame, offsetFrame: offsetFrame, path: path)
+            )
         case let .keyframed(keyframes):
             evaluateVectorKeyframes(
                 keyframes,
@@ -166,9 +178,19 @@ public struct LottieFrameEvaluator: Sendable {
             let xResult = evaluate(x, at: sourceFrame, path: path.appending(.key("x")), offsetFrame: offsetFrame)
             let yResult = evaluate(y, at: sourceFrame, path: path.appending(.key("y")), offsetFrame: offsetFrame)
             let zResult = z.map { evaluate($0, at: sourceFrame, path: path.appending(.key("z")), offsetFrame: offsetFrame) }
+            let value = [xResult.value, yResult.value, zResult?.value ?? 0]
             return LottieEvaluationResult(
-                value: [xResult.value, yResult.value, zResult?.value ?? 0],
-                diagnostics: xResult.diagnostics + yResult.diagnostics + (zResult?.diagnostics ?? [])
+                value: value,
+                diagnostics: xResult.diagnostics + yResult.diagnostics + (zResult?.diagnostics ?? []),
+                trace: LottiePropertyEvaluationTrace(
+                    propertyPath: path.description,
+                    sourceFrame: sourceFrame,
+                    offsetFrame: offsetFrame,
+                    localFrame: sourceFrame + offsetFrame,
+                    mode: .splitPosition,
+                    finalValue: value,
+                    childTraces: [xResult.trace, yResult.trace, zResult?.trace].compactMap { $0 }
+                )
             )
         }
     }
@@ -202,6 +224,7 @@ public struct LottieFrameEvaluator: Sendable {
     // MARK: Keyframes
 
     private static let epsilon = 0.0001
+    private static let lottieWebSpatialCurveSegments = 150
 
     private func evaluateVectorKeyframes(
         _ keyframes: [LottieKeyframe<[Double]>],
@@ -220,36 +243,67 @@ public struct LottieFrameEvaluator: Sendable {
                         path: path,
                         classification: .gap
                     ),
-                ]
-            )
-        }
-
-        var diagnostics: [ValidationError] = []
-        if reportSpatialInterpolation, hasUnsupportedSpatialInterpolation(in: keyframes) {
-            diagnostics.append(
-                diagnostic(
-                    ruleID: "lottie.evaluation.spatial-interpolation.unsupported",
-                    reason: "Spatial interpolation is not yet evaluated; temporal interpolation is returned.",
-                    path: path,
-                    classification: .approximate
+                ],
+                trace: LottiePropertyEvaluationTrace(
+                    propertyPath: path.description,
+                    sourceFrame: sourceFrame,
+                    offsetFrame: offsetFrame,
+                    localFrame: sourceFrame + offsetFrame,
+                    mode: .emptyKeyframes,
+                    finalValue: []
                 )
             )
         }
 
+        var diagnostics: [ValidationError] = []
+
         guard keyframes.count > 1 else {
-            return LottieEvaluationResult(value: keyframes[0].startValue ?? [], diagnostics: diagnostics)
+            let value = keyframes[0].startValue ?? []
+            return LottieEvaluationResult(
+                value: value,
+                diagnostics: diagnostics,
+                trace: LottiePropertyEvaluationTrace(
+                    propertyPath: path.description,
+                    sourceFrame: sourceFrame,
+                    offsetFrame: offsetFrame,
+                    localFrame: sourceFrame + offsetFrame,
+                    mode: .singleKeyframe,
+                    finalValue: value
+                )
+            )
         }
 
         let firstTime = keyframes[0].time - offsetFrame
         if sourceFrame < firstTime {
-            return LottieEvaluationResult(value: keyframes[0].startValue ?? [], diagnostics: diagnostics)
+            let value = keyframes[0].startValue ?? []
+            return LottieEvaluationResult(
+                value: value,
+                diagnostics: diagnostics,
+                trace: LottiePropertyEvaluationTrace(
+                    propertyPath: path.description,
+                    sourceFrame: sourceFrame,
+                    offsetFrame: offsetFrame,
+                    localFrame: sourceFrame + offsetFrame,
+                    mode: .beforeFirstKeyframe,
+                    finalValue: value
+                )
+            )
         }
 
         if let last = keyframes.last, sourceFrame >= last.time - offsetFrame {
             let previous = keyframes[keyframes.count - 2]
+            let value = last.startValue ?? previous.endValue ?? previous.startValue ?? []
             return LottieEvaluationResult(
-                value: last.startValue ?? previous.endValue ?? previous.startValue ?? [],
-                diagnostics: diagnostics
+                value: value,
+                diagnostics: diagnostics,
+                trace: LottiePropertyEvaluationTrace(
+                    propertyPath: path.description,
+                    sourceFrame: sourceFrame,
+                    offsetFrame: offsetFrame,
+                    localFrame: sourceFrame + offsetFrame,
+                    mode: .afterLastKeyframe,
+                    finalValue: value
+                )
             )
         }
 
@@ -261,57 +315,388 @@ public struct LottieFrameEvaluator: Sendable {
         let next = keyframes[segmentIndex + 1]
         let start = keyframe.startValue ?? []
         let end = next.startValue ?? keyframe.endValue ?? start
-        guard !keyframe.isHold else {
-            return LottieEvaluationResult(value: start, diagnostics: diagnostics)
-        }
-
         let startFrame = keyframe.time - offsetFrame
         let endFrame = next.time - offsetFrame
+        let linearProgress = normalizedProgress(sourceFrame: sourceFrame, startFrame: startFrame, endFrame: endFrame)
+
+        if keyframe.isHold {
+            let span = spanTrace(
+                keyframeIndex: segmentIndex,
+                keyframe: keyframe,
+                next: next,
+                start: start,
+                end: end,
+                startFrame: startFrame,
+                endFrame: endFrame,
+                linearProgress: linearProgress,
+                timingProgress: [0],
+                interpolationSpace: .value,
+                timingCurves: [],
+                spatial: nil
+            )
+            return LottieEvaluationResult(
+                value: start,
+                diagnostics: diagnostics,
+                trace: animatedTrace(
+                    mode: .holdKeyframe,
+                    value: start,
+                    sourceFrame: sourceFrame,
+                    offsetFrame: offsetFrame,
+                    path: path,
+                    span: span
+                )
+            )
+        }
+
+        if keyframe.easeOut == nil || keyframe.easeIn == nil {
+            diagnostics.append(
+                diagnostic(
+                    ruleID: "lottie.evaluation.keyframe-timing.handles-complete",
+                    reason: "Non-hold keyframe spans must carry both `o` and `i` easing handles before exact timing evaluation; a linear timing fallback is returned.",
+                    path: path,
+                    classification: .gap
+                )
+            )
+        }
+
+        if reportSpatialInterpolation, shouldEvaluateSpatialSegment(keyframe: keyframe, start: start, end: end) {
+            guard let spatialOut = keyframe.spatialOut, let spatialIn = keyframe.spatialIn, spatialDimensionsMatch(
+                start: start,
+                end: end,
+                spatialOut: spatialOut,
+                spatialIn: spatialIn
+            ) else {
+                diagnostics.append(
+                    diagnostic(
+                        ruleID: "lottie.evaluation.spatial-interpolation.tangents-complete",
+                        reason: "Spatial position keyframes must carry matching start, end, `to`, and `ti` dimensions before exact evaluation.",
+                        path: path,
+                        classification: .gap
+                    )
+                )
+                let temporal = temporalValue(start: start, end: end, keyframe: keyframe, linearProgress: linearProgress)
+                return LottieEvaluationResult(
+                    value: temporal.value,
+                    diagnostics: diagnostics,
+                    trace: animatedTrace(
+                        mode: .keyframeSpan,
+                        value: temporal.value,
+                        sourceFrame: sourceFrame,
+                        offsetFrame: offsetFrame,
+                        path: path,
+                        span: spanTrace(
+                            keyframeIndex: segmentIndex,
+                            keyframe: keyframe,
+                            next: next,
+                            start: start,
+                            end: end,
+                            startFrame: startFrame,
+                            endFrame: endFrame,
+                            linearProgress: linearProgress,
+                            timingProgress: temporal.progress,
+                            interpolationSpace: .value,
+                            timingCurves: temporal.curves,
+                            spatial: nil
+                        )
+                    )
+                )
+            }
+
+            let timing = timingProgress(linearProgress, out: keyframe.easeOut, in: keyframe.easeIn, component: 0)
+            let spatial = spatialValue(
+                start: start,
+                end: end,
+                spatialOut: spatialOut,
+                spatialIn: spatialIn,
+                timingProgress: timing.progress
+            )
+            let span = spanTrace(
+                keyframeIndex: segmentIndex,
+                keyframe: keyframe,
+                next: next,
+                start: start,
+                end: end,
+                startFrame: startFrame,
+                endFrame: endFrame,
+                linearProgress: linearProgress,
+                timingProgress: [timing.progress],
+                interpolationSpace: .spatialArcLength,
+                timingCurves: timing.trace.map { [$0] } ?? [],
+                spatial: spatial.trace
+            )
+            return LottieEvaluationResult(
+                value: spatial.value,
+                diagnostics: diagnostics,
+                trace: animatedTrace(
+                    mode: .keyframeSpan,
+                    value: spatial.value,
+                    sourceFrame: sourceFrame,
+                    offsetFrame: offsetFrame,
+                    path: path,
+                    span: span
+                )
+            )
+        }
+
+        let temporal = temporalValue(start: start, end: end, keyframe: keyframe, linearProgress: linearProgress)
+        let span = spanTrace(
+            keyframeIndex: segmentIndex,
+            keyframe: keyframe,
+            next: next,
+            start: start,
+            end: end,
+            startFrame: startFrame,
+            endFrame: endFrame,
+            linearProgress: linearProgress,
+            timingProgress: temporal.progress,
+            interpolationSpace: .value,
+            timingCurves: temporal.curves,
+            spatial: nil
+        )
+        return LottieEvaluationResult(
+            value: temporal.value,
+            diagnostics: diagnostics,
+            trace: animatedTrace(
+                mode: .keyframeSpan,
+                value: temporal.value,
+                sourceFrame: sourceFrame,
+                offsetFrame: offsetFrame,
+                path: path,
+                span: span
+            )
+        )
+    }
+
+    private func fixedTrace(value: [Double], sourceFrame: Double, offsetFrame: Double, path: JSONPath) -> LottiePropertyEvaluationTrace {
+        LottiePropertyEvaluationTrace(
+            propertyPath: path.description,
+            sourceFrame: sourceFrame,
+            offsetFrame: offsetFrame,
+            localFrame: sourceFrame + offsetFrame,
+            mode: .fixed,
+            finalValue: value
+        )
+    }
+
+    private func animatedTrace(
+        mode: LottiePropertyEvaluationMode,
+        value: [Double],
+        sourceFrame: Double,
+        offsetFrame: Double,
+        path: JSONPath,
+        span: LottieKeyframeSpanTrace
+    ) -> LottiePropertyEvaluationTrace {
+        LottiePropertyEvaluationTrace(
+            propertyPath: path.description,
+            sourceFrame: sourceFrame,
+            offsetFrame: offsetFrame,
+            localFrame: sourceFrame + offsetFrame,
+            mode: mode,
+            finalValue: value,
+            span: span
+        )
+    }
+
+    private func spanTrace(
+        keyframeIndex: Int,
+        keyframe: LottieKeyframe<[Double]>,
+        next: LottieKeyframe<[Double]>,
+        start: [Double],
+        end: [Double],
+        startFrame: Double,
+        endFrame: Double,
+        linearProgress: Double,
+        timingProgress: [Double],
+        interpolationSpace: LottieInterpolationSpace,
+        timingCurves: [LottieTimingCurveTrace],
+        spatial: LottieSpatialEvaluationTrace?
+    ) -> LottieKeyframeSpanTrace {
+        LottieKeyframeSpanTrace(
+            keyframeIndex: keyframeIndex,
+            authoredStartFrame: keyframe.time,
+            authoredEndFrame: next.time,
+            evaluatedStartFrame: startFrame,
+            evaluatedEndFrame: endFrame,
+            startValue: start,
+            endValue: end,
+            linearProgress: linearProgress,
+            timingProgress: timingProgress,
+            interpolationSpace: interpolationSpace,
+            isHold: keyframe.isHold,
+            timingCurves: timingCurves,
+            spatial: spatial
+        )
+    }
+
+    private func temporalValue(
+        start: [Double],
+        end: [Double],
+        keyframe: LottieKeyframe<[Double]>,
+        linearProgress: Double
+    ) -> (value: [Double], progress: [Double], curves: [LottieTimingCurveTrace]) {
         let count = max(start.count, end.count)
-        let value = (0 ..< count).map { index in
-            let progress: Double
-            if sourceFrame >= endFrame {
-                progress = 1
-            } else if sourceFrame < startFrame || endFrame <= startFrame {
-                progress = 0
-            } else {
-                let linearProgress = (sourceFrame - startFrame) / (endFrame - startFrame)
-                progress = easedProgress(linearProgress, out: keyframe.easeOut, in: keyframe.easeIn, component: index)
+        var progressValues: [Double] = []
+        var curves: [LottieTimingCurveTrace] = []
+        var value: [Double] = []
+
+        for index in 0 ..< count {
+            let timing = timingProgress(linearProgress, out: keyframe.easeOut, in: keyframe.easeIn, component: index)
+            progressValues.append(timing.progress)
+            if let trace = timing.trace {
+                curves.append(trace)
             }
             let startComponent = start.component(index) ?? 0
             let endComponent = end.component(index) ?? startComponent
-            return startComponent + (endComponent - startComponent) * progress
+            value.append(startComponent + (endComponent - startComponent) * timing.progress)
         }
-        return LottieEvaluationResult(value: value, diagnostics: diagnostics)
+
+        return (value, progressValues, curves)
     }
 
-    private func easedProgress(_ progress: Double, out: EasingHandle?, in easeIn: EasingHandle?, component: Int = 0) -> Double {
-        guard let out, let easeIn else { return progress }
-        return BezierEasing(
+    private func normalizedProgress(sourceFrame: Double, startFrame: Double, endFrame: Double) -> Double {
+        if sourceFrame >= endFrame { return 1 }
+        if sourceFrame < startFrame || endFrame <= startFrame { return 0 }
+        return (sourceFrame - startFrame) / (endFrame - startFrame)
+    }
+
+    private func timingProgress(
+        _ progress: Double,
+        out: EasingHandle?,
+        in easeIn: EasingHandle?,
+        component: Int
+    ) -> (progress: Double, trace: LottieTimingCurveTrace?) {
+        guard let out, let easeIn else { return (progress, nil) }
+        let value = BezierEasing(
             x1: out.xComponent(component),
             y1: out.yComponent(component),
             x2: easeIn.xComponent(component),
             y2: easeIn.yComponent(component)
         ).value(at: progress)
+        return (
+            value,
+            LottieTimingCurveTrace(
+                component: component,
+                outX: out.xComponent(component),
+                outY: out.yComponent(component),
+                inX: easeIn.xComponent(component),
+                inY: easeIn.yComponent(component),
+                result: value
+            )
+        )
     }
 
-    private func hasUnsupportedSpatialInterpolation(in keyframes: [LottieKeyframe<[Double]>]) -> Bool {
-        guard keyframes.count > 1 else { return false }
-        return keyframes.indices.dropLast().contains { index in
-            let keyframe = keyframes[index]
-            guard let spatialOut = keyframe.spatialOut else { return false }
-            let spatialIn = keyframe.spatialIn ?? []
-            guard hasSpatialTangent(spatialOut) || hasSpatialTangent(spatialIn) else { return false }
-            guard let start = keyframe.startValue, let end = keyframes[index + 1].startValue else {
-                return true
+    private func shouldEvaluateSpatialSegment(keyframe: LottieKeyframe<[Double]>, start: [Double], end: [Double]) -> Bool {
+        guard let spatialOut = keyframe.spatialOut else { return false }
+        let spatialIn = keyframe.spatialIn ?? []
+        guard hasSpatialTangent(spatialOut) || hasSpatialTangent(spatialIn) else { return false }
+        return !isEffectivelyLinearSpatialSegment(
+            start: start,
+            end: end,
+            spatialOut: spatialOut,
+            spatialIn: spatialIn
+        )
+    }
+
+    private func spatialDimensionsMatch(start: [Double], end: [Double], spatialOut: [Double], spatialIn: [Double]) -> Bool {
+        !start.isEmpty
+            && start.count == end.count
+            && start.count == spatialOut.count
+            && start.count == spatialIn.count
+    }
+
+    private func spatialValue(
+        start: [Double],
+        end: [Double],
+        spatialOut: [Double],
+        spatialIn: [Double],
+        timingProgress: Double
+    ) -> (value: [Double], trace: LottieSpatialEvaluationTrace) {
+        let bezier = buildSpatialBezierData(
+            start: start,
+            end: end,
+            spatialOut: spatialOut,
+            spatialIn: spatialIn
+        )
+        let distance = bezier.segmentLength * timingProgress
+        let sample = sampleSpatialBezier(bezier, distance: distance, timingProgress: timingProgress)
+        let trace = LottieSpatialEvaluationTrace(
+            outTangent: spatialOut,
+            inTangent: spatialIn,
+            controlPoint1: zipComponents(start, spatialOut, +),
+            controlPoint2: zipComponents(end, spatialIn, +),
+            curveSegments: bezier.points.count,
+            segmentLength: bezier.segmentLength,
+            distance: distance,
+            pointIndex: sample.pointIndex,
+            pointSegmentProgress: sample.pointSegmentProgress
+        )
+        return (sample.value, trace)
+    }
+
+    private func buildSpatialBezierData(
+        start: [Double],
+        end: [Double],
+        spatialOut: [Double],
+        spatialIn: [Double]
+    ) -> SpatialBezierData {
+        var points: [SpatialPoint] = []
+        var addedLength = 0.0
+        var lastPoint: [Double]?
+
+        for index in 0 ..< Self.lottieWebSpatialCurveSegments {
+            let progress = Double(index) / Double(Self.lottieWebSpatialCurveSegments - 1)
+            let inverse = 1 - progress
+            let point = start.indices.map { component in
+                (inverse * inverse * inverse * start[component])
+                    + (3 * inverse * inverse * progress * (start[component] + spatialOut[component]))
+                    + (3 * inverse * progress * progress * (end[component] + spatialIn[component]))
+                    + (progress * progress * progress * end[component])
             }
-            return !isEffectivelyLinearSpatialSegment(
-                start: start,
-                end: end,
-                spatialOut: spatialOut,
-                spatialIn: spatialIn
-            )
+            let partialLength: Double
+            if let lastPoint {
+                partialLength = distance(from: lastPoint, to: point)
+                addedLength += partialLength
+            } else {
+                partialLength = 0
+            }
+            points.append(SpatialPoint(partialLength: partialLength, point: point))
+            lastPoint = point
         }
+
+        return SpatialBezierData(segmentLength: addedLength, points: points)
+    }
+
+    private func sampleSpatialBezier(
+        _ bezier: SpatialBezierData,
+        distance: Double,
+        timingProgress: Double
+    ) -> (value: [Double], pointIndex: Int, pointSegmentProgress: Double?) {
+        guard let first = bezier.points.first else {
+            return ([], 0, nil)
+        }
+        guard bezier.segmentLength > Self.epsilon else {
+            return (first.point, 0, nil)
+        }
+
+        var addedLength = 0.0
+        for index in bezier.points.indices {
+            let point = bezier.points[index]
+            addedLength += point.partialLength
+            if distance == 0 || timingProgress == 0 || index == bezier.points.count - 1 {
+                return (point.point, index, nil)
+            }
+            let next = bezier.points[index + 1]
+            if distance >= addedLength, distance < addedLength + next.partialLength {
+                let segmentProgress = (distance - addedLength) / next.partialLength
+                let value = point.point.indices.map { component in
+                    point.point[component] + (next.point[component] - point.point[component]) * segmentProgress
+                }
+                return (value, index, segmentProgress)
+            }
+        }
+
+        let lastIndex = bezier.points.count - 1
+        return (bezier.points[lastIndex].point, lastIndex, nil)
     }
 
     private func hasSpatialTangent(_ values: [Double]) -> Bool {
@@ -451,6 +836,20 @@ public struct LottieFrameEvaluator: Sendable {
         return (x * x + y * y + z * z).squareRoot()
     }
 
+    private func distance(from start: [Double], to end: [Double]) -> Double {
+        zip(start, end)
+            .map { left, right in
+                let delta = right - left
+                return delta * delta
+            }
+            .reduce(0, +)
+            .squareRoot()
+    }
+
+    private func zipComponents(_ left: [Double], _ right: [Double], _ operation: (Double, Double) -> Double) -> [Double] {
+        zip(left, right).map(operation)
+    }
+
     private func approximatelyEqual(_ left: Double, _ right: Double) -> Bool {
         abs(left - right) <= Self.epsilon
     }
@@ -474,6 +873,16 @@ public struct LottieFrameEvaluator: Sendable {
             classification: classification
         )
     }
+}
+
+private struct SpatialBezierData {
+    var segmentLength: Double
+    var points: [SpatialPoint]
+}
+
+private struct SpatialPoint {
+    var partialLength: Double
+    var point: [Double]
 }
 
 /// Port of lottie-web's `BezierEaser` timing function.

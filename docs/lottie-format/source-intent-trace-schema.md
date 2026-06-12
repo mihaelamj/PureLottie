@@ -75,6 +75,35 @@ A frame record contains:
 Lottie source timing remains frame-based. The root frame window uses
 `ipInclusiveOpExclusive`, meaning `ip <= frame < op`.
 
+## Property Evaluation Trace
+
+`LottieFrameEvaluator` returns a typed `LottiePropertyEvaluationTrace` beside
+each scalar or vector value it evaluates. This trace is the measurable state
+used before RenderIR or PureLayer lowering. It records:
+
+| Field | Meaning |
+| --- | --- |
+| `propertyPath` | JSON path for the property, for example `$.layers[0].ks.p`. |
+| `sourceFrame` | Caller-selected Lottie source frame. |
+| `offsetFrame` | Layer/start-time offset applied to authored keyframe times. |
+| `localFrame` | `sourceFrame + offsetFrame`, the authored keyframe domain sampled. |
+| `mode` | Fixed, before/after keyframes, selected keyframe span, hold keyframe, or split position. |
+| `finalValue` | Evaluated scalar or vector components before lowering. |
+| `span` | Selected keyframe span evidence when the value is animated. |
+| `childTraces` | Split-position child traces for `x`, `y`, and optional `z`. |
+
+The span record contains authored and evaluated start/end frames, start/end
+values, linear progress, timing-curve progress, interpolation space, hold flag,
+and the timing curve handles used for every component. For spatial position
+segments with `to`/`ti`, `interpolationSpace` is `spatialArcLength` and the
+trace additionally records the out/in tangents, cubic control points, 150
+lottie-web sample segments, total measured segment length, selected distance,
+sample point index, and intra-sample progress.
+
+If required non-hold timing handles or spatial tangents are incomplete or
+dimensionally inconsistent, evaluation returns a semantic diagnostic instead of
+claiming exact behavior.
+
 ## Layer Object
 
 A layer record contains:

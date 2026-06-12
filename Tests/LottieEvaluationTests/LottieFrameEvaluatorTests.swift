@@ -167,6 +167,66 @@ struct LottieFrameEvaluatorTests {
         #expect(abs(result.value[1] - 15.635546873187725) < 0.000001)
     }
 
+    @Test("keyframe evaluation trace records source frame span timing and final value")
+    func keyframeEvaluationTraceRecordsMeasuredFacts() throws {
+        let animation = try decode("""
+        {
+          "v": "5.7.4",
+          "fr": 30,
+          "ip": 0,
+          "op": 20,
+          "w": 64,
+          "h": 64,
+          "layers": [{
+            "ty": 4,
+            "ind": 1,
+            "ip": 0,
+            "op": 20,
+            "ks": {
+              "o": { "k": [
+                { "t": 0, "s": [0], "e": [100], "o": { "x": 0.333, "y": 0 }, "i": { "x": 0.667, "y": 1 } },
+                { "t": 10, "s": [100] }
+              ]}
+            },
+            "shapes": []
+          }]
+        }
+        """)
+        let opacity = try #require(animation.layers.first?.transform?.opacity)
+        let result = LottieFrameEvaluator(animation: animation).evaluate(
+            opacity,
+            at: 2.5,
+            path: JSONPath([.key("layers"), .index(0), .key("ks"), .key("o")])
+        )
+
+        let trace = try #require(result.trace)
+        let span = try #require(trace.span)
+        let timing = try #require(span.timingCurves.first)
+
+        #expect(trace.propertyPath == "$.layers[0].ks.o")
+        #expect(trace.sourceFrame == 2.5)
+        #expect(trace.localFrame == 2.5)
+        #expect(trace.mode == .keyframeSpan)
+        #expect(trace.finalValue.count == 1)
+        #expect(abs(trace.finalValue[0] - 15.635546873187725) < 0.000001)
+        #expect(span.keyframeIndex == 0)
+        #expect(span.authoredStartFrame == 0)
+        #expect(span.authoredEndFrame == 10)
+        #expect(span.evaluatedStartFrame == 0)
+        #expect(span.evaluatedEndFrame == 10)
+        #expect(span.startValue == [0])
+        #expect(span.endValue == [100])
+        #expect(span.linearProgress == 0.25)
+        #expect(abs((span.timingProgress.first ?? 0) - 0.15635546873187725) < 0.000001)
+        #expect(span.interpolationSpace == .value)
+        #expect(timing.component == 0)
+        #expect(timing.outX == 0.333)
+        #expect(timing.outY == 0)
+        #expect(timing.inX == 0.667)
+        #expect(timing.inY == 1)
+        #expect(abs(timing.result - 0.15635546873187725) < 0.000001)
+    }
+
     @Test("lottie-web banner fixture opacity evaluates to the selected reference value")
     func fixtureEasingMatchesLottieWeb() throws {
         let animation = try decodeFixture("airbnb-lottie-web/test/animations/banner.json")
@@ -179,8 +239,8 @@ struct LottieFrameEvaluatorTests {
         #expect(abs(result.value - 15.635546873187725) < 0.000001)
     }
 
-    @Test("spatial position interpolation is diagnosed instead of silently treated as exact")
-    func spatialInterpolationDiagnostic() throws {
+    @Test("spatial position interpolation matches lottie-web sampled arc length")
+    func spatialInterpolationMatchesLottieWebArcLength() throws {
         let animation = try decode("""
         {
           "v": "5.7.4",
@@ -207,13 +267,65 @@ struct LottieFrameEvaluatorTests {
         let position = try #require(animation.layers.first?.transform?.position)
         let result = LottieFrameEvaluator(animation: animation).evaluate(
             position,
+            at: 2.5,
+            path: JSONPath([.key("layers"), .index(0), .key("ks"), .key("p")])
+        )
+        let trace = try #require(result.trace)
+        let span = try #require(trace.span)
+        let spatial = try #require(span.spatial)
+
+        #expect(result.diagnostics.isEmpty)
+        #expect(abs(result.value[0] - 14.581792026784122) < 0.000001)
+        #expect(abs(result.value[1] - 11.330778706034625) < 0.000001)
+        #expect(span.interpolationSpace == .spatialArcLength)
+        #expect(abs((span.timingProgress.first ?? 0) - 0.15635546873187725) < 0.000001)
+        #expect(spatial.outTangent == [50, 50])
+        #expect(spatial.inTangent == [-50, -50])
+        #expect(spatial.controlPoint1 == [50, 50])
+        #expect(spatial.controlPoint2 == [50, -50])
+        #expect(spatial.curveSegments == 150)
+        #expect(abs(spatial.segmentLength - 118.54689118804974) < 0.000001)
+        #expect(abs(spatial.distance - 18.535454738414366) < 0.000001)
+        #expect(spatial.pointIndex == 16)
+        #expect(abs((spatial.pointSegmentProgress ?? 0) - 0.09925002924447593) < 0.000001)
+    }
+
+    @Test("spatial position with incomplete tangents reports a semantic gap")
+    func incompleteSpatialTangentsReportGap() throws {
+        let animation = try decode("""
+        {
+          "v": "5.7.4",
+          "fr": 30,
+          "ip": 0,
+          "op": 20,
+          "w": 64,
+          "h": 64,
+          "layers": [{
+            "ty": 4,
+            "ind": 1,
+            "ip": 0,
+            "op": 20,
+            "ks": {
+              "p": { "k": [
+                { "t": 0, "s": [0, 0], "e": [100, 0], "to": [50, 50], "o": { "x": 0.333, "y": 0 }, "i": { "x": 0.667, "y": 1 } },
+                { "t": 10, "s": [100, 0] }
+              ]}
+            },
+            "shapes": []
+          }]
+        }
+        """)
+        let position = try #require(animation.layers.first?.transform?.position)
+        let result = LottieFrameEvaluator(animation: animation).evaluate(
+            position,
             at: 5,
             path: JSONPath([.key("layers"), .index(0), .key("ks"), .key("p")])
         )
 
         #expect(result.value == [50, 0])
-        #expect(result.diagnostics.map(\.ruleID) == ["lottie.evaluation.spatial-interpolation.unsupported"])
+        #expect(result.diagnostics.map(\.ruleID) == ["lottie.evaluation.spatial-interpolation.tangents-complete"])
         #expect(result.diagnostics.first?.codingPath.description == "$.layers[0].ks.p")
+        #expect(result.trace?.span?.interpolationSpace == .value)
     }
 
     @Test("collinear spatial tangents are exact lottie-web linear segments")
@@ -233,7 +345,7 @@ struct LottieFrameEvaluatorTests {
             "op": 20,
             "ks": {
               "p": { "k": [
-                { "t": 0, "s": [0, 0], "e": [100, 0], "to": [50, 0], "ti": [-50, 0] },
+                { "t": 0, "s": [0, 0], "e": [100, 0], "to": [50, 0], "ti": [-50, 0], "o": { "x": [0], "y": [0] }, "i": { "x": [1], "y": [1] } },
                 { "t": 10, "s": [100, 0] }
               ]}
             },
@@ -267,7 +379,7 @@ struct LottieFrameEvaluatorTests {
             "op": 20,
             "ks": {
               "p": { "k": [
-                { "t": 0, "s": [0, 0, 0], "e": [0, 100, 100], "to": [0, 25, 25], "ti": [0, -25, -25] },
+                { "t": 0, "s": [0, 0, 0], "e": [0, 100, 100], "to": [0, 25, 25], "ti": [0, -25, -25], "o": { "x": [0], "y": [0] }, "i": { "x": [1], "y": [1] } },
                 { "t": 10, "s": [0, 100, 100] }
               ]}
             },
@@ -280,6 +392,45 @@ struct LottieFrameEvaluatorTests {
 
         #expect(result.value == [0, 50, 50])
         #expect(result.diagnostics.isEmpty)
+    }
+
+    @Test("missing non-hold timing handles report a semantic gap")
+    func missingTimingHandlesReportGap() throws {
+        let animation = try decode("""
+        {
+          "v": "5.7.4",
+          "fr": 30,
+          "ip": 0,
+          "op": 20,
+          "w": 64,
+          "h": 64,
+          "layers": [{
+            "ty": 4,
+            "ind": 1,
+            "ip": 0,
+            "op": 20,
+            "ks": {
+              "o": { "k": [
+                { "t": 0, "s": [0], "e": [100] },
+                { "t": 10, "s": [100] }
+              ]}
+            },
+            "shapes": []
+          }]
+        }
+        """)
+        let opacity = try #require(animation.layers.first?.transform?.opacity)
+        let result = LottieFrameEvaluator(animation: animation).evaluate(
+            opacity,
+            at: 5,
+            path: JSONPath([.key("layers"), .index(0), .key("ks"), .key("o")])
+        )
+
+        #expect(result.value == 50)
+        #expect(result.diagnostics.map(\.ruleID) == ["lottie.evaluation.keyframe-timing.handles-complete"])
+        #expect(result.diagnostics.first?.codingPath.description == "$.layers[0].ks.o")
+        #expect(result.trace?.span?.timingProgress == [0.5])
+        #expect(result.trace?.span?.timingCurves.isEmpty == true)
     }
 
     @Test("animated Bezier path morphing is diagnosed")
