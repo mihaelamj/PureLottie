@@ -54,14 +54,18 @@ let package = Package(
         .testTarget(
             name: "LottieImportTests",
             dependencies: [
+                "LottieEvaluation",
                 "LottieImport",
+                "LottieModel",
                 .product(name: "PureLayer", package: "PureLayer"),
             ]
         ),
         .executableTarget(
             name: "LottieFrameDump",
             dependencies: [
+                "LottieEvaluation",
                 "LottieImport",
+                "LottieModel",
                 .product(name: "PureLayer", package: "PureLayer"),
             ],
             path: "Tools/LottieFrameDump"

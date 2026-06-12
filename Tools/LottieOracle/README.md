@@ -1,0 +1,60 @@
+# Lottie Oracle
+
+`Tools/LottieOracle` is an external reference harness for comparing PureLottie/PureLayer frame output against pinned `lottie-web` behavior.
+
+It is deliberately outside `Package.swift`. The Swift package still depends only on PureLayer; this tool owns browser rendering and PNG diff dependencies.
+
+## Run
+
+Install the pinned Node dependencies:
+
+```sh
+npm install --prefix Tools/LottieOracle
+```
+
+Install the Chromium browser used by Playwright if it is not already present:
+
+```sh
+npx --prefix Tools/LottieOracle playwright install chromium
+```
+
+Run the selected fixture:
+
+```sh
+npm --prefix Tools/LottieOracle run oracle -- --fixture eligible-shape-position
+```
+
+Artifacts are written to `Tools/LottieOracle/artifacts/<fixture-id>/`:
+
+| Path | Contents |
+| --- | --- |
+| `reference/` | PNG frames rendered by pinned `lottie-web`. |
+| `purelayer/` | PNG frames rendered by `swift run LottieFrameDump`, plus `oracle-summary.json`. |
+| `diff/` | Pixel-difference PNGs, one per compared frame. |
+| `semantic-traces.json` | RenderIR node and trace summaries for every selected frame. |
+| `mismatch-traces.json` | RenderIR trace summaries only for frames that differ. |
+| `comparison-report.json` | Machine-readable report. |
+| `comparison-report.md` | Human-readable report. |
+
+## Eligibility Gate
+
+The harness compares pixels only when all of these are true:
+
+- `LottieValidator` reports no validation errors.
+- `ImportReport` is clean, so PureLayer lowering did not skip or approximate a feature.
+- RenderIR diagnostics are empty for the selected frames.
+- Fixtures marked `expectReferenceNonEmpty` produce non-empty lottie-web reference frames.
+
+A pretty image is not evidence by itself. The report records validation eligibility, import findings, RenderIR diagnostics, selected frame numbers, and the reason each frame was selected.
+
+## Selected Fixture
+
+The first fixture is `Tests/Fixtures/LottieOracle/eligible-shape-position.json`.
+
+It declares `ip=0`, `op=10`, and `fr=10`. Lottie uses a half-open root frame window, so the integer source frames are `0...9`. The oracle selects:
+
+| Frame | Why |
+| ---: | --- |
+| 0 | First visible source frame; proves the window includes `ip`. |
+| 5 | Interior frame; samples animated layer position away from both endpoints. |
+| 9 | Last visible integer frame before exclusive `op=10`. |
