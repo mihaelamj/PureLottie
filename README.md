@@ -25,7 +25,7 @@ The macOS full package gate requires access to the private PureLayer dependency.
 - `PURELAYER_TOKEN`: a GitHub token with read access to `mihaelamj/PureLayer` and any private transitive dependencies.
 - `PURELAYER_DEPLOY_KEY`: an SSH deploy key for `mihaelamj/PureLayer`. Prefer `PURELAYER_TOKEN` if transitive dependencies are private too.
 
-macOS, Linux, Windows, and Wasm model jobs intentionally run through `scripts/ci-model-only.swift`. That script creates `.build/ci/model-only`, a temporary package containing only `Sources/LottieModel`, `Tests/LottieModelTests`, and `Tests/Fixtures`. This keeps cross-platform model checks honest while PureLayer resolution is still a dependency-gated full-package concern.
+macOS, Linux, and Wasm model jobs intentionally run through `scripts/ci-model-only.swift`; Windows uses the equivalent `scripts/ci-model-only.ps1` because Swift script JIT is not reliable on the Windows runner. Both scripts create `.build/ci/model-only`, a temporary package containing only `Sources/LottieModel`, `Tests/LottieModelTests`, and `Tests/Fixtures`. This keeps cross-platform model checks honest while PureLayer resolution is still a dependency-gated full-package concern.
 
 ## Local Gate
 
@@ -38,10 +38,17 @@ swift build
 swift test
 ```
 
-Run the model-only gate used by Linux and Windows CI:
+Run the model-only gate used by macOS, Linux, and Wasm CI:
 
 ```sh
 swift scripts/ci-model-only.swift
+swift test --package-path .build/ci/model-only
+```
+
+Run the model-only gate used by Windows CI from PowerShell:
+
+```powershell
+./scripts/ci-model-only.ps1
 swift test --package-path .build/ci/model-only
 ```
 

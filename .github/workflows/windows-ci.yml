@@ -29,7 +29,7 @@ jobs:
         run: swift --version
 
       - name: Generate model-only package
-        run: swift scripts/ci-model-only.swift
+        run: ./scripts/ci-model-only.ps1
 
       - name: Test LottieModel
         run: swift test --package-path .build/ci/model-only
