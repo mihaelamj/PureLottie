@@ -1,0 +1,73 @@
+name: macOS CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full-gate:
+    name: Full Swift gate
+    runs-on: macos-latest
+    env:
+      GIT_TERMINAL_PROMPT: "0"
+      PURELAYER_DEPLOY_KEY: ${{ secrets.PURELAYER_DEPLOY_KEY }}
+      PURELAYER_TOKEN: ${{ secrets.PURELAYER_TOKEN }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure private dependency access
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -n "${PURELAYER_TOKEN:-}" ]; then
+            git config --global url."https://x-access-token:${PURELAYER_TOKEN}@github.com/".insteadOf "https://github.com/"
+            exit 0
+          fi
+
+          if [ -n "${PURELAYER_DEPLOY_KEY:-}" ]; then
+            install -m 700 -d "$HOME/.ssh"
+            printf '%s\n' "$PURELAYER_DEPLOY_KEY" > "$HOME/.ssh/purelayer_deploy_key"
+            chmod 600 "$HOME/.ssh/purelayer_deploy_key"
+            ssh-keyscan github.com >> "$HOME/.ssh/known_hosts"
+            git config --global core.sshCommand "ssh -i $HOME/.ssh/purelayer_deploy_key -o IdentitiesOnly=yes"
+            git config --global url."git@github.com:mihaelamj/PureLayer.git".insteadOf "https://github.com/mihaelamj/PureLayer.git"
+            exit 0
+          fi
+
+          echo "::error::Set PURELAYER_TOKEN or PURELAYER_DEPLOY_KEY so SwiftPM can resolve the private PureLayer dependency."
+          exit 1
+
+      - name: Install formatting and linting tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew update
+          brew install swiftformat swiftlint
+          swift --version
+          swiftformat --version
+          swiftlint version
+
+      - name: Resolve dependencies
+        run: swift package resolve
+
+      - name: Format check
+        run: swiftformat . --config .swiftformat --lint
+
+      - name: Strict lint
+        run: swiftlint --config .swiftlint.yml --strict
+
+      - name: Build
+        run: swift build
+
+      - name: Test
+        run: swift test
