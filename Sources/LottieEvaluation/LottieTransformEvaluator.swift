@@ -224,7 +224,7 @@ public struct LottieTransformEvaluator: Sendable {
 
     private func appendUnsupportedDiagnostics(for layer: LottieLayer, at path: JSONPath, diagnostics: inout [ValidationError]) {
         guard let transform = layer.transform else {
-            if let path = unsupported3DPath(for: layer, transform: nil, at: path) {
+            for path in unsupported3DPaths(for: layer, transform: nil, at: path) {
                 diagnostics.append(unsupported3DDiagnostic(at: path))
             }
             if layer.isAutoOriented {
@@ -253,7 +253,7 @@ public struct LottieTransformEvaluator: Sendable {
             )
         }
 
-        if let path = unsupported3DPath(for: layer, transform: transform, at: path) {
+        for path in unsupported3DPaths(for: layer, transform: transform, at: path) {
             diagnostics.append(unsupported3DDiagnostic(at: path))
         }
 
@@ -262,24 +262,25 @@ public struct LottieTransformEvaluator: Sendable {
         }
     }
 
-    private func unsupported3DPath(for layer: LottieLayer, transform: LottieTransform?, at path: JSONPath) -> JSONPath? {
+    private func unsupported3DPaths(for layer: LottieLayer, transform: LottieTransform?, at path: JSONPath) -> [JSONPath] {
+        var paths: [JSONPath] = []
         if layer.is3D {
-            return path.appending(.key("ddd"))
+            paths.append(path.appending(.key("ddd")))
         }
-        guard let transform else { return nil }
+        guard let transform else { return paths }
         if transform.rotationX?.hasEffect == true {
-            return path.appending(.key("ks")).appending(.key("rx"))
+            paths.append(path.appending(.key("ks")).appending(.key("rx")))
         }
         if transform.rotationY?.hasEffect == true {
-            return path.appending(.key("ks")).appending(.key("ry"))
+            paths.append(path.appending(.key("ks")).appending(.key("ry")))
         }
         if transform.rotationZ?.hasEffect == true {
-            return path.appending(.key("ks")).appending(.key("rz"))
+            paths.append(path.appending(.key("ks")).appending(.key("rz")))
         }
         if transform.orientation?.hasEffect == true {
-            return path.appending(.key("ks")).appending(.key("or"))
+            paths.append(path.appending(.key("ks")).appending(.key("or")))
         }
-        return nil
+        return paths
     }
 
     private func unsupported3DDiagnostic(at path: JSONPath) -> ValidationError {

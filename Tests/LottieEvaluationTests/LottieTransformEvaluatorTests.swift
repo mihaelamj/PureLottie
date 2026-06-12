@@ -171,11 +171,13 @@ struct LottieTransformEvaluatorTests {
         #expect(result.diagnostics.map(\.ruleID) == [
             "lottie.evaluation.transform.skew.unsupported",
             "lottie.evaluation.transform.3d.unsupported",
+            "lottie.evaluation.transform.3d.unsupported",
             "lottie.evaluation.transform.auto-orient.unsupported",
         ])
         #expect(result.diagnostics.map(\.codingPath.description) == [
             "$.layers[0].ks.sk",
             "$.layers[0].ddd",
+            "$.layers[0].ks.rx",
             "$.layers[0].ao",
         ])
     }
