@@ -143,6 +143,47 @@ The matrix payload is a single JSON array, but the Swift model decodes it throug
 `LottieSourceIntentMatrix` and rejects any array that does not contain exactly
 16 values.
 
+## Transform Matrix Trace
+
+`LottieTransformEvaluator` emits `LottieTransformTrace` records for layer
+transforms and shape-group transforms before any PureLayer lowering. A trace
+contains:
+
+| Field | Meaning |
+| --- | --- |
+| `scope` | `local` for a single layer or group, `world` after composing a layer parent chain. |
+| `transformPath` | JSON path of the transform object, for example `$.layers[0].ks` or `$.layers[0].shapes[0].it[1]`. |
+| `sourceFrame` | Lottie source frame sampled by the evaluator. |
+| `matrixConvention` | Always explicit; current evaluator output uses `lottieWebRowVector4x4`. |
+| `components` | Anchor, position, scale, and rotation evidence. |
+| `operations` | Matrix operations in lottie-web order: translate anchor, scale, rotate Z, translate position. |
+| `parentChain` | Parent layer component traces, matrix conventions, matrices, and operations appended while computing a world transform. |
+| `resultingMatrix` | Accumulated matrix after all operations and parent matrices. |
+
+Each component trace separates authored, sampled, and matrix-ready values:
+
+| Field | Meaning |
+| --- | --- |
+| `rawValue` | Authored initial value when the property exists. Missing properties use `nil`. |
+| `evaluatedValue` | Value sampled at `sourceFrame`, still in Lottie units. |
+| `matrixValue` | Normalized operand used by the matrix operation: anchor `[-x, -y, z]`, position `[x, y, -z]`, scale `[x / 100, y / 100, z / 100]`, rotation `[-degrees * pi / 180]`. |
+| `defaultValue` | Lottie default used when the property is absent. |
+| `usedDefault` | `true` only when the property is absent. |
+| `propertyTrace` | Underlying scalar/vector `LottiePropertyEvaluationTrace` when the component was authored. |
+
+World transforms use row-vector application. A source-space point is transformed
+with the lottie-web formula:
+
+```text
+x' = x*m0 + y*m4 + z*m8  + m12
+y' = x*m1 + y*m5 + z*m9  + m13
+z' = x*m2 + y*m6 + z*m10 + m14
+```
+
+2D authored vectors do not duplicate their last component. Missing `z` is
+normalized as `0` for anchor and position, and `100` percent for scale before
+matrix conversion.
+
 ## Geometry And Style
 
 Geometry records preserve the source primitive:
