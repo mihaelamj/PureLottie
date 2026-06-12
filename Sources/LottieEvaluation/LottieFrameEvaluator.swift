@@ -162,12 +162,13 @@ public struct LottieFrameEvaluator: Sendable {
         switch position {
         case let .vector(value):
             return evaluate(value, at: sourceFrame, path: path, offsetFrame: offsetFrame)
-        case let .split(x, y):
+        case let .split(x, y, z):
             let xResult = evaluate(x, at: sourceFrame, path: path.appending(.key("x")), offsetFrame: offsetFrame)
             let yResult = evaluate(y, at: sourceFrame, path: path.appending(.key("y")), offsetFrame: offsetFrame)
+            let zResult = z.map { evaluate($0, at: sourceFrame, path: path.appending(.key("z")), offsetFrame: offsetFrame) }
             return LottieEvaluationResult(
-                value: [xResult.value, yResult.value],
-                diagnostics: xResult.diagnostics + yResult.diagnostics
+                value: [xResult.value, yResult.value, zResult?.value ?? 0],
+                diagnostics: xResult.diagnostics + yResult.diagnostics + (zResult?.diagnostics ?? [])
             )
         }
     }

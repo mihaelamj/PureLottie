@@ -3,6 +3,8 @@
 //  PureLottie
 //
 
+import LottieModel
+
 /// Everything the importer could not map exactly, by location.
 ///
 /// The importer's contract: a Lottie feature is either mapped correctly or
@@ -56,7 +58,30 @@ final class ImportReportBuilder {
         findings.append(.init(path: path, feature: feature, disposition: .approximated))
     }
 
+    func reportTransformDiagnostics(_ diagnostics: [ValidationError], at path: String) {
+        for diagnostic in diagnostics where diagnostic.ruleID.hasPrefix("lottie.evaluation.transform.") {
+            skip(feature(for: diagnostic), at: "\(path) \(diagnostic.codingPath.description)")
+        }
+    }
+
     func report() -> ImportReport {
         ImportReport(findings: findings)
+    }
+
+    private func feature(for diagnostic: ValidationError) -> String {
+        switch diagnostic.ruleID {
+        case "lottie.evaluation.transform.skew.unsupported":
+            "unsupported transform skew"
+        case "lottie.evaluation.transform.3d.unsupported":
+            "unsupported 3D transform"
+        case "lottie.evaluation.transform.auto-orient.unsupported":
+            "unsupported auto-orient transform"
+        case "lottie.evaluation.transform.parent-cycle":
+            "unsupported parent transform cycle"
+        case "lottie.evaluation.transform.parent-depth":
+            "unsupported parent transform depth"
+        default:
+            diagnostic.reason
+        }
     }
 }
