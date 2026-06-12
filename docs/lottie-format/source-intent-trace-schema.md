@@ -1,0 +1,164 @@
+# Source-Intent Trace Schema
+
+Status: v1 schema contract for issue #27.
+
+PureLottie treats Lottie import as a compiler pipeline. The source-intent trace
+is the durable JSON record between source evaluation and PureLayer lowering:
+
+```text
+Lottie JSON -> parse -> validate -> evaluate source frame -> source-intent trace
+```
+
+The trace is not a screenshot, a render artifact, or a PureLayer structure. It
+records the measurable Lottie facts that must be true before any backend can be
+trusted.
+
+## Round-Trip Law
+
+Every v1 trace carries this law:
+
+```text
+decode(encode(trace)) == trace
+```
+
+The trace also carries the source-to-intent law:
+
+```text
+Every render-affecting source fact is either represented in a typed field,
+preserved for reconstruction, or listed in diagnostics/unrepresentedFields.
+```
+
+If a field is render-affecting and unsupported, it is not dropped. It appears as
+a diagnostic with a JSON path and source path.
+
+## Top-Level Object
+
+`LottieSourceIntentTrace` has these fields:
+
+| Field | Meaning |
+| --- | --- |
+| `schema` | Schema name and integer version. Current name is `purelottie.source-intent-trace`, version `1`. |
+| `source` | Source identity, optional path, revision, hash, and byte count. |
+| `composition` | Root Lottie composition fields: `w`, `h`, `ip`, `op`, `fr`, version, name, and frame-window law. |
+| `frames` | One or more evaluated source-frame records. |
+| `diagnostics` | Trace-level validation or evaluation diagnostics. |
+| `roundTrip` | Laws and declared losses for this trace. |
+
+## Provenance
+
+Every composition, layer, transform, geometry, style, mask, matte, and diagnostic
+record carries `LottieSourceIntentProvenance`:
+
+| Field | Meaning |
+| --- | --- |
+| `sourcePath` | Human-readable source path, for example `root > layer 'Badge'`. |
+| `jsonPath` | Authored Lottie JSON path rooted at `$`. |
+| `sourceRange` | Source text range when the parsed source retained one. |
+| `consumedFields` | JSON fields used to compute the evaluated fact. |
+| `preservedFields` | JSON fields retained so source intent can be reconstructed. |
+| `unrepresentedFields` | Render-affecting JSON fields that were not represented exactly. |
+
+The provenance record is mandatory because visual output alone cannot explain a
+wrong transform, missing trim, wrong matte, or unsupported effect.
+
+## Frame Object
+
+A frame record contains:
+
+| Field | Meaning |
+| --- | --- |
+| `sourceFrame` | Lottie frame number, not seconds. |
+| `localTimeSeconds` | Optional convenience value. It is derived, never the source clock. |
+| `visibleLayers` | Back-to-front visible layer records for this frame. |
+| `diagnostics` | Frame-local diagnostics. |
+
+Lottie source timing remains frame-based. The root frame window uses
+`ipInclusiveOpExclusive`, meaning `ip <= frame < op`.
+
+## Layer Object
+
+A layer record contains:
+
+| Field | Meaning |
+| --- | --- |
+| `id` | Stable trace id such as `render#1`. |
+| `name`, `index`, `type` | Authored layer identity and type. |
+| `renderOrder` | Back-to-front order inside the evaluated frame. |
+| `localFrame` | Layer-local frame after start time, stretch, and time remap. |
+| `opacity` | Evaluated opacity in `[0, 1]`. |
+| `transform` | Evaluated transform values and matrix. |
+| `geometry` | Evaluated source geometry records. |
+| `styles` | Fill, stroke, gradient, or unsupported style records. |
+| `masks` | Evaluated masks attached to this layer. |
+| `matte` | Matte edge if the layer consumes a track matte. |
+| `diagnostics` | Layer-local diagnostics. |
+| `provenance` | Source path and JSON path evidence. |
+
+## Matrix Convention
+
+Every transform states its matrix convention explicitly. The v1 golden fixture
+uses `LottieSourceIntentMatrixConvention.lottieWebRowVector4x4`:
+
+```text
+storageOrder: row-major-4x4
+vectorConvention: row-vector
+concatenationOrder: left-to-right
+pointApplication: x'=x*m0+y*m4+z*m8+m12; y'=x*m1+y*m5+z*m9+m13
+```
+
+This is recorded because transform comparisons are meaningless unless origin,
+axis direction, storage order, multiplication order, and point application are
+known.
+
+The matrix payload is a single JSON array, but the Swift model decodes it through
+`LottieSourceIntentMatrix` and rejects any array that does not contain exactly
+16 values.
+
+## Geometry And Style
+
+Geometry records preserve the source primitive:
+
+| Kind | Required payload |
+| --- | --- |
+| `rectangle` | `primitive = "rc"`, `parameters.center`, `parameters.size`, `parameters.roundness`. |
+| `ellipse` | `primitive = "el"`, `parameters.center`, `parameters.size`. |
+| `path` | A `path` object with `closed`, `vertices`, `inTangents`, and `outTangents`. |
+| `unsupported` | A diagnostic with the unsupported JSON path. |
+
+Style records preserve source style intent: fill/stroke kind, RGBA color,
+opacity, stroke width, cap, join, miter, dash pattern, blend mode, and
+provenance.
+
+## Diagnostics
+
+Diagnostics carry:
+
+| Field | Meaning |
+| --- | --- |
+| `ruleID` | Stable rule identifier. |
+| `severity` | `error`, `warning`, or `note`. |
+| `phase` | `parse`, `source`, `semantic`, or `lowering`. |
+| `classification` | `exact`, `approximate`, `reported`, `metadata`, or `gap`. |
+| `reason` | Human-readable explanation. |
+| `evidence` | Optional source or engine evidence. |
+| `provenance` | The exact source fact being diagnosed. |
+
+Unsupported render-affecting facts must be diagnostics, not comments and not
+silent omissions.
+
+`severity`, `phase`, and `classification` are typed schema vocabularies in Swift,
+not free-form strings. Unknown values fail JSON decoding instead of becoming
+silent evidence typos.
+
+## Golden Fixture
+
+The first golden fixture is:
+
+```text
+Tests/Fixtures/SourceIntentTrace/shape-position.frame-0.trace.json
+```
+
+It records a shape layer with one rectangle, one fill style, one identity matrix,
+and one explicit unsupported transform-skew diagnostic. The Swift tests decode
+it, assert provenance fields, assert unsupported fact reporting, and perform a
+JSON encode/decode round trip through `LottieSourceIntentTrace`.
