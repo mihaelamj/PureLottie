@@ -22,15 +22,31 @@ public indirect enum LottieShape: Sendable, Equatable {
     /// The `nm` display name, when the payload carries one.
     public var name: String? {
         switch self {
-        case let .group(group): return group.name
-        case let .path(path): return path.name
-        case let .rectangle(rectangle): return rectangle.name
-        case let .ellipse(ellipse): return ellipse.name
-        case let .fill(fill): return fill.name
-        case let .stroke(stroke): return stroke.name
-        case let .trim(trim): return trim.name
-        case let .transform(transform): return transform.name
-        case let .unsupported(_, name): return name
+        case let .group(group): group.name
+        case let .path(path): path.name
+        case let .rectangle(rectangle): rectangle.name
+        case let .ellipse(ellipse): ellipse.name
+        case let .fill(fill): fill.name
+        case let .stroke(stroke): stroke.name
+        case let .trim(trim): trim.name
+        case let .transform(transform): transform.name
+        case let .unsupported(_, name): name
+        }
+    }
+
+    /// The `hd` flag. Hidden shapes are part of the document model but do not
+    /// contribute geometry or style when importing.
+    public var isHidden: Bool {
+        switch self {
+        case let .group(group): group.isHidden == true
+        case let .path(path): path.isHidden == true
+        case let .rectangle(rectangle): rectangle.isHidden == true
+        case let .ellipse(ellipse): ellipse.isHidden == true
+        case let .fill(fill): fill.isHidden == true
+        case let .stroke(stroke): stroke.isHidden == true
+        case let .trim(trim): trim.isHidden == true
+        case let .transform(transform): transform.isHidden == true
+        case .unsupported: false
         }
     }
 }
@@ -71,10 +87,12 @@ extension LottieShape: Decodable {
 /// the trailing `tr` item.
 public struct ShapeGroup: Decodable, Sendable, Equatable {
     public var name: String?
+    public var isHidden: Bool?
     public var items: [LottieShape]
 
     private enum CodingKeys: String, CodingKey {
         case name = "nm"
+        case isHidden = "hd"
         case items = "it"
     }
 }
@@ -82,10 +100,12 @@ public struct ShapeGroup: Decodable, Sendable, Equatable {
 /// An `sh` bezier path.
 public struct ShapePath: Decodable, Sendable, Equatable {
     public var name: String?
+    public var isHidden: Bool?
     public var shape: AnimatedBezier
 
     private enum CodingKeys: String, CodingKey {
         case name = "nm"
+        case isHidden = "hd"
         case shape = "ks"
     }
 }
@@ -93,12 +113,14 @@ public struct ShapePath: Decodable, Sendable, Equatable {
 /// An `rc` rectangle primitive, positioned by center.
 public struct ShapeRectangle: Decodable, Sendable, Equatable {
     public var name: String?
+    public var isHidden: Bool?
     public var position: AnimatedVector
     public var size: AnimatedVector
     public var roundness: AnimatedDouble?
 
     private enum CodingKeys: String, CodingKey {
         case name = "nm"
+        case isHidden = "hd"
         case position = "p"
         case size = "s"
         case roundness = "r"
@@ -108,11 +130,13 @@ public struct ShapeRectangle: Decodable, Sendable, Equatable {
 /// An `el` ellipse primitive, positioned by center.
 public struct ShapeEllipse: Decodable, Sendable, Equatable {
     public var name: String?
+    public var isHidden: Bool?
     public var position: AnimatedVector
     public var size: AnimatedVector
 
     private enum CodingKeys: String, CodingKey {
         case name = "nm"
+        case isHidden = "hd"
         case position = "p"
         case size = "s"
     }
@@ -121,6 +145,7 @@ public struct ShapeEllipse: Decodable, Sendable, Equatable {
 /// An `fl` solid fill: RGB(A) color in unit components plus percent opacity.
 public struct ShapeFill: Decodable, Sendable, Equatable {
     public var name: String?
+    public var isHidden: Bool?
     public var color: AnimatedVector
     public var opacity: AnimatedDouble?
     /// 1 = non-zero winding, 2 = even-odd.
@@ -128,6 +153,7 @@ public struct ShapeFill: Decodable, Sendable, Equatable {
 
     private enum CodingKeys: String, CodingKey {
         case name = "nm"
+        case isHidden = "hd"
         case color = "c"
         case opacity = "o"
         case fillRule = "r"
@@ -137,12 +163,14 @@ public struct ShapeFill: Decodable, Sendable, Equatable {
 /// An `st` stroke: color, percent opacity, and width in points.
 public struct ShapeStroke: Decodable, Sendable, Equatable {
     public var name: String?
+    public var isHidden: Bool?
     public var color: AnimatedVector
     public var opacity: AnimatedDouble?
     public var width: AnimatedDouble
 
     private enum CodingKeys: String, CodingKey {
         case name = "nm"
+        case isHidden = "hd"
         case color = "c"
         case opacity = "o"
         case width = "w"
@@ -154,6 +182,7 @@ public struct ShapeStroke: Decodable, Sendable, Equatable {
 /// trimming when several paths precede the modifier.
 public struct ShapeTrim: Decodable, Sendable, Equatable {
     public var name: String?
+    public var isHidden: Bool?
     public var start: AnimatedDouble
     public var end: AnimatedDouble
     public var offset: AnimatedDouble?
@@ -161,6 +190,7 @@ public struct ShapeTrim: Decodable, Sendable, Equatable {
 
     private enum CodingKeys: String, CodingKey {
         case name = "nm"
+        case isHidden = "hd"
         case start = "s"
         case end = "e"
         case offset = "o"
@@ -171,6 +201,7 @@ public struct ShapeTrim: Decodable, Sendable, Equatable {
 /// A `tr` group transform: same anatomy as a layer transform.
 public struct ShapeTransform: Decodable, Sendable, Equatable {
     public var name: String?
+    public var isHidden: Bool?
     public var anchor: AnimatedVector?
     public var position: AnimatedVector?
     public var scale: AnimatedVector?
@@ -179,6 +210,7 @@ public struct ShapeTransform: Decodable, Sendable, Equatable {
 
     private enum CodingKeys: String, CodingKey {
         case name = "nm"
+        case isHidden = "hd"
         case anchor = "a"
         case position = "p"
         case scale = "s"

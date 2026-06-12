@@ -40,9 +40,9 @@ public enum LottiePosition: Sendable, Equatable {
     public var isAnimated: Bool {
         switch self {
         case let .vector(vector):
-            return vector.isAnimated
+            vector.isAnimated
         case let .split(x, y):
-            return x.isAnimated || y.isAnimated
+            x.isAnimated || y.isAnimated
         }
     }
 }

@@ -65,13 +65,25 @@ public struct LottieKeyframe<Value: Decodable & Sendable & Equatable>: Decodable
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         time = try container.decode(Double.self, forKey: .time)
-        startValue = try container.decodeIfPresent(Value.self, forKey: .startValue)
-        endValue = try container.decodeIfPresent(Value.self, forKey: .endValue)
+        startValue = try Self.decodeValueIfPresent(in: container, key: .startValue)
+        endValue = try Self.decodeValueIfPresent(in: container, key: .endValue)
         easeIn = try? container.decodeIfPresent(EasingHandle.self, forKey: .easeIn)
         easeOut = try? container.decodeIfPresent(EasingHandle.self, forKey: .easeOut)
         spatialOut = try? container.decodeIfPresent([Double].self, forKey: .spatialOut)
         spatialIn = try? container.decodeIfPresent([Double].self, forKey: .spatialIn)
-        isHold = (try container.decodeIfPresent(Int.self, forKey: .hold) ?? 0) == 1
+        isHold = try (container.decodeIfPresent(Int.self, forKey: .hold) ?? 0) == 1
+    }
+
+    private static func decodeValueIfPresent(in container: KeyedDecodingContainer<CodingKeys>, key: CodingKeys) throws -> Value? {
+        if Value.self == [Double].self {
+            if let array = try? container.decodeIfPresent([Double].self, forKey: key) {
+                return array as? Value
+            }
+            if let scalar = try? container.decodeIfPresent(Double.self, forKey: key) {
+                return [scalar] as? Value
+            }
+        }
+        return try container.decodeIfPresent(Value.self, forKey: key)
     }
 }
 
@@ -89,9 +101,9 @@ public enum AnimatedDouble: Sendable, Equatable {
     public var initialValue: Double {
         switch self {
         case let .fixed(value):
-            return value
+            value
         case let .keyframed(keyframes):
-            return keyframes.first?.startValue?.first ?? 0
+            keyframes.first?.startValue?.first ?? 0
         }
     }
 
@@ -129,9 +141,9 @@ public enum AnimatedVector: Sendable, Equatable {
     public var initialValue: [Double] {
         switch self {
         case let .fixed(value):
-            return value
+            value
         case let .keyframed(keyframes):
-            return keyframes.first?.startValue ?? []
+            keyframes.first?.startValue ?? []
         }
     }
 
@@ -165,9 +177,9 @@ public enum AnimatedBezier: Sendable, Equatable {
     public var initialValue: LottieBezier? {
         switch self {
         case let .fixed(value):
-            return value
+            value
         case let .keyframed(keyframes):
-            return keyframes.first?.startValue?.first
+            keyframes.first?.startValue?.first
         }
     }
 

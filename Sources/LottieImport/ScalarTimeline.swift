@@ -8,7 +8,7 @@ import PureLayer
 
 /// One point of a sampled scalar timeline, in seconds from the composition's
 /// in-point.
-struct TimelineSample: Sendable, Equatable {
+struct TimelineSample: Equatable {
     var time: Double
     var value: Double
 }

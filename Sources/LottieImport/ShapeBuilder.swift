@@ -6,95 +6,73 @@
 import LottieModel
 import PureLayer
 
-/// Maps a shape layer's item list onto `ShapeLayer`s.
+/// Lowers a shape layer's drawing program onto `ShapeLayer`s.
 ///
-/// Each group with geometry and at least one style becomes one `ShapeLayer`
-/// whose path is the group's combined geometry; nested groups become sibling
-/// layers. A `tm` trim modifier maps onto `strokeStart`/`strokeEnd`, including
-/// animated trims.
+/// The `DrawingProgram` preserves Lottie's ordered scope semantics using
+/// PureDraw/PureLayer terms. This type performs the PureLayer-specific lowering
+/// and records anything that cannot be represented exactly.
 struct ShapeBuilder {
     let context: ImportContext
 
-    /// Builds the layers for `items`, bottom-most first (PureLayer draws later
-    /// sublayers on top; Lottie lists topmost items first).
+    /// Builds the layers for `items` in draw order.
     func layers(for items: [LottieShape], bounds: Rect, at path: String) -> [Layer] {
-        var result: [Layer] = []
-        if let shapeLayer = shapeLayer(for: items, bounds: bounds, at: path) {
-            result.append(shapeLayer)
-        }
-        for item in items.reversed() {
-            if case let .group(group) = item {
-                let groupPath = "\(path) > group '\(group.name ?? "?")'"
-                result.append(contentsOf: layers(for: group.items, bounds: bounds, at: groupPath))
-            }
-        }
-        return result
+        let program = DrawingProgramBuilder(context: context).program(for: items, at: path)
+        return layers(for: program.nodes, bounds: bounds)
     }
 
-    /// One `ShapeLayer` from the level's own geometry and styles, or `nil`
-    /// when the level has no drawable geometry.
-    private func shapeLayer(for items: [LottieShape], bounds: Rect, at path: String) -> ShapeLayer? {
-        var geometry = Path()
-        var fill: ShapeFill?
-        var stroke: ShapeStroke?
-        var trim: ShapeTrim?
-        var groupTransform: ShapeTransform?
-
-        for item in items {
-            switch item {
-            case .group:
-                break // Recursed by `layers(for:bounds:at:)`.
-            case let .path(shapePath):
-                if shapePath.shape.isAnimated {
-                    context.report.skip("path morph", at: "\(path) > path '\(shapePath.name ?? "?")'")
-                }
-                if let bezier = shapePath.shape.initialValue {
-                    PathBuilder.path(from: bezier, into: &geometry)
-                }
-            case let .rectangle(rectangle):
-                if rectangle.position.isAnimated || rectangle.size.isAnimated {
-                    context.report.skip("animated rectangle geometry", at: path)
-                }
-                PathBuilder.rectangle(rectangle, into: &geometry)
-            case let .ellipse(ellipse):
-                if ellipse.position.isAnimated || ellipse.size.isAnimated {
-                    context.report.skip("animated ellipse geometry", at: path)
-                }
-                PathBuilder.ellipse(ellipse, into: &geometry)
-            case let .fill(shapeFill):
-                fill = shapeFill
-            case let .stroke(shapeStroke):
-                stroke = shapeStroke
-            case let .trim(shapeTrim):
-                trim = shapeTrim
-            case let .transform(transform):
-                groupTransform = transform
-            case let .unsupported(type, name):
-                context.report.skip("shape type '\(type)'", at: "\(path) > '\(name ?? "?")'")
+    private func layers(for nodes: [DrawingProgram.Node], bounds: Rect) -> [Layer] {
+        nodes.flatMap { node -> [Layer] in
+            switch node {
+            case let .draw(draw):
+                return shapeLayer(for: draw, bounds: bounds).map { [$0] } ?? []
+            case let .transparencyLayer(layer):
+                return transparencyLayer(for: layer, bounds: bounds)
             }
         }
+    }
 
-        guard !geometry.isEmpty, fill != nil || stroke != nil else { return nil }
-
+    private func shapeLayer(for draw: DrawingProgram.DrawCommand, bounds: Rect) -> ShapeLayer? {
         let layer = ShapeLayer()
         layer.bounds = bounds
         layer.position = Point(x: bounds.width / 2, y: bounds.height / 2)
         layer.fillColor = nil
-        if let groupTransform {
-            geometry = applied(groupTransform, to: geometry, at: path)
-        }
-        layer.path = geometry
+        layer.path = draw.path
 
-        if let fill {
-            apply(fill, to: layer, at: path)
-        }
-        if let stroke {
-            apply(stroke, to: layer, at: path)
-        }
-        if let trim {
-            apply(trim, to: layer, at: path)
+        switch draw.paint {
+        case let .fill(fill):
+            apply(fill, to: layer, at: draw.sourcePath)
+            if let trim = draw.trim, !isIdentity(trim) {
+                context.report.skip("trimmed fill path", at: draw.sourcePath)
+            }
+        case let .stroke(stroke):
+            apply(stroke, to: layer, at: draw.sourcePath)
+            if let trim = draw.trim {
+                apply(trim, to: layer, at: draw.sourcePath)
+            }
         }
         return layer
+    }
+
+    private func transparencyLayer(for node: DrawingProgram.TransparencyLayer, bounds: Rect) -> [Layer] {
+        let childLayers = layers(for: node.nodes, bounds: bounds)
+        guard !childLayers.isEmpty else { return [] }
+
+        guard let opacity = node.opacity else { return childLayers }
+        if opacity.isAnimated {
+            context.report.skip("animated group opacity", at: node.sourcePath)
+        }
+        let staticOpacity = min(max(opacity.initialValue / 100, 0), 1)
+        guard abs(staticOpacity - 1) > 0.0001 else { return childLayers }
+
+        let layer = Layer()
+        layer.bounds = bounds
+        layer.position = Point(x: bounds.width / 2, y: bounds.height / 2)
+        layer.backgroundColor = nil
+        layer.opacity = staticOpacity
+        for child in childLayers {
+            layer.addSublayer(child)
+        }
+        return [layer]
     }
 
     private func apply(_ fill: ShapeFill, to layer: ShapeLayer, at path: String) {
@@ -158,28 +136,13 @@ struct ShapeBuilder {
         }
     }
 
-    /// Bakes a static group transform into the geometry; an animated group
-    /// transform is reported and its initial pose baked.
-    private func applied(_ transform: ShapeTransform, to geometry: Path, at path: String) -> Path {
-        let animated = (transform.anchor?.isAnimated ?? false)
-            || (transform.position?.isAnimated ?? false)
-            || (transform.scale?.isAnimated ?? false)
-            || (transform.rotation?.isAnimated ?? false)
-        if animated {
-            context.report.skip("animated group transform", at: path)
+    private func isIdentity(_ trim: ShapeTrim) -> Bool {
+        if trim.start.isAnimated || trim.end.isAnimated || trim.offset?.isAnimated == true {
+            return false
         }
-        if transform.opacity?.isAnimated == true {
-            context.report.skip("animated group opacity", at: path)
-        }
-        let anchor = transform.anchor?.initialValue ?? []
-        let position = transform.position?.initialValue ?? []
-        let scale = transform.scale?.initialValue ?? []
-        let rotation = (transform.rotation?.initialValue ?? 0) * .pi / 180
-        let affine = AffineTransform.translation(x: -(anchor.component(0) ?? 0), y: -(anchor.component(1) ?? 0))
-            .concatenating(.scale(x: (scale.component(0) ?? 100) / 100, y: (scale.component(1) ?? 100) / 100))
-            .concatenating(.rotation(angle: rotation))
-            .concatenating(.translation(x: position.component(0) ?? 0, y: position.component(1) ?? 0))
-        return geometry.applying(affine)
+        return abs(trim.start.initialValue) <= 0.0001
+            && abs(trim.end.initialValue - 100) <= 0.0001
+            && abs(trim.offset?.initialValue ?? 0) <= 0.0001
     }
 
     private func color(from components: [Double], opacityPercent: Double) -> Color {

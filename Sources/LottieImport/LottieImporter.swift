@@ -28,9 +28,17 @@ final class ImportContext {
     /// Recursion guard against precomposition reference cycles.
     var precompositionStack: [String] = []
 
-    var frameRate: Double { animation.frameRate }
-    var startFrame: Double { animation.inPoint }
-    var duration: Double { max((animation.outPoint - animation.inPoint) / animation.frameRate, 0) }
+    var frameRate: Double {
+        animation.frameRate
+    }
+
+    var startFrame: Double {
+        animation.inPoint
+    }
+
+    var duration: Double {
+        max((animation.outPoint - animation.inPoint) / animation.frameRate, 0)
+    }
 
     init(animation: LottieAnimation) {
         self.animation = animation
@@ -140,7 +148,7 @@ public struct LottieImporter {
 
     /// The comp-sized bounds a shape or null layer lives in (its coordinate
     /// space is the composition's).
-    private func bounds(of lottieLayer: LottieLayer, context: ImportContext) -> Rect? {
+    private func bounds(of _: LottieLayer, context: ImportContext) -> Rect? {
         Rect(x: 0, y: 0, width: context.animation.width, height: context.animation.height)
     }
 
@@ -240,14 +248,30 @@ public struct LottieImporter {
             if keyframes.contains(where: { ($0.spatialOut ?? []).contains(where: { abs($0) > 0.0001 }) || ($0.spatialIn ?? []).contains(where: { abs($0) > 0.0001 }) }) {
                 context.report.approximate("spatial position curve (linearized)", at: path)
             }
-            add(ScalarTimeline.samples(from: keyframes, dimension: 0, frameRate: context.frameRate, startFrame: context.startFrame) { $0 }, keyPath: "position.x", key: "lottie.position.x")
-            add(ScalarTimeline.samples(from: keyframes, dimension: 1, frameRate: context.frameRate, startFrame: context.startFrame) { $0 }, keyPath: "position.y", key: "lottie.position.y")
+            add(
+                ScalarTimeline.samples(from: keyframes, dimension: 0, frameRate: context.frameRate, startFrame: context.startFrame) { $0 },
+                keyPath: "position.x",
+                key: "lottie.position.x"
+            )
+            add(
+                ScalarTimeline.samples(from: keyframes, dimension: 1, frameRate: context.frameRate, startFrame: context.startFrame) { $0 },
+                keyPath: "position.y",
+                key: "lottie.position.y"
+            )
         case let .split(x, y):
             if case let .keyframed(keyframes) = x {
-                add(ScalarTimeline.samples(from: keyframes, dimension: 0, frameRate: context.frameRate, startFrame: context.startFrame) { $0 }, keyPath: "position.x", key: "lottie.position.x")
+                add(
+                    ScalarTimeline.samples(from: keyframes, dimension: 0, frameRate: context.frameRate, startFrame: context.startFrame) { $0 },
+                    keyPath: "position.x",
+                    key: "lottie.position.x"
+                )
             }
             if case let .keyframed(keyframes) = y {
-                add(ScalarTimeline.samples(from: keyframes, dimension: 0, frameRate: context.frameRate, startFrame: context.startFrame) { $0 }, keyPath: "position.y", key: "lottie.position.y")
+                add(
+                    ScalarTimeline.samples(from: keyframes, dimension: 0, frameRate: context.frameRate, startFrame: context.startFrame) { $0 },
+                    keyPath: "position.y",
+                    key: "lottie.position.y"
+                )
             }
         }
     }

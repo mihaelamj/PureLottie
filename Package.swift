@@ -45,5 +45,13 @@ let package = Package(
                 .product(name: "PureLayer", package: "PureLayer"),
             ]
         ),
+        .executableTarget(
+            name: "LottieFrameDump",
+            dependencies: [
+                "LottieImport",
+                .product(name: "PureLayer", package: "PureLayer"),
+            ],
+            path: "Tools/LottieFrameDump"
+        ),
     ]
 )
