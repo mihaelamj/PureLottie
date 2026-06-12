@@ -20,3 +20,19 @@ Only JSON files with the root Lottie document keys `v`, `fr`, `ip`, `op`, `w`,
 Total: 857 Lottie JSON files, about 70 MiB.
 
 License files from each source repository are preserved in `_licenses/`.
+
+## Semantic Ledger Gate
+
+`CorpusSemanticLedgerTests` scans this directory on every full test run. The
+gate pins:
+
+- total fixture count: 857 JSON files
+- unique payload count: 675 byte-identical JSON payloads
+- source-level fixture counts and preserved license files
+- every observed field classified as lowered, approximated, reported, metadata,
+  or explicit gap
+- conservative visual-oracle eligibility reasons per fixture
+
+Adding a fixture with a new rendering-affecting field fails until that field is
+classified in the ledger and, when applicable, reflected in the conformance
+matrix vocabulary.
