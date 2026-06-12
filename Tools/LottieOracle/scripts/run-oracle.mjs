@@ -5,6 +5,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { comparePngDirectories } from './compare-images.mjs';
 import { backendEvidenceFindingCount, comparisonEligibility } from './eligibility.mjs';
+import { extractLottieIntent } from './extract-intent.mjs';
 import { renderReferenceFrames } from './render-reference.mjs';
 
 const require = createRequire(import.meta.url);
@@ -104,7 +105,7 @@ ${comparisonRows || '| n/a | skipped | n/a | n/a | n/a |'}
 
 ## Trace Context
 
-Semantic trace context is written to \`${path.basename(report.artifacts.semanticTraces)}\`. Mismatch-only trace context is written to \`${path.basename(report.artifacts.mismatchTraces)}\` when any frame differs.
+Numeric lottie-web intent is written to \`${path.basename(report.artifacts.lottieWebIntent)}\`. Semantic trace context is written to \`${path.basename(report.artifacts.semanticTraces)}\`. Mismatch-only trace context is written to \`${path.basename(report.artifacts.mismatchTraces)}\` when any frame differs.
 `;
 }
 
@@ -140,6 +141,14 @@ async function runFixture(fixture, options) {
   const reference = await renderReferenceFrames({
     input: fixturePath,
     output: referenceDir,
+    frames,
+    scale,
+    renderer
+  });
+  const lottieWebIntentFile = path.join(outputRoot, 'lottie-web-intent.json');
+  const lottieWebIntent = await extractLottieIntent({
+    input: fixturePath,
+    output: lottieWebIntentFile,
     frames,
     scale,
     renderer
@@ -215,11 +224,19 @@ async function runFixture(fixture, options) {
       frames: comparisons
     },
     reference,
+    lottieWebIntent: {
+      schema: lottieWebIntent.schema,
+      lottieWeb: lottieWebIntent.lottieWeb,
+      frameCount: lottieWebIntent.frames.length,
+      layerCounts: lottieWebIntent.frames.map((entry) => entry.layerCount),
+      pathCounts: lottieWebIntent.frames.map((entry) => entry.pathCount)
+    },
     artifacts: {
       outputRoot,
       referenceDir,
       pureLayerDir,
       diffDir,
+      lottieWebIntent: lottieWebIntentFile,
       semanticTraces: semanticTraceFile,
       mismatchTraces: mismatchTraceFile
     }

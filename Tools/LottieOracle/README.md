@@ -24,6 +24,12 @@ Run the selected fixture:
 npm --prefix Tools/LottieOracle run oracle -- --fixture eligible-shape-position
 ```
 
+Extract only the numeric lottie-web source-intent trace:
+
+```sh
+npm --prefix Tools/LottieOracle run extract-intent -- --input ../../Tests/Fixtures/LottieOracle/eligible-shape-position.json --frames 0,5,9 --output /tmp/eligible-shape-position.intent.json
+```
+
 Artifacts are written to `Tools/LottieOracle/artifacts/<fixture-id>/`:
 
 | Path | Contents |
@@ -31,6 +37,7 @@ Artifacts are written to `Tools/LottieOracle/artifacts/<fixture-id>/`:
 | `reference/` | PNG frames rendered by pinned `lottie-web`. |
 | `purelayer/` | PNG frames rendered by `swift run LottieFrameDump`, plus `oracle-summary.json`. |
 | `diff/` | Pixel-difference PNGs, one per compared frame. |
+| `lottie-web-intent.json` | Numeric lottie-web facts: layer matrices, opacity, SVG path data, styles, bounds, and sampled path bounds. |
 | `semantic-traces.json` | RenderIR node, trace, and backend evidence summaries for every selected frame. |
 | `mismatch-traces.json` | RenderIR trace and backend evidence summaries only for frames that differ. |
 | `comparison-report.json` | Machine-readable report. |
