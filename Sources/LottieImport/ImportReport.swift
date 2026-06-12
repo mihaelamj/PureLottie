@@ -64,6 +64,20 @@ final class ImportReportBuilder {
         }
     }
 
+    func reportShapeDiagnostics(_ diagnostics: [ValidationError]) {
+        for diagnostic in diagnostics where diagnostic.ruleID.hasPrefix("lottie.evaluation.shape.") {
+            let path = diagnostic.evidence ?? diagnostic.codingPath.description
+            switch diagnostic.classification {
+            case .approximate:
+                approximate(diagnostic.reason, at: path)
+            case .exact, .metadata:
+                continue
+            case .reported, .gap:
+                skip(diagnostic.reason, at: path)
+            }
+        }
+    }
+
     func report() -> ImportReport {
         ImportReport(findings: findings)
     }
