@@ -1,0 +1,109 @@
+name: macOS CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  model-only:
+    name: LottieModel tests
+    runs-on: macos-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Show Swift version
+        run: swift --version
+
+      - name: Generate model-only package
+        run: swift scripts/ci-model-only.swift
+
+      - name: Test LottieModel
+        run: swift test --package-path .build/ci/model-only
+
+  full-gate:
+    name: Full Swift gate
+    runs-on: macos-latest
+    env:
+      GIT_TERMINAL_PROMPT: "0"
+      PURELAYER_DEPLOY_KEY: ${{ secrets.PURELAYER_DEPLOY_KEY }}
+      PURELAYER_TOKEN: ${{ secrets.PURELAYER_TOKEN }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure private dependency access
+        id: dependency-access
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -n "${PURELAYER_TOKEN:-}" ]; then
+            git config --global url."https://x-access-token:${PURELAYER_TOKEN}@github.com/".insteadOf "https://github.com/"
+            echo "has-access=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ -n "${PURELAYER_DEPLOY_KEY:-}" ]; then
+            install -m 700 -d "$HOME/.ssh"
+            printf '%s\n' "$PURELAYER_DEPLOY_KEY" > "$HOME/.ssh/purelayer_deploy_key"
+            chmod 600 "$HOME/.ssh/purelayer_deploy_key"
+            ssh-keyscan github.com >> "$HOME/.ssh/known_hosts"
+            git config --global core.sshCommand "ssh -i $HOME/.ssh/purelayer_deploy_key -o IdentitiesOnly=yes"
+            git config --global url."git@github.com:mihaelamj/PureLayer.git".insteadOf "https://github.com/mihaelamj/PureLayer.git"
+            echo "has-access=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "::notice::Skipping full package gate because PURELAYER_TOKEN or PURELAYER_DEPLOY_KEY is not configured."
+          echo "has-access=false" >> "$GITHUB_OUTPUT"
+
+      - name: Explain skipped full gate
+        if: steps.dependency-access.outputs.has-access != 'true'
+        shell: bash
+        run: |
+          {
+            echo "### Full Swift gate skipped"
+            echo
+            echo "Set PURELAYER_TOKEN or PURELAYER_DEPLOY_KEY to let SwiftPM resolve the private PureLayer dependency."
+            echo "The macOS model-only job still verifies LottieModel on this platform."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Install formatting and linting tools
+        if: steps.dependency-access.outputs.has-access == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew update
+          brew install swiftformat swiftlint
+          swift --version
+          swiftformat --version
+          swiftlint version
+
+      - name: Resolve dependencies
+        if: steps.dependency-access.outputs.has-access == 'true'
+        run: swift package resolve
+
+      - name: Format check
+        if: steps.dependency-access.outputs.has-access == 'true'
+        run: swiftformat . --config .swiftformat --lint
+
+      - name: Strict lint
+        if: steps.dependency-access.outputs.has-access == 'true'
+        run: swiftlint --config .swiftlint.yml --strict
+
+      - name: Build
+        if: steps.dependency-access.outputs.has-access == 'true'
+        run: swift build
+
+      - name: Test
+        if: steps.dependency-access.outputs.has-access == 'true'
+        run: swift test
