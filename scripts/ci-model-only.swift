@@ -35,6 +35,7 @@ try recreateDirectory(packageRoot)
 try copyDirectory("Sources/LottieModel", to: packageRoot)
 try copyDirectory("Tests/LottieModelTests", to: packageRoot)
 try copyDirectory("Tests/Fixtures", to: packageRoot)
+try copyDirectory("docs/lottie-format", to: packageRoot)
 
 let manifest = """
 // swift-tools-version: 6.0
