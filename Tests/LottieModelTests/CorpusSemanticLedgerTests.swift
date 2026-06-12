@@ -125,9 +125,9 @@ private let semanticLedger: [ObservedField: SemanticDisposition] = {
 
     add("layer", .translated, ["h", "hd", "ind", "ip", "ks", "layers", "masksProperties", "nm", "op", "parent", "refId", "sc", "sh", "shapes", "st", "sw", "sr", "ty", "w"])
     add("layer", .modeled, ["ao", "ddd"])
-    add("layer", .reported, ["tm"])
+    add("layer", .reported, ["td", "tm", "tp", "tt"])
     add("layer", .metadata, ["bounds", "cl", "ct", "hasMask", "hidden", "hix", "ln", "mn", "sy"])
-    add("layer", .knownGap, ["bm", "ef", "t", "td", "tp", "tt"])
+    add("layer", .knownGap, ["bm", "ef", "t"])
 
     add("layer.transform", .translated, ["a", "o", "p", "r", "s"])
     add("layer.transform", .modeled, ["or", "rx", "ry", "rz", "sa", "sk"])

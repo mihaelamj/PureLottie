@@ -109,8 +109,12 @@ public enum BuiltinValidation {
             AnyValidation(rootFrameRateIsPositive),
             AnyValidation(rootFrameWindowIsValid),
             AnyValidation(rootFieldsAreKnownOrMetadata),
+            AnyValidation(assetIDsAreUnique),
+            AnyValidation(layerIndicesAreUnique),
             AnyValidation(layerParentReferencesResolve),
+            AnyValidation(layerParentReferencesDoNotCycle),
             AnyValidation(layerAssetReferencesResolve),
+            AnyValidation(layerMatteReferencesResolve),
             AnyValidation(layerSilentRiskFieldsAreModeledOrReported),
             AnyValidation(layerTimeFieldsAreModeled),
             AnyValidation(transformSilentRiskFieldsAreModeledOrReported),
@@ -303,6 +307,108 @@ public enum BuiltinValidation {
         )
     }
 
+    public static var assetIDsAreUnique: Validation<LottieSourceDocument, LottieSourceDocument> {
+        Validation(
+            ruleID: "lottie.asset.id.duplicate",
+            description: "Asset ids are unique inside the document",
+            phase: .semantic,
+            check: { context in
+                guard let assets = context.subject.source.member("assets")?.arrayValues else { return [] }
+                var firstByID: [String: Int] = [:]
+                var errors: [ValidationError] = []
+                for (offset, asset) in assets.enumerated() {
+                    guard let idValue = asset.member("id"), let id = idValue.stringValue else { continue }
+                    if firstByID[id] != nil {
+                        errors.append(
+                            ValidationError(
+                                ruleID: "lottie.asset.id.duplicate",
+                                reason: "Asset id `\(id)` is declared more than once.",
+                                at: JSONPath([.key("assets"), .index(offset), .key("id")]),
+                                range: idValue.range,
+                                phase: .semantic,
+                                classification: .gap
+                            )
+                        )
+                    } else {
+                        firstByID[id] = offset
+                    }
+                }
+                return errors
+            }
+        )
+    }
+
+    public static var layerIndicesAreUnique: Validation<LottieSourceDocument, JSONValue> {
+        Validation(
+            ruleID: "lottie.layer.index.duplicate",
+            description: "Layer indices are unique inside each composition",
+            phase: .semantic,
+            check: { context in
+                guard context.subject.objectMembers != nil,
+                      isLayerPath(context.codingPath),
+                      let offset = layerOffset(for: context.codingPath),
+                      let indexValue = context.subject.member("ind"),
+                      let index = indexValue.numberValue
+                else {
+                    return []
+                }
+                let duplicateExistsBeforeLayer = layerSiblings(for: context.codingPath, in: context.document.source)
+                    .prefix(offset)
+                    .contains { sibling in sibling.member("ind")?.numberValue == index }
+                guard duplicateExistsBeforeLayer else { return [] }
+                return [
+                    ValidationError(
+                        ruleID: "lottie.layer.index.duplicate",
+                        reason: "Layer index `\(Int(index))` is declared more than once inside this composition.",
+                        at: context.codingPath.appending(.key("ind")),
+                        range: indexValue.range,
+                        phase: .semantic,
+                        classification: .gap
+                    ),
+                ]
+            }
+        )
+    }
+
+    public static var layerParentReferencesDoNotCycle: Validation<LottieSourceDocument, JSONValue> {
+        Validation(
+            ruleID: "lottie.layer.parent.cycle",
+            description: "Layer parent chains are acyclic inside each composition",
+            phase: .semantic,
+            check: { context in
+                guard context.subject.objectMembers != nil,
+                      isLayerPath(context.codingPath),
+                      let layerIndexValue = context.subject.member("ind"),
+                      let layerIndex = layerIndexValue.numberValue,
+                      let parentValue = context.subject.member("parent"),
+                      let parent = parentValue.numberValue
+                else {
+                    return []
+                }
+
+                let byIndex = layerIndexTable(for: context.codingPath, in: context.document.source)
+                var seen: Set<Int> = [Int(layerIndex)]
+                var cursor: Int? = Int(parent)
+                while let parentIndex = cursor {
+                    guard seen.insert(parentIndex).inserted else {
+                        return [
+                            ValidationError(
+                                ruleID: "lottie.layer.parent.cycle",
+                                reason: "Layer parent chain cycles through index `\(parentIndex)`.",
+                                at: context.codingPath.appending(.key("parent")),
+                                range: parentValue.range,
+                                phase: .semantic,
+                                classification: .gap
+                            ),
+                        ]
+                    }
+                    cursor = byIndex[parentIndex]?.member("parent")?.numberValue.map(Int.init)
+                }
+                return []
+            }
+        )
+    }
+
     public static var layerAssetReferencesResolve: Validation<LottieSourceDocument, JSONValue> {
         Validation(
             ruleID: "lottie.layer.refId.missing",
@@ -361,6 +467,82 @@ public enum BuiltinValidation {
         )
     }
 
+    public static var layerMatteReferencesResolve: Validation<LottieSourceDocument, JSONValue> {
+        Validation(
+            ruleID: "lottie.layer.matte.missing",
+            description: "Track matte source layers resolve inside their composition",
+            phase: .semantic,
+            check: { context in
+                guard context.subject.objectMembers != nil,
+                      isLayerPath(context.codingPath),
+                      let matteValue = context.subject.member("tt")
+                else {
+                    return []
+                }
+
+                guard let matteMode = matteValue.numberValue else {
+                    return [
+                        ValidationError(
+                            ruleID: "lottie.layer.matte.type",
+                            reason: "Layer track matte mode `tt` must be a number.",
+                            at: context.codingPath.appending(.key("tt")),
+                            range: matteValue.range,
+                            phase: .semantic,
+                            classification: .gap
+                        ),
+                    ]
+                }
+                guard Int(matteMode) != 0 else { return [] }
+
+                if let explicitValue = context.subject.member("tp") {
+                    guard let explicitIndex = explicitValue.numberValue else {
+                        return [
+                            ValidationError(
+                                ruleID: "lottie.layer.matte.type",
+                                reason: "Layer track matte parent `tp` must be a number.",
+                                at: context.codingPath.appending(.key("tp")),
+                                range: explicitValue.range,
+                                phase: .semantic,
+                                classification: .gap
+                            ),
+                        ]
+                    }
+                    let siblingIndices = Set(layerSiblings(for: context.codingPath, in: context.document.source).compactMap { layer -> Int? in
+                        guard let number = layer.member("ind")?.numberValue else { return nil }
+                        return Int(number)
+                    })
+                    guard siblingIndices.contains(Int(explicitIndex)) else {
+                        return [
+                            ValidationError(
+                                ruleID: "lottie.layer.matte.missing",
+                                reason: "Layer track matte parent `\(Int(explicitIndex))` does not resolve inside this composition.",
+                                at: context.codingPath.appending(.key("tp")),
+                                range: explicitValue.range,
+                                phase: .semantic,
+                                classification: .gap
+                            ),
+                        ]
+                    }
+                    return []
+                }
+
+                guard let offset = layerOffset(for: context.codingPath), offset > 0 else {
+                    return [
+                        ValidationError(
+                            ruleID: "lottie.layer.matte.missing",
+                            reason: "Layer track matte mode requires an implicit preceding source layer or explicit `tp`.",
+                            at: context.codingPath.appending(.key("tt")),
+                            range: matteValue.range,
+                            phase: .semantic,
+                            classification: .gap
+                        ),
+                    ]
+                }
+                return []
+            }
+        )
+    }
+
     public static var layerSilentRiskFieldsAreModeledOrReported: Validation<LottieSourceDocument, JSONValue> {
         objectFieldRule(
             ruleID: "lottie.layer.silent-risk-field",
@@ -371,9 +553,6 @@ public enum BuiltinValidation {
                 "bm": "Blend mode changes layer compositing.",
                 "ef": "Effects can change rendered pixels.",
                 "t": "Text documents and text animators change rendered pixels.",
-                "td": "Track matte target/source edges change compositing.",
-                "tp": "Track matte parent index changes compositing.",
-                "tt": "Track matte mode changes compositing.",
             ],
             when: { isLayerPath($0.codingPath) }
         )
@@ -559,6 +738,23 @@ private extension BuiltinValidation {
     static func layerSiblings(for layerPath: JSONPath, in source: JSONValue) -> [JSONValue] {
         let parentPath = JSONPath(Array(layerPath.components.dropLast()))
         return source.value(at: parentPath)?.arrayValues ?? []
+    }
+
+    static func layerOffset(for layerPath: JSONPath) -> Int? {
+        guard case let .index(offset) = layerPath.components.last else { return nil }
+        return offset
+    }
+
+    static func layerIndexTable(for layerPath: JSONPath, in source: JSONValue) -> [Int: JSONValue] {
+        var result: [Int: JSONValue] = [:]
+        for layer in layerSiblings(for: layerPath, in: source) {
+            guard let number = layer.member("ind")?.numberValue else { continue }
+            let index = Int(number)
+            if result[index] == nil {
+                result[index] = layer
+            }
+        }
+        return result
     }
 
     static func assetIDs(in source: JSONValue) -> Set<String> {

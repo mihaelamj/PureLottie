@@ -30,6 +30,8 @@ final class ImportContext {
     var timeShift: Double = 0
     /// Recursion guard against precomposition reference cycles.
     var precompositionStack: [String] = []
+    /// Size of the composition currently being lowered.
+    var compositionSize: (width: Double, height: Double)
 
     var frameRate: Double {
         animation.frameRate
@@ -47,31 +49,12 @@ final class ImportContext {
         self.animation = animation
         frameEvaluator = LottieFrameEvaluator(animation: animation)
         transformEvaluator = LottieTransformEvaluator(animation: animation)
+        compositionSize = (animation.width, animation.height)
     }
 
     func seconds(_ frame: Double) -> Double {
         (frame - startFrame) / frameRate
     }
-}
-
-private func siblingLayerPath(from path: JSONPath, arrayOffset: Int) -> JSONPath {
-    var components = path.components
-    if let last = components.last {
-        switch last {
-        case .index:
-            components.removeLast()
-        case .key:
-            components = [.key("layers")]
-        }
-    } else {
-        components = [.key("layers")]
-    }
-    return JSONPath(components).appending(.index(arrayOffset))
-}
-
-private struct ImportLayerRecord {
-    var layer: LottieLayer
-    var arrayOffset: Int
 }
 
 /// Maps a decoded `LottieAnimation` onto a PureLayer tree.
@@ -93,8 +76,10 @@ public struct LottieImporter {
         from data: Data,
         validator: LottieValidator = LottieValidator()
     ) throws -> LottieScene {
-        let animation = try LottieAnimation.decodeValidated(from: data, using: validator)
-        return scene(from: animation)
+        let document = try LottieSourceDocument.parse(data)
+        try document.validate(using: validator)
+        let animation = try document.decodeAnimation()
+        return scene(from: animation, sourceDocument: document)
     }
 
     /// Imports an already-decoded document.
@@ -102,18 +87,17 @@ public struct LottieImporter {
     /// This low-level entry point assumes the caller has already validated the
     /// source or intentionally wants raw model-level behavior for tests.
     public func scene(from animation: LottieAnimation) -> LottieScene {
+        scene(from: animation, sourceDocument: nil)
+    }
+
+    private func scene(from animation: LottieAnimation, sourceDocument: LottieSourceDocument?) -> LottieScene {
         let context = ImportContext(animation: animation)
+        let binding = LottieBinder(animation: animation, sourceDocument: sourceDocument, report: context.report).bind()
         let root = Layer()
         root.bounds = Rect(x: 0, y: 0, width: animation.width, height: animation.height)
         root.position = Point(x: animation.width / 2, y: animation.height / 2)
         root.masksToBounds = true
-        build(
-            layers: animation.layers,
-            into: root,
-            context: context,
-            at: "root",
-            jsonPath: JSONPath([.key("layers")])
-        )
+        build(composition: binding.root, into: root, context: context, binding: binding)
         return LottieScene(
             root: root,
             width: animation.width,
@@ -129,33 +113,45 @@ public struct LottieImporter {
     /// Builds one composition's layers into `container`. Lottie lists the
     /// topmost layer first; PureLayer draws later sublayers on top, so the list
     /// is walked in reverse.
-    private func build(layers: [LottieLayer], into container: Layer, context: ImportContext, at path: String, jsonPath: JSONPath) {
-        let byIndex = Dictionary(
-            layers.enumerated().compactMap { offset, layer in
-                layer.index.map { ($0, ImportLayerRecord(layer: layer, arrayOffset: offset)) }
-            },
-            uniquingKeysWith: { first, _ in first }
-        )
-        for (offset, lottieLayer) in layers.enumerated().reversed() {
-            guard !lottieLayer.isHidden else { continue }
-            let layerPath = "\(path) > layer '\(lottieLayer.name ?? "?")'"
-            let layerJSONPath = jsonPath.appending(.index(offset))
-            guard let built = buildLayer(lottieLayer, context: context, at: layerPath, jsonPath: layerJSONPath) else { continue }
-            let wrapped = wrappedInParentChain(
-                built,
-                of: lottieLayer,
-                byIndex: byIndex,
-                context: context,
-                at: layerPath,
-                jsonPath: layerJSONPath
-            )
+    private func build(
+        composition: BoundComposition,
+        into container: Layer,
+        context: ImportContext,
+        binding: LottieBinding,
+        compositionSizeOverride: (width: Double, height: Double)? = nil
+    ) {
+        let previousSize = context.compositionSize
+        context.compositionSize = compositionSizeOverride ?? composition.sourceSize ?? previousSize
+        defer { context.compositionSize = previousSize }
+
+        for boundLayer in composition.layers.reversed() {
+            guard !boundLayer.layer.isHidden else { continue }
+            guard let built = buildLayer(boundLayer, context: context, binding: binding) else { continue }
+            let wrapped = wrappedInParentChain(built, parents: boundLayer.parents, context: context, at: boundLayer.path)
             container.addSublayer(wrapped)
         }
     }
 
-    private func buildLayer(_ lottieLayer: LottieLayer, context: ImportContext, at path: String, jsonPath: JSONPath) -> Layer? {
+    private func buildLayer(_ boundLayer: BoundLayer, context: ImportContext, binding: LottieBinding) -> Layer? {
+        let lottieLayer = boundLayer.layer
+        let path = boundLayer.path
+        let jsonPath = boundLayer.sourcePath ?? JSONPath()
         if lottieLayer.timeRemap != nil {
-            context.report.skip("time remap", at: path)
+            context.report.skip(
+                "time remap",
+                at: path,
+                sourcePath: boundLayer.sourcePath?.appending(.key("tm")),
+                sourceRange: sourceRange(for: boundLayer, field: "tm", binding: binding)
+            )
+        }
+        if let source = lottieLayer.trackMatteSource {
+            context.report.skip(
+                "track matte source marker \(source)",
+                at: path,
+                sourcePath: boundLayer.sourcePath?.appending(.key("td")),
+                sourceRange: sourceRange(for: boundLayer, field: "td", binding: binding)
+            )
+            return nil
         }
 
         let layer: Layer
@@ -178,18 +174,27 @@ public struct LottieImporter {
             bounds(of: lottieLayer, context: context).map { layer.bounds = $0 }
         case .precomposition:
             guard let referenceId = lottieLayer.referenceId,
-                  let asset = context.animation.precomposition(id: referenceId),
-                  let assetLayers = asset.layers
+                  boundLayer.referencedAsset != nil,
+                  let composition = binding.precomposition(id: referenceId)
             else {
-                context.report.skip("precomposition with missing asset", at: path)
                 return nil
             }
             guard !context.precompositionStack.contains(referenceId) else {
-                context.report.skip("recursive precomposition '\(referenceId)'", at: path)
+                context.report.skip(
+                    "recursive precomposition '\(referenceId)'",
+                    at: path,
+                    sourcePath: boundLayer.sourcePath?.appending(.key("refId")),
+                    sourceRange: sourceRange(for: boundLayer, field: "refId", binding: binding)
+                )
                 return nil
             }
             if abs(lottieLayer.stretch - 1) > 0.0001 {
-                context.report.skip("precomposition time stretch", at: path)
+                context.report.skip(
+                    "precomposition time stretch",
+                    at: path,
+                    sourcePath: boundLayer.sourcePath?.appending(.key("sr")),
+                    sourceRange: sourceRange(for: boundLayer, field: "sr", binding: binding)
+                )
             }
             layer = Layer()
             layer.backgroundColor = nil
@@ -198,21 +203,48 @@ public struct LottieImporter {
             let outerShift = context.timeShift
             context.timeShift = outerShift + lottieLayer.startTime / context.frameRate
             context.precompositionStack.append(referenceId)
-            let assetIndex = context.animation.assets.firstIndex { $0.id == referenceId } ?? 0
             build(
-                layers: assetLayers,
+                composition: composition,
                 into: layer,
                 context: context,
-                at: "\(path) > precomp '\(referenceId)'",
-                jsonPath: JSONPath([.key("assets"), .index(assetIndex), .key("layers")])
+                binding: binding,
+                compositionSizeOverride: (width: layer.bounds.width, height: layer.bounds.height)
             )
             context.precompositionStack.removeLast()
             context.timeShift = outerShift
+        case .image:
+            if boundLayer.referencedAsset == nil {
+                return nil
+            }
+            context.report.skip(
+                "image layer",
+                at: path,
+                sourcePath: boundLayer.sourcePath?.appending(.key("ty")),
+                sourceRange: sourceRange(for: boundLayer, field: "ty", binding: binding)
+            )
+            return nil
         default:
-            context.report.skip("layer type \(lottieLayer.rawType)", at: path)
+            context.report.skip(
+                "layer type \(lottieLayer.rawType)",
+                at: path,
+                sourcePath: boundLayer.sourcePath?.appending(.key("ty")),
+                sourceRange: sourceRange(for: boundLayer, field: "ty", binding: binding)
+            )
             return nil
         }
 
+        if let matte = boundLayer.matte {
+            var feature = "track matte mode \(matte.mode)"
+            if let source = matte.source {
+                feature += " using \(source.path)"
+            }
+            context.report.skip(
+                feature,
+                at: path,
+                sourcePath: boundLayer.sourcePath?.appending(.key("tt")),
+                sourceRange: sourceRange(for: boundLayer, field: "tt", binding: binding)
+            )
+        }
         apply(
             lottieLayer,
             to: layer,
@@ -226,10 +258,14 @@ public struct LottieImporter {
         return layer
     }
 
+    private func sourceRange(for layer: BoundLayer, field: String, binding: LottieBinding) -> SourceRange? {
+        binding.sourceRange(at: layer.sourcePath?.appending(.key(field)))
+    }
+
     /// The comp-sized bounds a shape or null layer lives in (its coordinate
     /// space is the composition's).
     private func bounds(of _: LottieLayer, context: ImportContext) -> Rect? {
-        Rect(x: 0, y: 0, width: context.animation.width, height: context.animation.height)
+        Rect(x: 0, y: 0, width: context.compositionSize.width, height: context.compositionSize.height)
     }
 
     /// The layer's visible window in scene seconds, or `nil` when it spans the
@@ -438,42 +474,23 @@ public struct LottieImporter {
     /// never opacity, so holders get no opacity mapping.
     private func wrappedInParentChain(
         _ layer: Layer,
-        of lottieLayer: LottieLayer,
-        byIndex: [Int: ImportLayerRecord],
+        parents: [BoundLayerReference],
         context: ImportContext,
-        at path: String,
-        jsonPath: JSONPath
+        at path: String
     ) -> Layer {
-        var ancestors: [ImportLayerRecord] = []
-        var cursor = lottieLayer.parent
-        var visited: Set<Int> = []
-        var guardCounter = 0
-        while let parentIndex = cursor, let parent = byIndex[parentIndex], guardCounter < 64 {
-            guard !visited.contains(parentIndex) else {
-                context.report.skip("parent transform cycle", at: path)
-                break
-            }
-            visited.insert(parentIndex)
-            ancestors.append(parent)
-            cursor = parent.layer.parent
-            guardCounter += 1
-        }
-        if let parentIndex = cursor, byIndex[parentIndex] != nil, guardCounter >= 64 {
-            context.report.skip("parent transform depth", at: path)
-        }
-        guard !ancestors.isEmpty else { return layer }
+        guard !parents.isEmpty else { return layer }
 
         var wrapped = layer
-        for ancestor in ancestors {
+        for parent in parents {
             let holder = Layer()
             holder.backgroundColor = nil
-            holder.bounds = Rect(x: 0, y: 0, width: context.animation.width, height: context.animation.height)
+            holder.bounds = Rect(x: 0, y: 0, width: context.compositionSize.width, height: context.compositionSize.height)
             apply(
-                ancestor.layer,
+                parent.layer,
                 to: holder,
                 context: context,
-                at: "\(path) > parent '\(ancestor.layer.name ?? "?")'",
-                jsonPath: siblingLayerPath(from: jsonPath, arrayOffset: ancestor.arrayOffset),
+                at: "\(path) > parent '\(parent.layer.name ?? "?")'",
+                jsonPath: parent.sourcePath ?? JSONPath(),
                 includeOpacity: false,
                 visibility: nil
             )
