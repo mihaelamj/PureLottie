@@ -150,6 +150,107 @@ final class ValidatedImportTests: XCTestCase {
         XCTAssertEqual(scene.report.findings.first?.disposition, .approximated)
     }
 
+    func testImporterLowersStaticTransformFromEvaluatedState() throws {
+        let scene = try LottieImporter().scene(from: Data("""
+        {
+          "v": "5.7.4",
+          "fr": 30,
+          "ip": 0,
+          "op": 30,
+          "w": 200,
+          "h": 100,
+          "layers": [{
+            "ty": 4,
+            "nm": "Transform",
+            "ind": 1,
+            "ip": 0,
+            "op": 30,
+            "st": 0,
+            "ks": {
+              "a": { "a": 0, "k": [10, 20, 5] },
+              "p": {
+                "s": true,
+                "x": { "a": 0, "k": 100 },
+                "y": { "a": 0, "k": 50 },
+                "z": { "a": 0, "k": 25 }
+              },
+              "s": { "a": 0, "k": [200, 50, 100] },
+              "r": { "a": 0, "k": 90 },
+              "o": { "a": 0, "k": 100 }
+            },
+            "shapes": []
+          }],
+          "assets": []
+        }
+        """.utf8))
+
+        let layer = try XCTUnwrap(scene.root.sublayers.first)
+
+        XCTAssertEqual(layer.anchorPoint.x, 0.05, accuracy: 0.000001)
+        XCTAssertEqual(layer.anchorPoint.y, 0.2, accuracy: 0.000001)
+        XCTAssertEqual(layer.anchorPointZ, 5, accuracy: 0.000001)
+        XCTAssertEqual(layer.position.x, 100, accuracy: 0.000001)
+        XCTAssertEqual(layer.position.y, 50, accuracy: 0.000001)
+        XCTAssertEqual(layer.zPosition, 25, accuracy: 0.000001)
+        XCTAssertEqual(layer.transform.m11, 0, accuracy: 0.000001)
+        XCTAssertEqual(layer.transform.m12, 2, accuracy: 0.000001)
+        XCTAssertEqual(layer.transform.m21, -0.5, accuracy: 0.000001)
+        XCTAssertEqual(layer.transform.m22, 0, accuracy: 0.000001)
+    }
+
+    func testImporterReportsTransformEvaluatorDiagnosticsWithJSONPath() throws {
+        let animation = try LottieAnimation.decode(from: Data("""
+        {
+          "v": "5.7.4",
+          "fr": 30,
+          "ip": 0,
+          "op": 30,
+          "w": 200,
+          "h": 100,
+          "layers": [
+            {
+              "ty": 3,
+              "nm": "Parent",
+              "ind": 42,
+              "hd": true,
+              "ip": 0,
+              "op": 30,
+              "st": 0,
+              "ks": {
+                "sk": { "a": 0, "k": 20 }
+              }
+            },
+            {
+              "ty": 4,
+              "nm": "Child",
+              "ind": 7,
+              "parent": 42,
+              "ip": 0,
+              "op": 30,
+              "st": 0,
+              "ks": {
+                "p": { "a": 0, "k": [0, 0, 0] }
+              },
+              "shapes": []
+            }
+          ],
+          "assets": []
+        }
+        """.utf8))
+
+        let scene = LottieImporter().scene(from: animation)
+
+        XCTAssertEqual(scene.report.findings.map(\.feature), [
+            "unsupported transform skew",
+        ])
+        XCTAssertEqual(scene.report.findings.map(\.path), [
+            "root > layer 'Child' > parent 'Parent' $.layers[0].ks.sk",
+        ])
+        XCTAssertEqual(scene.report.findings.map(\.disposition), [
+            .skipped,
+        ])
+    }
+
     func testDataImportThrowsValidationErrorsBeforeImporterReport() throws {
         let data = Data("""
         {

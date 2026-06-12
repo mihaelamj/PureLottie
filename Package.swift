@@ -35,6 +35,7 @@ let package = Package(
         .target(
             name: "LottieImport",
             dependencies: [
+                "LottieEvaluation",
                 "LottieModel",
                 .product(name: "PureLayer", package: "PureLayer"),
             ]

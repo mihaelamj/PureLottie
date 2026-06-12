@@ -34,6 +34,10 @@ public struct LottieLayer: Decodable, Sendable, Equatable {
     /// them to source frames with the composition frame rate.
     public var timeRemap: AnimatedDouble?
     public var transform: LottieTransform?
+    /// Whether this layer participates in Lottie's 2.5D/3D transform mode.
+    public var is3D: Bool
+    /// Auto-orient (`ao`) rotates the layer to follow the position path tangent.
+    public var autoOrient: Int?
     /// Shape items, for shape layers.
     public var shapes: [LottieShape]?
     /// Solid-layer color as `#rrggbb`, with its size.
@@ -62,6 +66,8 @@ public struct LottieLayer: Decodable, Sendable, Equatable {
         case stretch = "sr"
         case timeRemap = "tm"
         case transform = "ks"
+        case is3D = "ddd"
+        case autoOrient = "ao"
         case shapes
         case solidColor = "sc"
         case solidWidth = "sw"
@@ -85,6 +91,8 @@ public struct LottieLayer: Decodable, Sendable, Equatable {
         stretch = try container.decodeIfPresent(Double.self, forKey: .stretch) ?? 1
         timeRemap = try container.decodeIfPresent(AnimatedDouble.self, forKey: .timeRemap)
         transform = try container.decodeIfPresent(LottieTransform.self, forKey: .transform)
+        is3D = try (container.decodeIfPresent(Int.self, forKey: .is3D) ?? 0) != 0
+        autoOrient = try container.decodeIfPresent(Int.self, forKey: .autoOrient)
         shapes = try container.decodeIfPresent([LottieShape].self, forKey: .shapes)
         solidColor = try container.decodeIfPresent(String.self, forKey: .solidColor)
         solidWidth = try container.decodeIfPresent(Double.self, forKey: .solidWidth)
@@ -93,6 +101,10 @@ public struct LottieLayer: Decodable, Sendable, Equatable {
         height = try container.decodeIfPresent(Double.self, forKey: .height)
         masks = try container.decodeIfPresent([LottieMask].self, forKey: .masks)
         isHidden = try container.decodeIfPresent(Bool.self, forKey: .hidden) ?? false
+    }
+
+    public var isAutoOriented: Bool {
+        (autoOrient ?? 0) != 0
     }
 }
 

@@ -434,18 +434,76 @@ public enum BuiltinValidation {
     }
 
     public static var strokeStyleFieldsAreModeledOrReported: Validation<LottieSourceDocument, JSONValue> {
-        objectFieldRule(
+        Validation(
             ruleID: "lottie.shape.stroke-style-field",
             description: "Stroke style fields are modeled or reported before rendering",
             phase: .semantic,
-            fields: [
-                "bm": "Shape blend mode changes compositing.",
-                "d": "Stroke dash pattern changes stroke pixels.",
-                "lc": "Line cap changes stroke endpoints.",
-                "lj": "Line join changes stroke corners.",
-                "ml": "Miter limit changes stroke joins.",
-                "ml2": "Secondary miter metadata must be classified before rendering.",
-            ],
+            check: { context in
+                guard let dashPattern = context.subject.member("d") else { return [] }
+                let dashPath = context.codingPath.appending(.key("d"))
+                guard let entries = dashPattern.arrayValues else {
+                    return [
+                        ValidationError(
+                            ruleID: "lottie.shape.stroke-style-field",
+                            reason: "Stroke dash pattern `d` must be an array.",
+                            at: dashPath,
+                            range: dashPattern.range,
+                            phase: .semantic,
+                            classification: .gap
+                        ),
+                    ]
+                }
+
+                var errors: [ValidationError] = []
+                let allowedTypes = Set(["d", "g", "o"])
+                for (index, entry) in entries.enumerated() {
+                    let entryPath = dashPath.appending(.index(index))
+                    guard entry.objectMembers != nil else {
+                        errors.append(ValidationError(
+                            ruleID: "lottie.shape.stroke-style-field",
+                            reason: "Stroke dash entry must be an object.",
+                            at: entryPath,
+                            range: entry.range,
+                            phase: .semantic,
+                            classification: .gap
+                        ))
+                        continue
+                    }
+
+                    guard let typeValue = entry.member("n"), let type = typeValue.stringValue else {
+                        errors.append(ValidationError(
+                            ruleID: "lottie.shape.stroke-style-field",
+                            reason: "Stroke dash entry must declare string field `n`.",
+                            at: entryPath.appending(.key("n")),
+                            range: entry.range,
+                            phase: .semantic,
+                            classification: .gap
+                        ))
+                        continue
+                    }
+                    if !allowedTypes.contains(type) {
+                        errors.append(ValidationError(
+                            ruleID: "lottie.shape.stroke-style-field",
+                            reason: "Stroke dash entry type `\(type)` must be one of d, g, or o.",
+                            at: entryPath.appending(.key("n")),
+                            range: typeValue.range,
+                            phase: .semantic,
+                            classification: .gap
+                        ))
+                    }
+                    if entry.member("v") == nil {
+                        errors.append(ValidationError(
+                            ruleID: "lottie.shape.stroke-style-field",
+                            reason: "Stroke dash entry must declare value field `v`.",
+                            at: entryPath.appending(.key("v")),
+                            range: entry.range,
+                            phase: .semantic,
+                            classification: .gap
+                        ))
+                    }
+                }
+                return errors
+            },
             when: { $0.subject.member("ty")?.stringValue == "st" }
         )
     }
