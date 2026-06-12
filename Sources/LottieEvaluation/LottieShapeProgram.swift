@@ -25,32 +25,47 @@ public struct LottieShapeProgram: Sendable, Equatable {
     }
 
     public struct StyleRun: Sendable, Equatable {
+        /// Human-readable source path for the style item.
         public var sourcePath: String
+        /// Authored Lottie JSON path for the style item.
+        public var jsonPath: JSONPath
+        /// Fill or stroke style that opened this run.
         public var style: Style
+        /// Geometry fragments affected by this style in Lottie reverse-walk scope.
         public var fragments: [GeometryFragment]
 
-        public init(sourcePath: String, style: Style, fragments: [GeometryFragment]) {
+        public init(sourcePath: String, jsonPath: JSONPath, style: Style, fragments: [GeometryFragment]) {
             self.sourcePath = sourcePath
+            self.jsonPath = jsonPath
             self.style = style
             self.fragments = fragments
         }
     }
 
     public struct Group: Sendable, Equatable {
+        /// Human-readable source path for the group item.
         public var sourcePath: String
+        /// Authored Lottie JSON path for the group item.
+        public var jsonPath: JSONPath
+        /// Group transform item, when authored.
         public var transform: ShapeTransform?
+        /// Group opacity from the transform item, when authored.
         public var opacity: AnimatedDouble?
+        /// Whether the group can pass through or must become an atomic layer.
         public var compositing: GroupCompositing
+        /// Scoped child nodes produced from the group's item list.
         public var nodes: [Node]
 
         public init(
             sourcePath: String,
+            jsonPath: JSONPath,
             transform: ShapeTransform?,
             opacity: AnimatedDouble?,
             compositing: GroupCompositing,
             nodes: [Node]
         ) {
             self.sourcePath = sourcePath
+            self.jsonPath = jsonPath
             self.transform = transform
             self.opacity = opacity
             self.compositing = compositing
@@ -64,18 +79,26 @@ public struct LottieShapeProgram: Sendable, Equatable {
     }
 
     public struct GeometryFragment: Sendable, Equatable {
+        /// Human-readable source path for the geometry item.
         public var sourcePath: String
+        /// Authored Lottie JSON path for the geometry item.
+        public var jsonPath: JSONPath
+        /// Geometry payload in Lottie source terms.
         public var geometry: Geometry
+        /// Shape transforms active for this geometry.
         public var transformStack: [AppliedTransform]
+        /// Shape modifiers active for this geometry.
         public var modifiers: [Modifier]
 
         public init(
             sourcePath: String,
+            jsonPath: JSONPath,
             geometry: Geometry,
             transformStack: [AppliedTransform],
             modifiers: [Modifier]
         ) {
             self.sourcePath = sourcePath
+            self.jsonPath = jsonPath
             self.geometry = geometry
             self.transformStack = transformStack
             self.modifiers = modifiers
@@ -89,11 +112,16 @@ public struct LottieShapeProgram: Sendable, Equatable {
     }
 
     public struct AppliedTransform: Sendable, Equatable {
+        /// Human-readable source path for the transform item.
         public var sourcePath: String
+        /// Authored Lottie JSON path for the transform item.
+        public var jsonPath: JSONPath
+        /// Transform payload in Lottie source terms.
         public var transform: ShapeTransform
 
-        public init(sourcePath: String, transform: ShapeTransform) {
+        public init(sourcePath: String, jsonPath: JSONPath, transform: ShapeTransform) {
             self.sourcePath = sourcePath
+            self.jsonPath = jsonPath
             self.transform = transform
         }
     }
@@ -104,7 +132,22 @@ public struct LottieShapeProgram: Sendable, Equatable {
     }
 
     public enum Modifier: Sendable, Equatable {
-        case trim(ShapeTrim)
+        case trim(AppliedTrim)
+    }
+
+    public struct AppliedTrim: Sendable, Equatable {
+        /// Human-readable source path for the trim modifier item.
+        public var sourcePath: String
+        /// Authored Lottie JSON path for the trim modifier item.
+        public var jsonPath: JSONPath
+        /// Trim payload in Lottie source terms.
+        public var trim: ShapeTrim
+
+        public init(sourcePath: String, jsonPath: JSONPath, trim: ShapeTrim) {
+            self.sourcePath = sourcePath
+            self.jsonPath = jsonPath
+            self.trim = trim
+        }
     }
 }
 
@@ -138,11 +181,13 @@ public struct LottieShapeProgramBuilder: Sendable {
 
 private final class ShapeProgramStyleAccumulator {
     let sourcePath: String
+    let jsonPath: JSONPath
     let style: LottieShapeProgram.Style
     private var fragments: [LottieShapeProgram.GeometryFragment] = []
 
-    init(sourcePath: String, style: LottieShapeProgram.Style) {
+    init(sourcePath: String, jsonPath: JSONPath, style: LottieShapeProgram.Style) {
         self.sourcePath = sourcePath
+        self.jsonPath = jsonPath
         self.style = style
     }
 
@@ -154,6 +199,7 @@ private final class ShapeProgramStyleAccumulator {
         guard !fragments.isEmpty else { return nil }
         return .styleRun(LottieShapeProgram.StyleRun(
             sourcePath: sourcePath,
+            jsonPath: jsonPath,
             style: style,
             fragments: fragments
         ))
@@ -209,6 +255,7 @@ private struct ShapeProgramScope {
                 )
                 builders.append(.group(LottieShapeProgram.Group(
                     sourcePath: groupSourcePath,
+                    jsonPath: itemPath,
                     transform: transform,
                     opacity: transform?.opacity,
                     compositing: compositing(for: transform?.opacity),
@@ -228,6 +275,7 @@ private struct ShapeProgramScope {
                 append(
                     .path(shapePath),
                     sourcePath: "\(sourcePath) > path '\(shapePath.name ?? "?")'",
+                    jsonPath: itemPath,
                     transformStack: activeTransformStack,
                     modifiers: activeModifiers,
                     to: activeStyles
@@ -246,6 +294,7 @@ private struct ShapeProgramScope {
                 append(
                     .rectangle(rectangle),
                     sourcePath: "\(sourcePath) > rectangle '\(rectangle.name ?? "?")'",
+                    jsonPath: itemPath,
                     transformStack: activeTransformStack,
                     modifiers: activeModifiers,
                     to: activeStyles
@@ -264,6 +313,7 @@ private struct ShapeProgramScope {
                 append(
                     .ellipse(ellipse),
                     sourcePath: "\(sourcePath) > ellipse '\(ellipse.name ?? "?")'",
+                    jsonPath: itemPath,
                     transformStack: activeTransformStack,
                     modifiers: activeModifiers,
                     to: activeStyles
@@ -272,6 +322,7 @@ private struct ShapeProgramScope {
                 guard fill.isHidden != true else { continue }
                 let style = ShapeProgramStyleAccumulator(
                     sourcePath: "\(sourcePath) > fill '\(fill.name ?? "?")'",
+                    jsonPath: itemPath,
                     style: .fill(fill)
                 )
                 activeStyles.append(style)
@@ -280,6 +331,7 @@ private struct ShapeProgramScope {
                 guard stroke.isHidden != true else { continue }
                 let style = ShapeProgramStyleAccumulator(
                     sourcePath: "\(sourcePath) > stroke '\(stroke.name ?? "?")'",
+                    jsonPath: itemPath,
                     style: .stroke(stroke)
                 )
                 activeStyles.append(style)
@@ -295,7 +347,13 @@ private struct ShapeProgramScope {
                         classification: .approximate
                     ))
                 }
-                activeModifiers = [.trim(trim)]
+                activeModifiers = [
+                    .trim(LottieShapeProgram.AppliedTrim(
+                        sourcePath: "\(sourcePath) > trim '\(trim.name ?? "?")'",
+                        jsonPath: itemPath,
+                        trim: trim
+                    )),
+                ]
             case let .transform(transform):
                 guard transform.isHidden != true else { continue }
                 if hasLocalTransform {
@@ -311,6 +369,7 @@ private struct ShapeProgramScope {
                 activeTransformStack = [
                     LottieShapeProgram.AppliedTransform(
                         sourcePath: "\(sourcePath) > transform '\(transform.name ?? "?")'",
+                        jsonPath: itemPath,
                         transform: transform
                     ),
                 ] + activeTransformStack
@@ -331,6 +390,7 @@ private struct ShapeProgramScope {
     private func append(
         _ geometry: LottieShapeProgram.Geometry,
         sourcePath: String,
+        jsonPath: JSONPath,
         transformStack: [LottieShapeProgram.AppliedTransform],
         modifiers: [LottieShapeProgram.Modifier],
         to styles: [ShapeProgramStyleAccumulator]
@@ -338,6 +398,7 @@ private struct ShapeProgramScope {
         guard !styles.isEmpty else { return }
         let fragment = LottieShapeProgram.GeometryFragment(
             sourcePath: sourcePath,
+            jsonPath: jsonPath,
             geometry: geometry,
             transformStack: transformStack,
             modifiers: modifiers
