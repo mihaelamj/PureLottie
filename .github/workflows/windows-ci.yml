@@ -1,0 +1,35 @@
+name: Windows CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  model-only:
+    name: LottieModel tests
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Swift
+        uses: SwiftyLab/setup-swift@v1.14.0
+        with:
+          swift-version: "6"
+
+      - name: Show Swift version
+        run: swift --version
+
+      - name: Generate model-only package
+        run: ./scripts/ci-model-only.ps1
+
+      - name: Test LottieModel
+        run: swift test --package-path .build/ci/model-only

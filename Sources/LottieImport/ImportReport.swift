@@ -70,7 +70,44 @@ final class ImportReportBuilder {
         findings.append(.init(path: path, sourcePath: sourcePath?.description, sourceRange: sourceRange, feature: feature, disposition: .approximated))
     }
 
+    func reportTransformDiagnostics(_ diagnostics: [ValidationError], at path: String) {
+        for diagnostic in diagnostics where diagnostic.ruleID.hasPrefix("lottie.evaluation.transform.") {
+            skip(feature(for: diagnostic), at: "\(path) \(diagnostic.codingPath.description)")
+        }
+    }
+
+    func reportShapeDiagnostics(_ diagnostics: [ValidationError]) {
+        for diagnostic in diagnostics where diagnostic.ruleID.hasPrefix("lottie.evaluation.shape.") {
+            let path = diagnostic.evidence ?? diagnostic.codingPath.description
+            switch diagnostic.classification {
+            case .approximate:
+                approximate(diagnostic.reason, at: path)
+            case .exact, .metadata:
+                continue
+            case .reported, .gap:
+                skip(diagnostic.reason, at: path)
+            }
+        }
+    }
+
     func report() -> ImportReport {
         ImportReport(findings: findings)
+    }
+
+    private func feature(for diagnostic: ValidationError) -> String {
+        switch diagnostic.ruleID {
+        case "lottie.evaluation.transform.skew.unsupported":
+            "unsupported transform skew"
+        case "lottie.evaluation.transform.3d.unsupported":
+            "unsupported 3D transform"
+        case "lottie.evaluation.transform.auto-orient.unsupported":
+            "unsupported auto-orient transform"
+        case "lottie.evaluation.transform.parent-cycle":
+            "unsupported parent transform cycle"
+        case "lottie.evaluation.transform.parent-depth":
+            "unsupported parent transform depth"
+        default:
+            diagnostic.reason
+        }
     }
 }

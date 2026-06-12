@@ -150,6 +150,8 @@ public struct ShapeFill: Decodable, Sendable, Equatable {
     public var opacity: AnimatedDouble?
     /// 1 = non-zero winding, 2 = even-odd.
     public var fillRule: Int?
+    /// Lottie blend mode (`bm`) for this style, when authored.
+    public var blendMode: Int?
 
     private enum CodingKeys: String, CodingKey {
         case name = "nm"
@@ -157,6 +159,7 @@ public struct ShapeFill: Decodable, Sendable, Equatable {
         case color = "c"
         case opacity = "o"
         case fillRule = "r"
+        case blendMode = "bm"
     }
 }
 
@@ -167,6 +170,15 @@ public struct ShapeStroke: Decodable, Sendable, Equatable {
     public var color: AnimatedVector
     public var opacity: AnimatedDouble?
     public var width: AnimatedDouble
+    /// 1 = butt, 2 = round, 3 = projecting/square.
+    public var lineCap: Int?
+    /// 1 = miter, 2 = round, 3 = bevel.
+    public var lineJoin: Int?
+    public var miterLimit: Double?
+    public var secondaryMiterLimit: AnimatedDouble?
+    public var dashPattern: [ShapeStrokeDash]?
+    /// Lottie blend mode (`bm`) for this style, when authored.
+    public var blendMode: Int?
 
     private enum CodingKeys: String, CodingKey {
         case name = "nm"
@@ -174,6 +186,28 @@ public struct ShapeStroke: Decodable, Sendable, Equatable {
         case color = "c"
         case opacity = "o"
         case width = "w"
+        case lineCap = "lc"
+        case lineJoin = "lj"
+        case miterLimit = "ml"
+        case secondaryMiterLimit = "ml2"
+        case dashPattern = "d"
+        case blendMode = "bm"
+    }
+}
+
+/// One entry in a stroke dash array (`d`).
+///
+/// Bodymovin writes `n` as `d` (dash), `g` (gap), or `o` (offset), with `v`
+/// carrying the animated scalar value.
+public struct ShapeStrokeDash: Decodable, Sendable, Equatable {
+    public var name: String?
+    public var type: String?
+    public var value: AnimatedDouble?
+
+    private enum CodingKeys: String, CodingKey {
+        case name = "nm"
+        case type = "n"
+        case value = "v"
     }
 }
 

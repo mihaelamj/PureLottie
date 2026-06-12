@@ -6,15 +6,25 @@
 /// A cubic-bezier easing handle on one side of a keyframe segment.
 ///
 /// Lottie serializes handles as `{x, y}` where each component may be a scalar
-/// or a per-dimension array; the first dimension is used, matching how every
-/// mainstream player eases multi-dimensional values with a single curve.
+/// or a per-dimension array. `x` and `y` expose the first component for scalar
+/// call sites; vector evaluators can use the indexed accessors.
 public struct EasingHandle: Decodable, Sendable, Equatable {
-    public var x: Double
-    public var y: Double
+    public var xComponents: [Double]
+    public var yComponents: [Double]
+
+    public var x: Double {
+        get { Self.component(in: xComponents, at: 0) }
+        set { Self.replaceFirstComponent(in: &xComponents, with: newValue) }
+    }
+
+    public var y: Double {
+        get { Self.component(in: yComponents, at: 0) }
+        set { Self.replaceFirstComponent(in: &yComponents, with: newValue) }
+    }
 
     public init(x: Double, y: Double) {
-        self.x = x
-        self.y = y
+        xComponents = [x]
+        yComponents = [y]
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -23,16 +33,36 @@ public struct EasingHandle: Decodable, Sendable, Equatable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        x = try Self.component(in: container, key: .x)
-        y = try Self.component(in: container, key: .y)
+        xComponents = try Self.components(in: container, key: .x)
+        yComponents = try Self.components(in: container, key: .y)
     }
 
-    private static func component(in container: KeyedDecodingContainer<CodingKeys>, key: CodingKeys) throws -> Double {
+    public func xComponent(_ index: Int) -> Double {
+        Self.component(in: xComponents, at: index)
+    }
+
+    public func yComponent(_ index: Int) -> Double {
+        Self.component(in: yComponents, at: index)
+    }
+
+    private static func components(in container: KeyedDecodingContainer<CodingKeys>, key: CodingKeys) throws -> [Double] {
         if let scalar = try? container.decode(Double.self, forKey: key) {
-            return scalar
+            return [scalar]
         }
-        let array = try container.decode([Double].self, forKey: key)
-        return array.first ?? 0
+        return try container.decode([Double].self, forKey: key)
+    }
+
+    private static func component(in components: [Double], at index: Int) -> Double {
+        if components.indices.contains(index) { return components[index] }
+        return components.first ?? 0
+    }
+
+    private static func replaceFirstComponent(in components: inout [Double], with value: Double) {
+        if components.isEmpty {
+            components = [value]
+        } else {
+            components[0] = value
+        }
     }
 }
 

@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import LottieEvaluation
 import LottieModel
 import PureLayer
 
@@ -22,6 +23,8 @@ public struct LottieScene {
 /// Shared state for one import walk.
 final class ImportContext {
     let animation: LottieAnimation
+    let frameEvaluator: LottieFrameEvaluator
+    let transformEvaluator: LottieTransformEvaluator
     let report = ImportReportBuilder()
     /// Seconds added to every created animation's `beginTime` (precomp offset).
     var timeShift: Double = 0
@@ -44,6 +47,8 @@ final class ImportContext {
 
     init(animation: LottieAnimation) {
         self.animation = animation
+        frameEvaluator = LottieFrameEvaluator(animation: animation)
+        transformEvaluator = LottieTransformEvaluator(animation: animation)
         compositionSize = (animation.width, animation.height)
     }
 
@@ -130,6 +135,15 @@ public struct LottieImporter {
     private func buildLayer(_ boundLayer: BoundLayer, context: ImportContext, binding: LottieBinding) -> Layer? {
         let lottieLayer = boundLayer.layer
         let path = boundLayer.path
+        let jsonPath = boundLayer.sourcePath ?? JSONPath()
+        if lottieLayer.timeRemap != nil {
+            context.report.skip(
+                "time remap",
+                at: path,
+                sourcePath: boundLayer.sourcePath?.appending(.key("tm")),
+                sourceRange: sourceRange(for: boundLayer, field: "tm", binding: binding)
+            )
+        }
         if let source = lottieLayer.trackMatteSource {
             context.report.skip(
                 "track matte source marker \(source)",
@@ -231,7 +245,15 @@ public struct LottieImporter {
                 sourceRange: sourceRange(for: boundLayer, field: "tt", binding: binding)
             )
         }
-        apply(lottieLayer.transform, to: layer, context: context, at: path, includeOpacity: true, visibility: visibilityWindow(of: lottieLayer, context: context))
+        apply(
+            lottieLayer,
+            to: layer,
+            context: context,
+            at: path,
+            jsonPath: jsonPath,
+            includeOpacity: true,
+            visibility: visibilityWindow(of: lottieLayer, context: context)
+        )
         applyMasks(lottieLayer, to: layer, context: context, at: path)
         return layer
     }
@@ -265,24 +287,29 @@ public struct LottieImporter {
     /// values are deliberately not baked, since the animations span the whole
     /// scene with `fillMode: .both`.
     private func apply(
-        _ transform: LottieTransform?,
+        _ lottieLayer: LottieLayer,
         to layer: Layer,
         context: ImportContext,
         at path: String,
+        jsonPath: JSONPath,
         includeOpacity: Bool,
         visibility: (start: Double, end: Double)?
     ) {
-        let anchor = transform?.anchor?.initialValue ?? []
+        let transform = lottieLayer.transform
+        let evaluated = evaluatedTransformState(for: lottieLayer, context: context, at: path, jsonPath: jsonPath)
+        let anchor = evaluated.anchor
         if transform?.anchor?.isAnimated == true {
             context.report.skip("animated anchor point", at: path)
         }
         let anchorX = anchor.component(0) ?? 0
         let anchorY = anchor.component(1) ?? 0
+        layer.anchorPointZ = anchor.component(2) ?? 0
         if layer.bounds.width > 0, layer.bounds.height > 0 {
             layer.anchorPoint = Point(x: anchorX / layer.bounds.width, y: anchorY / layer.bounds.height)
         }
 
-        applyPosition(transform?.position, to: layer, context: context, at: path)
+        applyPosition(transform?.position, evaluatedPosition: evaluated.position, to: layer, context: context, at: path)
+        layer.zPosition = evaluated.position.component(2) ?? 0
 
         var staticTransform = Transform3D.identity
         var hasStaticTransform = false
@@ -290,7 +317,7 @@ public struct LottieImporter {
             if scale.isAnimated {
                 addScaleAnimations(scale, to: layer, context: context)
             } else {
-                let value = scale.initialValue
+                let value = evaluated.scale
                 let x = (value.component(0) ?? 100) / 100
                 let y = (value.component(1) ?? 100) / 100
                 if abs(x - 1) > 0.0001 || abs(y - 1) > 0.0001 {
@@ -306,7 +333,7 @@ public struct LottieImporter {
                     layer.add(animation, forKey: "lottie.rotation")
                 }
             } else {
-                let radians = rotation.initialValue * .pi / 180
+                let radians = evaluated.rotationZDegrees * .pi / 180
                 if abs(radians) > 0.0001 {
                     staticTransform = staticTransform.concatenating(.rotation(angle: radians, x: 0, y: 0, z: 1))
                     hasStaticTransform = true
@@ -322,13 +349,38 @@ public struct LottieImporter {
         }
     }
 
-    private func applyPosition(_ position: LottiePosition?, to layer: Layer, context: ImportContext, at path: String) {
+    private func evaluatedTransformState(
+        for lottieLayer: LottieLayer,
+        context: ImportContext,
+        at path: String,
+        jsonPath: JSONPath
+    ) -> LottieTransformState {
+        let localFrame = context.frameEvaluator.localFrame(
+            for: lottieLayer,
+            at: context.startFrame,
+            path: jsonPath
+        )
+        let result = context.transformEvaluator.localTransform(
+            for: lottieLayer,
+            at: localFrame.value,
+            path: jsonPath
+        )
+        context.report.reportTransformDiagnostics(localFrame.diagnostics + result.diagnostics, at: path)
+        return result.value
+    }
+
+    private func applyPosition(
+        _ position: LottiePosition?,
+        evaluatedPosition: [Double],
+        to layer: Layer,
+        context: ImportContext,
+        at path: String
+    ) {
         guard let position else {
             layer.position = Point(x: layer.bounds.width * layer.anchorPoint.x, y: layer.bounds.height * layer.anchorPoint.y)
             return
         }
-        let initial = position.initialPoint
-        layer.position = Point(x: initial.x, y: initial.y)
+        layer.position = Point(x: evaluatedPosition.component(0) ?? 0, y: evaluatedPosition.component(1) ?? 0)
         guard position.isAnimated else { return }
 
         func add(_ samples: [TimelineSample], keyPath: String, key: String) {
@@ -339,7 +391,7 @@ public struct LottieImporter {
         switch position {
         case let .vector(vector):
             guard case let .keyframed(keyframes) = vector else { return }
-            if keyframes.contains(where: { ($0.spatialOut ?? []).contains(where: { abs($0) > 0.0001 }) || ($0.spatialIn ?? []).contains(where: { abs($0) > 0.0001 }) }) {
+            if SpatialInterpolationClassifier.containsUnsupportedSpatialInterpolation(keyframes) {
                 context.report.approximate("spatial position curve (linearized)", at: path)
             }
             add(
@@ -352,7 +404,7 @@ public struct LottieImporter {
                 keyPath: "position.y",
                 key: "lottie.position.y"
             )
-        case let .split(x, y):
+        case let .split(x, y, _):
             if case let .keyframed(keyframes) = x {
                 add(
                     ScalarTimeline.samples(from: keyframes, dimension: 0, frameRate: context.frameRate, startFrame: context.startFrame) { $0 },
@@ -424,7 +476,7 @@ public struct LottieImporter {
         _ layer: Layer,
         parents: [BoundLayerReference],
         context: ImportContext,
-        at _: String
+        at path: String
     ) -> Layer {
         guard !parents.isEmpty else { return layer }
 
@@ -433,7 +485,15 @@ public struct LottieImporter {
             let holder = Layer()
             holder.backgroundColor = nil
             holder.bounds = Rect(x: 0, y: 0, width: context.compositionSize.width, height: context.compositionSize.height)
-            apply(parent.layer.transform, to: holder, context: context, at: parent.path, includeOpacity: false, visibility: nil)
+            apply(
+                parent.layer,
+                to: holder,
+                context: context,
+                at: "\(path) > parent '\(parent.layer.name ?? "?")'",
+                jsonPath: parent.sourcePath ?? JSONPath(),
+                includeOpacity: false,
+                visibility: nil
+            )
             holder.addSublayer(wrapped)
             wrapped = holder
         }

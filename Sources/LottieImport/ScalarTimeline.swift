@@ -57,10 +57,10 @@ enum ScalarTimeline {
             out.append(TimelineSample(time: time0, value: map(value0)))
             if keyframe.isHold {
                 out.append(TimelineSample(time: max(time0, time1 - holdEpsilon), value: map(value0)))
-            } else if let easeOut = keyframe.easeOut, let easeIn = keyframe.easeIn, !isLinear(easeOut, easeIn) {
+            } else if let easeOut = keyframe.easeOut, let easeIn = keyframe.easeIn, !isLinear(easeOut, easeIn, dimension: dimension) {
                 for step in 1 ..< easedSteps {
                     let x = Double(step) / Double(easedSteps)
-                    let y = easedProgress(at: x, c1: easeOut, c2: easeIn)
+                    let y = easedProgress(at: x, c1: easeOut, c2: easeIn, dimension: dimension)
                     out.append(TimelineSample(time: time0 + (time1 - time0) * x, value: map(value0 + (value1 - value0) * y)))
                 }
             }
@@ -138,14 +138,15 @@ enum ScalarTimeline {
         return animation
     }
 
-    private static func isLinear(_ easeOut: EasingHandle, _ easeIn: EasingHandle) -> Bool {
-        abs(easeOut.x - easeOut.y) < 0.0001 && abs(easeIn.x - easeIn.y) < 0.0001
+    private static func isLinear(_ easeOut: EasingHandle, _ easeIn: EasingHandle, dimension: Int) -> Bool {
+        abs(easeOut.xComponent(dimension) - easeOut.yComponent(dimension)) < 0.0001
+            && abs(easeIn.xComponent(dimension) - easeIn.yComponent(dimension)) < 0.0001
     }
 
     /// The eased value fraction at time fraction `x`, on the cubic bezier
     /// through (0,0), `c1`, `c2`, (1,1). `x(u)` is monotonic for valid easing
     /// handles, so `u` is recovered by bisection.
-    private static func easedProgress(at x: Double, c1: EasingHandle, c2: EasingHandle) -> Double {
+    private static func easedProgress(at x: Double, c1: EasingHandle, c2: EasingHandle, dimension: Int) -> Double {
         func coordinate(_ p1: Double, _ p2: Double, _ u: Double) -> Double {
             // Cubic bezier with endpoints 0 and 1.
             let inverse = 1 - u
@@ -155,14 +156,14 @@ enum ScalarTimeline {
         var high = 1.0
         for _ in 0 ..< 24 {
             let mid = (low + high) / 2
-            if coordinate(c1.x, c2.x, mid) < x {
+            if coordinate(c1.xComponent(dimension), c2.xComponent(dimension), mid) < x {
                 low = mid
             } else {
                 high = mid
             }
         }
         let u = (low + high) / 2
-        return coordinate(c1.y, c2.y, u)
+        return coordinate(c1.yComponent(dimension), c2.yComponent(dimension), u)
     }
 }
 

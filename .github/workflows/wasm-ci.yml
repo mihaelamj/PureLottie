@@ -1,0 +1,42 @@
+name: Wasm CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  model-only:
+    name: LottieModel Wasm build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Swift
+        uses: SwiftyLab/setup-swift@v1.14.0
+        with:
+          swift-version: "6.3.2"
+
+      - name: Install Swift Wasm SDK
+        run: |
+          swift sdk install \
+            https://download.swift.org/swift-6.3.2-release/wasm-sdk/swift-6.3.2-RELEASE/swift-6.3.2-RELEASE_wasm.artifactbundle.tar.gz \
+            --checksum a61f0584c93283589f8b2f42db05c1f9a182b506c2957271402992655591dd7c
+          swift sdk list
+
+      - name: Show Swift version
+        run: swift --version
+
+      - name: Generate model-only package
+        run: swift scripts/ci-model-only.swift
+
+      - name: Build LottieModel for Wasm
+        run: swift build --package-path .build/ci/model-only --swift-sdk swift-6.3.2-RELEASE_wasm --target LottieModel
