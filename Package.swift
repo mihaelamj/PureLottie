@@ -18,6 +18,7 @@ let package = Package(
     ],
     products: [
         .library(name: "LottieModel", targets: ["LottieModel"]),
+        .library(name: "LottieEvaluation", targets: ["LottieEvaluation"]),
         .library(name: "LottieImport", targets: ["LottieImport"]),
     ],
     dependencies: [
@@ -26,6 +27,10 @@ let package = Package(
     targets: [
         .target(
             name: "LottieModel"
+        ),
+        .target(
+            name: "LottieEvaluation",
+            dependencies: ["LottieModel"]
         ),
         .target(
             name: "LottieImport",
@@ -37,6 +42,13 @@ let package = Package(
         .testTarget(
             name: "LottieModelTests",
             dependencies: ["LottieModel"]
+        ),
+        .testTarget(
+            name: "LottieEvaluationTests",
+            dependencies: [
+                "LottieEvaluation",
+                "LottieModel",
+            ]
         ),
         .testTarget(
             name: "LottieImportTests",

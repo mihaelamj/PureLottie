@@ -372,7 +372,6 @@ public enum BuiltinValidation {
                 "ef": "Effects can change rendered pixels.",
                 "t": "Text documents and text animators change rendered pixels.",
                 "td": "Track matte target/source edges change compositing.",
-                "tm": "Time remap changes source frame evaluation.",
                 "tp": "Track matte parent index changes compositing.",
                 "tt": "Track matte mode changes compositing.",
             ],

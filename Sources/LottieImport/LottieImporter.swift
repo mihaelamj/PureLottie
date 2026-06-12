@@ -110,6 +110,10 @@ public struct LottieImporter {
     }
 
     private func buildLayer(_ lottieLayer: LottieLayer, context: ImportContext, at path: String) -> Layer? {
+        if lottieLayer.timeRemap != nil {
+            context.report.skip("time remap", at: path)
+        }
+
         let layer: Layer
         switch lottieLayer.type {
         case .shape:

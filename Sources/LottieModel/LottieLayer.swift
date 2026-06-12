@@ -30,6 +30,9 @@ public struct LottieLayer: Decodable, Sendable, Equatable {
     public var outPoint: Double
     /// Time stretch; 1 is unstretched.
     public var stretch: Double
+    /// Time remap (`tm`) values are serialized in seconds; evaluators convert
+    /// them to source frames with the composition frame rate.
+    public var timeRemap: AnimatedDouble?
     public var transform: LottieTransform?
     /// Shape items, for shape layers.
     public var shapes: [LottieShape]?
@@ -57,6 +60,7 @@ public struct LottieLayer: Decodable, Sendable, Equatable {
         case inPoint = "ip"
         case outPoint = "op"
         case stretch = "sr"
+        case timeRemap = "tm"
         case transform = "ks"
         case shapes
         case solidColor = "sc"
@@ -79,6 +83,7 @@ public struct LottieLayer: Decodable, Sendable, Equatable {
         inPoint = try container.decodeIfPresent(Double.self, forKey: .inPoint) ?? 0
         outPoint = try container.decodeIfPresent(Double.self, forKey: .outPoint) ?? 0
         stretch = try container.decodeIfPresent(Double.self, forKey: .stretch) ?? 1
+        timeRemap = try container.decodeIfPresent(AnimatedDouble.self, forKey: .timeRemap)
         transform = try container.decodeIfPresent(LottieTransform.self, forKey: .transform)
         shapes = try container.decodeIfPresent([LottieShape].self, forKey: .shapes)
         solidColor = try container.decodeIfPresent(String.self, forKey: .solidColor)
