@@ -1,26 +1,976 @@
 [
   {
     "id": "eligible-shape-position",
-    "description": "Shape layer with a single filled rectangle and animated layer position.",
+    "description": "Shape layer with one filled rectangle and animated layer position.",
+    "bugClass": "Animated layer position was previously judged from shifted PNGs instead of numeric translation.",
+    "coverage": [
+      "animated-position",
+      "rectangle",
+      "fill",
+      "transform"
+    ],
+    "semanticStatus": "modeled",
     "lottie": "../../Tests/Fixtures/LottieOracle/eligible-shape-position.json",
     "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/eligible-shape-position.json",
     "frames": [
       {
         "frame": 0,
-        "rationale": "First visible source frame; proves the half-open window includes ip."
+        "rationale": "First root source frame records the authored initial state."
       },
       {
         "frame": 5,
-        "rationale": "Interior frame; samples animated layer position away from both authored endpoints."
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
       },
       {
         "frame": 9,
-        "rationale": "Last visible integer frame before exclusive op=10."
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
       }
     ],
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
     "expectedValidationEligible": true
+  },
+  {
+    "id": "static-rectangle-fill",
+    "description": "Static centered rectangle with a solid fill.",
+    "bugClass": "Baseline geometry and fill color must be correct before animation is considered.",
+    "coverage": [
+      "static-position",
+      "rectangle",
+      "fill"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/static-rectangle-fill.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/static-rectangle-fill.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "animated-position-linear",
+    "description": "Rectangle with a linear animated layer position.",
+    "bugClass": "Linear position in-betweens must match source-frame interpolation, not image inspection.",
+    "coverage": [
+      "animated-position",
+      "rectangle",
+      "fill",
+      "transform"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/animated-position-linear.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/animated-position-linear.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "split-position-ellipse",
+    "description": "Ellipse whose position is authored as split x and y properties.",
+    "bugClass": "Split-position values must rejoin into one evaluated layer position before lowering.",
+    "coverage": [
+      "split-position",
+      "ellipse",
+      "fill",
+      "transform"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/split-position-ellipse.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/split-position-ellipse.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "anchor-rotation-rectangle",
+    "description": "Rectangle rotated around its center by an explicit layer anchor.",
+    "bugClass": "Anchor translation and clockwise rotation order must agree with lottie-web matrices.",
+    "coverage": [
+      "anchor",
+      "rotation",
+      "rectangle",
+      "fill"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/anchor-rotation-rectangle.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/anchor-rotation-rectangle.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "scale-rotation-anchor",
+    "description": "Rectangle with anchor, non-uniform scale, and rotation.",
+    "bugClass": "Scale, anchor, and rotation composition must be measurable before target backend assignment.",
+    "coverage": [
+      "anchor",
+      "scale",
+      "rotation",
+      "rectangle"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/scale-rotation-anchor.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/scale-rotation-anchor.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "animated-opacity-rectangle",
+    "description": "Rectangle with animated layer opacity.",
+    "bugClass": "Opacity must be sampled numerically at the source frame, not inferred from raster alpha by eye.",
+    "coverage": [
+      "opacity",
+      "rectangle",
+      "fill"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/animated-opacity-rectangle.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/animated-opacity-rectangle.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "group-transform-rectangle",
+    "description": "Shape group transform translates and rotates a rectangle inside a layer.",
+    "bugClass": "Shape transforms are scoped to the group and must not be mistaken for layer transforms.",
+    "coverage": [
+      "shape-transform",
+      "rectangle",
+      "fill"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/group-transform-rectangle.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/group-transform-rectangle.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "group-opacity-two-shapes",
+    "description": "A transparency group contains two filled shapes with group opacity.",
+    "bugClass": "Group opacity is an atomic compositing fact and must not be flattened silently per shape.",
+    "coverage": [
+      "shape-group",
+      "group-opacity",
+      "rectangle",
+      "ellipse"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/group-opacity-two-shapes.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/group-opacity-two-shapes.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "parent-null-transform-child",
+    "description": "Shape layer parented to a visible null transform carrier.",
+    "bugClass": "Parent transform composition must use the parent layer matrix before the child matrix.",
+    "coverage": [
+      "parent-transform",
+      "null-layer",
+      "rectangle",
+      "fill"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/parent-null-transform-child.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/parent-null-transform-child.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "parent-animated-transform-child",
+    "description": "Shape layer inherits an animated parent null position.",
+    "bugClass": "Animated parent matrices must affect the child world matrix at every sampled frame.",
+    "coverage": [
+      "parent-transform",
+      "animated-position",
+      "null-layer",
+      "rectangle"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/parent-animated-transform-child.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/parent-animated-transform-child.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "ellipse-fill",
+    "description": "Static filled ellipse centered in the composition.",
+    "bugClass": "Ellipse noon-start geometry and bounds must be captured in source space.",
+    "coverage": [
+      "ellipse",
+      "fill"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/ellipse-fill.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/ellipse-fill.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "ellipse-reversed-direction",
+    "description": "Ellipse with reversed direction flag.",
+    "bugClass": "Direction changes trim and path ordering even when the untrimmed bounds look identical.",
+    "coverage": [
+      "ellipse",
+      "direction",
+      "fill"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/ellipse-reversed-direction.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/ellipse-reversed-direction.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "rounded-rectangle",
+    "description": "Rounded rectangle with non-zero roundness.",
+    "bugClass": "Rounded rectangle control points require the lottie-web radius clamp and roundCorner constant.",
+    "coverage": [
+      "rectangle",
+      "roundness",
+      "fill"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/rounded-rectangle.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/rounded-rectangle.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "raw-bezier-triangle",
+    "description": "Closed authored Bezier triangle path with a fill.",
+    "bugClass": "Raw path vertices and tangents must be preserved without primitive regeneration.",
+    "coverage": [
+      "path",
+      "fill"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/raw-bezier-triangle.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/raw-bezier-triangle.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "raw-bezier-cubic",
+    "description": "Open cubic Bezier path with a stroke.",
+    "bugClass": "Cubic path length and bounds must come from authored tangents, not a polyline guess.",
+    "coverage": [
+      "path",
+      "stroke"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/raw-bezier-cubic.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/raw-bezier-cubic.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "polygon-five",
+    "description": "Five-point polygon generated by the polystar primitive.",
+    "bugClass": "Polygon point flooring, rotation, and direction must match lottie-web source geometry.",
+    "coverage": [
+      "polygon",
+      "polystar",
+      "fill"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/polygon-five.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/polygon-five.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "star-five",
+    "description": "Five-point star generated by the polystar primitive.",
+    "bugClass": "Star inner and outer radii must survive source evaluation before any PureDraw lowering.",
+    "coverage": [
+      "star",
+      "polystar",
+      "fill"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/star-five.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/star-five.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "fill-rule-evenodd",
+    "description": "Self-intersecting filled path using the even-odd fill rule.",
+    "bugClass": "Fill-rule style facts must be retained because identical vertices can rasterize differently.",
+    "coverage": [
+      "path",
+      "fill-rule",
+      "fill"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/fill-rule-evenodd.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/fill-rule-evenodd.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "stroke-basic-line",
+    "description": "Open line path with a simple stroke.",
+    "bugClass": "Stroke color, opacity, and width must be measured as style facts separate from fill.",
+    "coverage": [
+      "path",
+      "stroke"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/stroke-basic-line.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/stroke-basic-line.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "stroke-caps-joins",
+    "description": "Open angled path with round caps and joins.",
+    "bugClass": "Line caps and joins are render-affecting stroke facts and must not disappear from the trace.",
+    "coverage": [
+      "path",
+      "stroke",
+      "line-cap",
+      "line-join"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/stroke-caps-joins.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/stroke-caps-joins.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "stroke-dash",
+    "description": "Open line path with dash, gap, and offset entries.",
+    "bugClass": "Dash arrays are numeric stroke facts and must be represented or reported before pixels.",
+    "coverage": [
+      "path",
+      "stroke",
+      "dash"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/stroke-dash.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/stroke-dash.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "animated-stroke-width",
+    "description": "Stroke width animated from thin to thick.",
+    "bugClass": "Animated stroke width must be sampled from source frames before lowerer decisions.",
+    "coverage": [
+      "path",
+      "stroke",
+      "animated-width"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/animated-stroke-width.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/animated-stroke-width.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "trim-rectangle-half",
+    "description": "Rectangle stroke trimmed to the first half of its contour.",
+    "bugClass": "Trim start/end percentages must map to contour length, not an arbitrary quadrant guess.",
+    "coverage": [
+      "rectangle",
+      "stroke",
+      "trim"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/trim-rectangle-half.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/trim-rectangle-half.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "trim-ellipse-quadrant",
+    "description": "Ellipse stroke trimmed to the first quarter of its contour.",
+    "bugClass": "Ellipse trim direction and noon-start ordering must be measurable numerically.",
+    "coverage": [
+      "ellipse",
+      "stroke",
+      "trim"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/trim-ellipse-quadrant.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/trim-ellipse-quadrant.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "animated-trim-path",
+    "description": "Line stroke whose trim end animates from zero to full length.",
+    "bugClass": "Animated trim must produce source-frame segment facts before rendered output is trusted.",
+    "coverage": [
+      "path",
+      "stroke",
+      "trim",
+      "animated-trim"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/animated-trim-path.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/animated-trim-path.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "layer-window-in-out",
+    "description": "A foreground layer appears only inside its half-open frame window.",
+    "bugClass": "Layer ip/op semantics must be proven at numeric frame boundaries.",
+    "coverage": [
+      "frame-window",
+      "rectangle",
+      "fill"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/layer-window-in-out.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/layer-window-in-out.json",
+    "frames": [
+      {
+        "frame": 2,
+        "rationale": "Frame before the gated layer in-point proves ordinary content is still absent before ip."
+      },
+      {
+        "frame": 3,
+        "rationale": "Frame at the gated layer in-point proves Lottie uses ip inclusively."
+      },
+      {
+        "frame": 8,
+        "rationale": "Frame at the gated layer out-point proves Lottie uses op exclusively."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last root frame proves the background remains after the gated layer leaves."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "mask-add-rectangle",
+    "description": "Additive rectangular mask clips a filled rectangle layer.",
+    "bugClass": "Mask path, mode, inversion, and opacity are source graph facts before backend masking.",
+    "coverage": [
+      "mask",
+      "rectangle",
+      "fill"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/mask-add-rectangle.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/mask-add-rectangle.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "alpha-matte-rectangle",
+    "description": "Alpha matte layer clips the target rectangle.",
+    "bugClass": "Track matte source-target relationship must be explicit instead of guessed from layer order.",
+    "coverage": [
+      "matte",
+      "rectangle",
+      "ellipse",
+      "fill"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/alpha-matte-rectangle.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/alpha-matte-rectangle.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "precomp-static-child",
+    "description": "Root layer instantiates a precomposition containing a shape child.",
+    "bugClass": "Precomp boundaries and child composition paths must be visible in source intent.",
+    "coverage": [
+      "precomp",
+      "animated-position",
+      "rectangle",
+      "fill"
+    ],
+    "semanticStatus": "modeled",
+    "lottie": "../../Tests/Fixtures/LottieOracle/precomp-static-child.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/precomp-static-child.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  },
+  {
+    "id": "time-remap-precomp-diagnosed",
+    "description": "Precomposition layer uses time remap to sample a child animation at a fixed local time.",
+    "bugClass": "Time remap is a diagnosed semantic boundary until lowering consumes the evaluator exactly.",
+    "coverage": [
+      "precomp",
+      "time-remap",
+      "diagnostic",
+      "animated-position"
+    ],
+    "semanticStatus": "diagnosed",
+    "lottie": "../../Tests/Fixtures/LottieOracle/time-remap-precomp-diagnosed.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/time-remap-precomp-diagnosed.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First root source frame records the authored initial state."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior source frame catches interpolation and transform composition errors."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last integer source frame before exclusive op=10 checks the end boundary."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": false
   }
 ]

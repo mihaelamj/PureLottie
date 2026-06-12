@@ -1,0 +1,621 @@
+{
+  "schema": {
+    "name": "purelottie.lottie-web-intent",
+    "version": 1
+  },
+  "source": "../../Tests/Fixtures/LottieOracle/animated-trim-path.json",
+  "renderer": "svg",
+  "lottieWeb": {
+    "package": "npm:lottie-web@5.13.0",
+    "version": "5.13.0"
+  },
+  "width": 64,
+  "height": 64,
+  "scale": 1,
+  "coordinateSemantics": [
+    "stageBounds and svgBounds are CSS pixel coordinates with the stage origin at (0, 0).",
+    "sampledOutputBounds equals sampledCompositionBounds multiplied by deviceScaleFactor.",
+    "path.sampledCompositionBounds uses getTotalLength/getPointAtLength and getScreenCTM, not raster pixels.",
+    "path.strokeExpandedCompositionBounds expands sampled path bounds by half the computed stroke width when a stroke is visible.",
+    "layer.matrix is lottie-web finalTransform.mat.props and uses lottie-web internal matrix order."
+  ],
+  "frames": [
+    {
+      "frame": 0,
+      "currentFrame": 0,
+      "renderedFrame": 0,
+      "firstFrame": 0,
+      "frameRate": 10,
+      "stageBounds": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 64,
+        "maxY": 64,
+        "width": 64,
+        "height": 64
+      },
+      "svgBounds": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 64,
+        "maxY": 64,
+        "width": 64,
+        "height": 64
+      },
+      "svgViewBox": "0 0 64 64",
+      "layerCount": 1,
+      "pathCount": 1,
+      "layers": [
+        {
+          "index": 0,
+          "name": "Animated Trim",
+          "type": 4,
+          "ind": 1,
+          "inPoint": 0,
+          "outPoint": 10,
+          "startTime": 0,
+          "renderedFrame": 0,
+          "opacity": 1,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "layerElementBounds": {
+            "minX": 0,
+            "minY": 0,
+            "maxX": 0,
+            "maxY": 0,
+            "width": 0,
+            "height": 0
+          }
+        }
+      ],
+      "paths": [
+        {
+          "index": 0,
+          "tag": "path",
+          "id": null,
+          "className": "",
+          "visible": true,
+          "d": "M0 0",
+          "transform": null,
+          "pathLength": 0,
+          "localBBox": {
+            "minX": 0,
+            "minY": 0,
+            "maxX": 0,
+            "maxY": 0,
+            "width": 0,
+            "height": 0
+          },
+          "clientBounds": {
+            "minX": 0,
+            "minY": 0,
+            "maxX": 0,
+            "maxY": 0,
+            "width": 0,
+            "height": 0
+          },
+          "ctm": {
+            "a": 1,
+            "b": 0,
+            "c": 0,
+            "d": 1,
+            "e": 0,
+            "f": 0
+          },
+          "sampledLocalBounds": {
+            "minX": 0,
+            "minY": 0,
+            "maxX": 0,
+            "maxY": 0,
+            "width": 0,
+            "height": 0
+          },
+          "sampledCompositionBounds": {
+            "minX": 0,
+            "minY": 0,
+            "maxX": 0,
+            "maxY": 0,
+            "width": 0,
+            "height": 0
+          },
+          "sampledOutputBounds": {
+            "minX": 0,
+            "minY": 0,
+            "maxX": 0,
+            "maxY": 0,
+            "width": 0,
+            "height": 0
+          },
+          "strokeExpandedCompositionBounds": {
+            "minX": -2,
+            "minY": -2,
+            "maxX": 2,
+            "maxY": 2,
+            "width": 4,
+            "height": 4
+          },
+          "strokeExpandedOutputBounds": {
+            "minX": -2,
+            "minY": -2,
+            "maxX": 2,
+            "maxY": 2,
+            "width": 4,
+            "height": 4
+          },
+          "style": {
+            "fill": "rgb(0, 0, 0)",
+            "fillOpacity": 0,
+            "fillRule": "nonzero",
+            "opacity": 1,
+            "stroke": "rgb(255, 158, 30)",
+            "strokeOpacity": 1,
+            "strokeWidth": 4,
+            "strokeLinecap": "butt",
+            "strokeLinejoin": "miter",
+            "strokeMiterlimit": 4,
+            "strokeDasharray": "none",
+            "strokeDashoffset": "0px",
+            "display": "inline",
+            "visibility": "visible"
+          },
+          "ancestors": [
+            {
+              "tag": "path",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": null
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": "matrix(1,0,0,1,0,0)",
+              "opacity": "1",
+              "style": null
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": "matrix(1,0,0,1,0,0)",
+              "opacity": "1",
+              "style": "display: block;"
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": null
+            },
+            {
+              "tag": "svg",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": "width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px); content-visibility: visible;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 5,
+      "currentFrame": 5,
+      "renderedFrame": 5,
+      "firstFrame": 0,
+      "frameRate": 10,
+      "stageBounds": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 64,
+        "maxY": 64,
+        "width": 64,
+        "height": 64
+      },
+      "svgBounds": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 64,
+        "maxY": 64,
+        "width": 64,
+        "height": 64
+      },
+      "svgViewBox": "0 0 64 64",
+      "layerCount": 1,
+      "pathCount": 1,
+      "layers": [
+        {
+          "index": 0,
+          "name": "Animated Trim",
+          "type": 4,
+          "ind": 1,
+          "inPoint": 0,
+          "outPoint": 10,
+          "startTime": 0,
+          "renderedFrame": 5,
+          "opacity": 1,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "layerElementBounds": {
+            "minX": 14,
+            "minY": 32,
+            "maxX": 34.00199890136719,
+            "maxY": 32,
+            "width": 20.001998901367188,
+            "height": 0
+          }
+        }
+      ],
+      "paths": [
+        {
+          "index": 0,
+          "tag": "path",
+          "id": null,
+          "className": "",
+          "visible": true,
+          "d": " M14,32 C14,32 24.386999130249023,32 34.00199890136719,32",
+          "transform": null,
+          "pathLength": 20.001998901367188,
+          "localBBox": {
+            "minX": 14,
+            "minY": 32,
+            "maxX": 34.00199890136719,
+            "maxY": 32,
+            "width": 20.001998901367188,
+            "height": 0
+          },
+          "clientBounds": {
+            "minX": 14,
+            "minY": 32,
+            "maxX": 34.00199890136719,
+            "maxY": 32,
+            "width": 20.001998901367188,
+            "height": 0
+          },
+          "ctm": {
+            "a": 1,
+            "b": 0,
+            "c": 0,
+            "d": 1,
+            "e": 0,
+            "f": 0
+          },
+          "sampledLocalBounds": {
+            "minX": 14,
+            "minY": 32,
+            "maxX": 34.00199890136719,
+            "maxY": 32,
+            "width": 20.001998901367188,
+            "height": 0
+          },
+          "sampledCompositionBounds": {
+            "minX": 14,
+            "minY": 32,
+            "maxX": 34.00199890136719,
+            "maxY": 32,
+            "width": 20.001998901367188,
+            "height": 0
+          },
+          "sampledOutputBounds": {
+            "minX": 14,
+            "minY": 32,
+            "maxX": 34.00199890136719,
+            "maxY": 32,
+            "width": 20.001998901367188,
+            "height": 0
+          },
+          "strokeExpandedCompositionBounds": {
+            "minX": 12,
+            "minY": 30,
+            "maxX": 36.00199890136719,
+            "maxY": 34,
+            "width": 24.001998901367188,
+            "height": 4
+          },
+          "strokeExpandedOutputBounds": {
+            "minX": 12,
+            "minY": 30,
+            "maxX": 36.00199890136719,
+            "maxY": 34,
+            "width": 24.001998901367188,
+            "height": 4
+          },
+          "style": {
+            "fill": "rgb(0, 0, 0)",
+            "fillOpacity": 0,
+            "fillRule": "nonzero",
+            "opacity": 1,
+            "stroke": "rgb(255, 158, 30)",
+            "strokeOpacity": 1,
+            "strokeWidth": 4,
+            "strokeLinecap": "butt",
+            "strokeLinejoin": "miter",
+            "strokeMiterlimit": 4,
+            "strokeDasharray": "none",
+            "strokeDashoffset": "0px",
+            "display": "inline",
+            "visibility": "visible"
+          },
+          "ancestors": [
+            {
+              "tag": "path",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": null
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": "matrix(1,0,0,1,0,0)",
+              "opacity": "1",
+              "style": null
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": "matrix(1,0,0,1,0,0)",
+              "opacity": "1",
+              "style": "display: block;"
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": null
+            },
+            {
+              "tag": "svg",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": "width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px); content-visibility: visible;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 9,
+      "currentFrame": 9,
+      "renderedFrame": 9,
+      "firstFrame": 0,
+      "frameRate": 10,
+      "stageBounds": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 64,
+        "maxY": 64,
+        "width": 64,
+        "height": 64
+      },
+      "svgBounds": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 64,
+        "maxY": 64,
+        "width": 64,
+        "height": 64
+      },
+      "svgViewBox": "0 0 64 64",
+      "layerCount": 1,
+      "pathCount": 1,
+      "layers": [
+        {
+          "index": 0,
+          "name": "Animated Trim",
+          "type": 4,
+          "ind": 1,
+          "inPoint": 0,
+          "outPoint": 10,
+          "startTime": 0,
+          "renderedFrame": 9,
+          "opacity": 1,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "layerElementBounds": {
+            "minX": 14,
+            "minY": 32,
+            "maxX": 50,
+            "maxY": 32,
+            "width": 36,
+            "height": 0
+          }
+        }
+      ],
+      "paths": [
+        {
+          "index": 0,
+          "tag": "path",
+          "id": null,
+          "className": "",
+          "visible": true,
+          "d": " M14,32 C14,32 50,32 50,32",
+          "transform": null,
+          "pathLength": 36,
+          "localBBox": {
+            "minX": 14,
+            "minY": 32,
+            "maxX": 50,
+            "maxY": 32,
+            "width": 36,
+            "height": 0
+          },
+          "clientBounds": {
+            "minX": 14,
+            "minY": 32,
+            "maxX": 50,
+            "maxY": 32,
+            "width": 36,
+            "height": 0
+          },
+          "ctm": {
+            "a": 1,
+            "b": 0,
+            "c": 0,
+            "d": 1,
+            "e": 0,
+            "f": 0
+          },
+          "sampledLocalBounds": {
+            "minX": 14,
+            "minY": 32,
+            "maxX": 50,
+            "maxY": 32,
+            "width": 36,
+            "height": 0
+          },
+          "sampledCompositionBounds": {
+            "minX": 14,
+            "minY": 32,
+            "maxX": 50,
+            "maxY": 32,
+            "width": 36,
+            "height": 0
+          },
+          "sampledOutputBounds": {
+            "minX": 14,
+            "minY": 32,
+            "maxX": 50,
+            "maxY": 32,
+            "width": 36,
+            "height": 0
+          },
+          "strokeExpandedCompositionBounds": {
+            "minX": 12,
+            "minY": 30,
+            "maxX": 52,
+            "maxY": 34,
+            "width": 40,
+            "height": 4
+          },
+          "strokeExpandedOutputBounds": {
+            "minX": 12,
+            "minY": 30,
+            "maxX": 52,
+            "maxY": 34,
+            "width": 40,
+            "height": 4
+          },
+          "style": {
+            "fill": "rgb(0, 0, 0)",
+            "fillOpacity": 0,
+            "fillRule": "nonzero",
+            "opacity": 1,
+            "stroke": "rgb(255, 158, 30)",
+            "strokeOpacity": 1,
+            "strokeWidth": 4,
+            "strokeLinecap": "butt",
+            "strokeLinejoin": "miter",
+            "strokeMiterlimit": 4,
+            "strokeDasharray": "none",
+            "strokeDashoffset": "0px",
+            "display": "inline",
+            "visibility": "visible"
+          },
+          "ancestors": [
+            {
+              "tag": "path",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": null
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": "matrix(1,0,0,1,0,0)",
+              "opacity": "1",
+              "style": null
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": "matrix(1,0,0,1,0,0)",
+              "opacity": "1",
+              "style": "display: block;"
+            },
+            {
+              "tag": "g",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": null
+            },
+            {
+              "tag": "svg",
+              "id": null,
+              "className": "",
+              "transform": null,
+              "opacity": null,
+              "style": "width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px); content-visibility: visible;"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
