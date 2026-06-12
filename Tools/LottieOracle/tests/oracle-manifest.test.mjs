@@ -12,6 +12,7 @@ test('oracle dependencies are exact external pins', () => {
   assert.equal(packageJson.dependencies['lottie-web'], '5.13.0');
   assert.equal(packageJson.dependencies.playwright, '1.60.0');
   assert.equal(packageJson.dependencies.pngjs, '7.0.0');
+  assert.equal(packageJson.scripts['extract-intent'], 'node scripts/extract-intent.mjs');
 
   for (const version of Object.values(packageJson.dependencies)) {
     assert.match(version, /^\d+\.\d+\.\d+$/);
@@ -25,6 +26,7 @@ test('selected fixtures declare frame rationale and resolve to files', () => {
   for (const fixture of fixtures) {
     assert.ok(fixture.id.length > 0);
     assert.ok(fs.existsSync(path.resolve(oracleRoot, fixture.lottie)));
+    assert.ok(fs.existsSync(path.resolve(oracleRoot, fixture.lottieWebIntent)));
     assert.equal(fixture.expectedValidationEligible, true);
     assert.equal(fixture.expectReferenceNonEmpty, true);
     assert.ok(fixture.frames.length > 0);

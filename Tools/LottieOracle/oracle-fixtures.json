@@ -3,6 +3,7 @@
     "id": "eligible-shape-position",
     "description": "Shape layer with a single filled rectangle and animated layer position.",
     "lottie": "../../Tests/Fixtures/LottieOracle/eligible-shape-position.json",
+    "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/lottie-web-intent/eligible-shape-position.json",
     "frames": [
       {
         "frame": 0,

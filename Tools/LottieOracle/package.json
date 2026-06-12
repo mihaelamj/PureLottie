@@ -5,6 +5,7 @@
   "type": "module",
   "description": "External lottie-web reference oracle for PureLottie frame comparisons.",
   "scripts": {
+    "extract-intent": "node scripts/extract-intent.mjs",
     "oracle": "node scripts/run-oracle.mjs",
     "render-reference": "node scripts/render-reference.mjs",
     "test": "node --test tests/*.test.mjs"

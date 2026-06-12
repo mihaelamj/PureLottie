@@ -122,6 +122,30 @@ Mask and matte diagnostics are not pixel judgments. They record source/target
 edges so a later backend can prove it handled or reported the exact compositing
 relationship.
 
+## lottie-web Intent Trace
+
+`Tools/LottieOracle/scripts/extract-intent.mjs` loads a fixture through the
+pinned `npm:lottie-web@5.13.0` SVG renderer and emits
+`purelottie.lottie-web-intent` JSON. This is the numeric browser-side reference
+used before PNG comparison.
+
+Each trace records:
+
+| Field | Meaning |
+| --- | --- |
+| `schema` | Trace name and version. |
+| `lottieWeb` | Exact npm package and version. |
+| `renderer` | Renderer used for extraction; currently `svg`. |
+| `frames` | Selected source frames extracted with `goToAndStop(frame, true)`. |
+| `frames[].layers` | lottie-web renderer layer internals: authored name/type/index/window, rendered frame, opacity, final transform matrix, and layer element bounds. |
+| `frames[].paths` | SVG path facts: `d`, path length, local and sampled composition bounds, computed fill/stroke style, CTM, and ancestor transform chain. |
+
+Committed oracle fixtures live under
+`Tests/Fixtures/LottieOracle/lottie-web-intent/`. Swift tests compare these
+browser facts against `LottieRenderIRBuilder` output: transform translation,
+opacity, source-geometry bounds, path length, and style facts. Rendered PNGs are
+therefore checked only after the numeric intent layer is inspectable.
+
 ## Property Evaluation Trace
 
 `LottieFrameEvaluator` returns a typed `LottiePropertyEvaluationTrace` beside
