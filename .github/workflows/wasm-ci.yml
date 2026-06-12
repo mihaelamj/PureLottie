@@ -23,11 +23,14 @@ jobs:
       - name: Set up Swift
         uses: SwiftyLab/setup-swift@v1.14.0
         with:
-          swift-version: "6"
+          swift-version: "6.3.2"
 
-      - name: Set up SwiftWasm SDK
-        id: swiftwasm
-        uses: swiftwasm/setup-swiftwasm@v2
+      - name: Install Swift Wasm SDK
+        run: |
+          swift sdk install \
+            https://download.swift.org/swift-6.3.2-release/wasm-sdk/swift-6.3.2-RELEASE/swift-6.3.2-RELEASE_wasm.artifactbundle.tar.gz \
+            --checksum a61f0584c93283589f8b2f42db05c1f9a182b506c2957271402992655591dd7c
+          swift sdk list
 
       - name: Show Swift version
         run: swift --version
@@ -36,4 +39,4 @@ jobs:
         run: swift scripts/ci-model-only.swift
 
       - name: Build LottieModel for Wasm
-        run: swift build --package-path .build/ci/model-only --swift-sdk "${{ steps.swiftwasm.outputs.swift-sdk-id }}" --target LottieModel
+        run: swift build --package-path .build/ci/model-only --swift-sdk swift-6.3.2-RELEASE_wasm --target LottieModel

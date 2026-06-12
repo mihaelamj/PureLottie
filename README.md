@@ -45,9 +45,9 @@ swift scripts/ci-model-only.swift
 swift test --package-path .build/ci/model-only
 ```
 
-Run the Wasm model build after installing a SwiftWasm SDK:
+Run the Wasm model build after installing the Swift 6.3.2 Wasm SDK from Swift.org:
 
 ```sh
 swift scripts/ci-model-only.swift
-swift build --package-path .build/ci/model-only --swift-sdk wasm32-unknown-wasi --target LottieModel
+swift build --package-path .build/ci/model-only --swift-sdk swift-6.3.2-RELEASE_wasm --target LottieModel
 ```
