@@ -334,7 +334,7 @@ private struct LottieVMExecutor {
                 .init(kind: .skipLayer, label: layer.name ?? "?"),
                 sourcePath: path,
                 jsonPath: jsonPath,
-                values: ["reason": "hidden"]
+                values: layerValues(layer, adding: ["reason": "hidden"])
             )
             return
         }
@@ -343,11 +343,11 @@ private struct LottieVMExecutor {
                 .init(kind: .skipLayer, label: layer.name ?? "?"),
                 sourcePath: path,
                 jsonPath: jsonPath,
-                values: [
+                values: layerValues(layer, adding: [
                     "reason": "outsideFrameWindow",
                     "ip": number(layer.inPoint),
                     "op": number(layer.outPoint),
-                ]
+                ])
             )
             return
         }
@@ -359,7 +359,7 @@ private struct LottieVMExecutor {
             .init(kind: .enterLayer, label: layer.name ?? "?"),
             sourcePath: path,
             jsonPath: jsonPath,
-            values: ["type": "\(layer.rawType)"]
+            values: layerValues(layer, adding: ["type": "\(layer.rawType)"])
         )
 
         evaluateTimingAndTransform(layer, layers: layers, path: path, jsonPath: jsonPath)
@@ -412,12 +412,17 @@ private struct LottieVMExecutor {
         let transform = transformEvaluator.worldTransform(for: layer, in: layers, at: sourceFrame, path: jsonPath)
         diagnostics.append(contentsOf: transform.diagnostics)
         let matrix = transform.value.matrix.values.prefix(16).map(number).joined(separator: ",")
+        let opacity = layer.transform?.opacity.map {
+            frameEvaluator.evaluate($0, at: localFrame.value, path: jsonPath.appending(.key("ks")).appending(.key("o")))
+        } ?? LottieEvaluationResult(value: 100)
+        diagnostics.append(contentsOf: opacity.diagnostics)
         record(
             .init(kind: .evaluateTransform, label: layer.name ?? "?"),
             sourcePath: path,
             jsonPath: jsonPath.appending(.key("ks")),
             values: [
                 "matrix": matrix,
+                "opacity": number(opacity.value),
                 "position": vector(transform.value.position),
                 "rotationZ": number(transform.value.rotationZDegrees),
             ],
@@ -620,6 +625,14 @@ private struct LottieVMExecutor {
 
     private func vector(_ values: [Double]) -> String {
         "[\(values.map(number).joined(separator: ","))]"
+    }
+
+    private func layerValues(_ layer: LottieLayer, adding values: [String: String]) -> [String: String] {
+        var values = values
+        if let index = layer.index {
+            values["layerIndex"] = "\(index)"
+        }
+        return values
     }
 }
 

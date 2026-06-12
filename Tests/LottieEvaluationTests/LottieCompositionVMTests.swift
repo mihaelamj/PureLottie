@@ -65,6 +65,124 @@ struct LottieCompositionVMTests {
         #expect(fast.renderNodeIDs == debug.renderNodeIDs)
     }
 
+    @Test("debugger supports step into over out and back")
+    func debuggerSupportsStepIntoOverOutAndBack() throws {
+        let animation = try decode(shapeFixture)
+        var debugger = LottieVMDebugger(animation: animation, sourceFrame: 0, checkpointInterval: 2)
+
+        let first = try #require(debugger.currentStep)
+        #expect(first.record.instruction.kind == .enterComposition)
+        #expect(first.sourcePath == "root")
+        #expect(first.stateSummary.compositionDepth == 1)
+
+        let layerStep = debugger.stepInto()
+        let layer = try #require(layerStep)
+        #expect(layer.record.instruction.kind == .enterLayer)
+        #expect(layer.record.evaluatedValues["layerIndex"] == "1")
+
+        let matteStep = debugger.continueToBreakpoint(
+            [.instruction(.enterMatte)]
+        )
+        let matte = try #require(matteStep)
+        #expect(matte.record.instruction.kind == .enterMatte)
+
+        let afterMatteStep = debugger.stepOver()
+        let afterMatte = try #require(afterMatteStep)
+        #expect(afterMatte.record.instruction.kind == .pushStyle)
+
+        let modifierStep = debugger.continueToBreakpoint(
+            [.instruction(.applyModifier)]
+        )
+        let modifier = try #require(modifierStep)
+        #expect(modifier.record.instruction.kind == .applyModifier)
+
+        let afterStyleStep = debugger.stepOut()
+        let afterStyle = try #require(afterStyleStep)
+        #expect(afterStyle.record.instruction.kind == .leaveLayer)
+
+        let previousStep = debugger.stepBack()
+        let previous = try #require(previousStep)
+        #expect(previous.record.instruction.kind == .popStyle)
+        #expect(previous.replayCheckpoint?.step == 8)
+    }
+
+    @Test("debugger breakpoints match layer index names paths instructions and frame")
+    func debuggerBreakpointsMatchTraceFacts() throws {
+        let animation = try decode(shapeFixture)
+        var debugger = LottieVMDebugger(
+            animation: animation,
+            sourceFrame: 0,
+            breakpoints: [
+                .layerIndex(1),
+                .layerName("Shapes"),
+                .instruction(.emitRenderNode),
+                .jsonPath(JSONPath([.key("layers"), .index(0), .key("shapes"), .index(2)])),
+                .shapePath("root > layer 'Shapes' > fill 'Red'"),
+            ]
+        )
+
+        let layerStep = debugger.continueToBreakpoint()
+        let layer = try #require(layerStep)
+        #expect(layer.record.instruction.kind == .enterLayer)
+        #expect(layer.hitBreakpoints.contains(.layerIndex(1)))
+        #expect(layer.hitBreakpoints.contains(.layerName("Shapes")))
+
+        let styleStep = debugger.continueToBreakpoint()
+        let style = try #require(styleStep)
+        #expect(style.record.instruction.kind == .pushStyle)
+        #expect(style.hitBreakpoints.contains(.jsonPath(JSONPath([.key("layers"), .index(0), .key("shapes"), .index(2)]))))
+        #expect(style.hitBreakpoints.contains(.shapePath("root > layer 'Shapes' > fill 'Red'")))
+
+        let renderStep = debugger.continueToBreakpoint([.instruction(.emitRenderNode)])
+        let render = try #require(renderStep)
+        #expect(render.record.instruction.kind == .emitRenderNode)
+        #expect(render.hitBreakpoints.contains(.instruction(.emitRenderNode)))
+
+        let frameStop = try #require(LottieVMDebugger(
+            animation: animation,
+            sourceFrame: 0,
+            breakpoints: [.frame(0)]
+        ).currentStep)
+        #expect(frameStop.hitBreakpoints == [.frame(0)])
+    }
+
+    @Test("debugger exposes watches output state summary and replay checkpoints")
+    func debuggerExposesWatchesOutputStateAndReplayCheckpoints() throws {
+        let animation = try decode(shapeFixture)
+        var transformDebugger = LottieVMDebugger(
+            animation: animation,
+            sourceFrame: 0,
+            checkpointInterval: 2,
+            breakpoints: [.instruction(.evaluateTransform)],
+            watches: [.transform, .opacity, .sampledProperty("position")]
+        )
+
+        let transformStep = transformDebugger.continueToBreakpoint()
+        let transform = try #require(transformStep)
+        #expect(transform.record.instruction.kind == .evaluateTransform)
+        #expect(transform.watchValues.contains { $0.watch == .sampledProperty("position") && $0.values["position"] == "[5,6,0]" })
+        #expect(transform.watchValues.contains { $0.watch == .opacity && $0.values["opacity"] == "100" })
+        #expect(transform.watchValues.contains { $0.watch == .transform && $0.values["rotationZ"] == "0" })
+        #expect(transform.stateSummary.description.contains("source=root > layer 'Shapes'"))
+        #expect(transform.replayCheckpoint?.step == 2)
+
+        var renderDebugger = LottieVMDebugger(
+            animation: animation,
+            sourceFrame: 0,
+            breakpoints: [.instruction(.emitRenderNode)],
+            watches: [.styleState, .sampledProperty("fragments"), .renderNodeEmission]
+        )
+
+        let renderStep = renderDebugger.continueToBreakpoint()
+        let render = try #require(renderStep)
+        let output = try #require(render.emittedOutput)
+        #expect(output.renderNodeID == LottieRenderNodeID(rawValue: 1))
+        #expect(output.label == "shape.fill")
+        #expect(output.values["fragments"] == "1")
+        #expect(render.watchValues.contains { $0.watch == .styleState && $0.values["stack"] == "root > layer 'Shapes' > fill 'Red'" })
+        #expect(render.watchValues.contains { $0.watch == .renderNodeEmission && $0.values["id"] == "render#1" })
+    }
+
     @Test("precompositions and skipped layers are explicit")
     func precompositionsAndSkippedLayersAreExplicit() throws {
         let animation = try decode("""
