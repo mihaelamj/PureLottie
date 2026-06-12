@@ -16,6 +16,8 @@ public struct LottieRenderFrame: Sendable, Equatable {
     public var width: Double
     /// Root composition height in points.
     public var height: Double
+    /// Measured source layer graph facts for this frame.
+    public var layerGraph: LottieLayerGraphTrace
     /// Back-to-front render nodes visible at `sourceFrame`.
     public var nodes: [LottieRenderNode]
     /// Semantic diagnostics found while evaluating this frame.
@@ -390,6 +392,7 @@ private struct LottieRenderFrameEmitter {
     let animation: LottieAnimation
     let frameEvaluator: LottieFrameEvaluator
     let transformEvaluator: LottieTransformEvaluator
+    let layerGraphEvaluator: LottieLayerGraphEvaluator
     let geometryEvaluator: LottieSourceGeometryEvaluator
     let trimEvaluator: LottieSourceTrimEvaluator
     var diagnostics: [ValidationError] = []
@@ -400,11 +403,13 @@ private struct LottieRenderFrameEmitter {
         self.animation = animation
         frameEvaluator = LottieFrameEvaluator(animation: animation)
         transformEvaluator = LottieTransformEvaluator(animation: animation)
+        layerGraphEvaluator = LottieLayerGraphEvaluator(animation: animation)
         geometryEvaluator = LottieSourceGeometryEvaluator(animation: animation)
         trimEvaluator = LottieSourceTrimEvaluator()
     }
 
     mutating func frame(at sourceFrame: Double) -> LottieRenderFrame {
+        let layerGraph = layerGraphEvaluator.trace(at: sourceFrame)
         let nodes: [LottieRenderNode] = if frameEvaluator.containsCompositionFrame(sourceFrame) {
             compositionNodes(
                 name: animation.name ?? "root",
@@ -426,6 +431,7 @@ private struct LottieRenderFrameEmitter {
             frameRate: animation.frameRate,
             width: animation.width,
             height: animation.height,
+            layerGraph: layerGraph,
             nodes: nodes,
             diagnostics: diagnostics
         )
