@@ -644,7 +644,7 @@ private struct LottieLayerGraphTraceBuilder {
 
     private func graphReferences(in layers: [LottieLayer], at sourceFrame: Double) -> LayerGraphReferences {
         var parentOffsets = Set<Int>()
-        var matteSourceOffsets: [Int: [MatteTargetReference]] = [:]
+        var matteSourceOffsets = Set<Int>()
         let byIndex = indexedLayers(layers)
 
         for (offset, layer) in layers.enumerated() where ordinaryContentVisible(layer, at: sourceFrame) {
@@ -659,22 +659,13 @@ private struct LottieLayerGraphTraceBuilder {
             }
 
             guard let matteMode = layer.trackMatteType, matteMode != 0 else { continue }
-            let sourceOffset: Int?
-            let explicit: Bool
-            if let explicitIndex = layer.trackMatteParent {
-                sourceOffset = byIndex[explicitIndex]?.offset
-                explicit = true
+            let sourceOffset: Int? = if let explicitIndex = layer.trackMatteParent {
+                byIndex[explicitIndex]?.offset
             } else {
-                sourceOffset = layers.indices.contains(offset - 1) ? offset - 1 : nil
-                explicit = false
+                layers.indices.contains(offset - 1) ? offset - 1 : nil
             }
             guard let sourceOffset else { continue }
-            matteSourceOffsets[sourceOffset, default: []].append(MatteTargetReference(
-                targetOffset: offset,
-                targetLayerIndex: layer.index,
-                mode: matteMode,
-                explicit: explicit
-            ))
+            matteSourceOffsets.insert(sourceOffset)
         }
 
         return LayerGraphReferences(parentOffsets: parentOffsets, matteSourceOffsets: matteSourceOffsets)
@@ -709,7 +700,7 @@ private struct LottieLayerGraphTraceBuilder {
         offset: Int,
         references: LayerGraphReferences
     ) -> LottieLayerGraphParticipation {
-        if references.matteSourceOffsets[offset] != nil {
+        if references.matteSourceOffsets.contains(offset) {
             return layer.isHidden ? .hiddenMatteSource : .matteSource
         }
         if references.parentOffsets.contains(offset) {
@@ -1124,16 +1115,9 @@ private struct IndexedLayer {
     var offset: Int
 }
 
-private struct MatteTargetReference {
-    var targetOffset: Int
-    var targetLayerIndex: Int?
-    var mode: Int
-    var explicit: Bool
-}
-
 private struct LayerGraphReferences {
     var parentOffsets: Set<Int>
-    var matteSourceOffsets: [Int: [MatteTargetReference]]
+    var matteSourceOffsets: Set<Int>
 }
 
 private func clamp(_ value: Double) -> Double {
