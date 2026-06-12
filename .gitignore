@@ -5,3 +5,5 @@
 DerivedData/
 Package.resolved
 *.derived-data-log-*
+node_modules/
+Tools/LottieOracle/artifacts/

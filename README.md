@@ -58,3 +58,21 @@ Run the Wasm model build after installing the Swift 6.3.2 Wasm SDK from Swift.or
 swift scripts/ci-model-only.swift
 swift build --package-path .build/ci/model-only --swift-sdk swift-6.3.2-RELEASE_wasm --target LottieModel
 ```
+
+## lottie-web Oracle
+
+`Tools/LottieOracle` is the external frame-comparison harness. It pins
+`lottie-web` outside the Swift package graph, renders deterministic browser
+reference PNGs, runs `LottieFrameDump` for PureLayer PNGs, and writes reports
+with validation eligibility, selected frame rationale, pixel diffs, and RenderIR
+trace context.
+
+```sh
+npm install --prefix Tools/LottieOracle
+npx --prefix Tools/LottieOracle playwright install chromium
+npm --prefix Tools/LottieOracle run oracle -- --fixture eligible-shape-position
+```
+
+The harness compares pixels only when validation, `ImportReport`, and RenderIR
+diagnostics are clean. Generated artifacts live under
+`Tools/LottieOracle/artifacts/`.

@@ -1,0 +1,25 @@
+[
+  {
+    "id": "eligible-shape-position",
+    "description": "Shape layer with a single filled rectangle and animated layer position.",
+    "lottie": "../../Tests/Fixtures/LottieOracle/eligible-shape-position.json",
+    "frames": [
+      {
+        "frame": 0,
+        "rationale": "First visible source frame; proves the half-open window includes ip."
+      },
+      {
+        "frame": 5,
+        "rationale": "Interior frame; samples animated layer position away from both authored endpoints."
+      },
+      {
+        "frame": 9,
+        "rationale": "Last visible integer frame before exclusive op=10."
+      }
+    ],
+    "scale": 1,
+    "renderer": "svg",
+    "expectReferenceNonEmpty": true,
+    "expectedValidationEligible": true
+  }
+]
