@@ -75,6 +75,53 @@ A frame record contains:
 Lottie source timing remains frame-based. The root frame window uses
 `ipInclusiveOpExclusive`, meaning `ip <= frame < op`.
 
+## Layer Graph Trace
+
+`LottieLayerGraphEvaluator` emits `LottieLayerGraphTrace` for a selected source
+frame. `LottieRenderFrame.layerGraph` carries this trace so backend lowering,
+debug dumps, and oracle comparisons can inspect graph facts before looking at
+pixels or PureLayer objects.
+
+The trace records the root frame window as `ip <= frame < op`, plus reference
+semantics for lottie-web and the CoreAnimation/PureLayer lowering boundary.
+CoreAnimation timing is not treated as source truth; the source evaluator keeps
+Lottie frame units and the importer converts to seconds later.
+
+Each layer graph record contains:
+
+| Field | Meaning |
+| --- | --- |
+| `sourcePath`, `jsonPath` | Human-readable and JSON provenance for the layer. |
+| `compositionPath`, `compositionStack` | Root/precomp composition context. |
+| `arrayOffset`, `layerIndex`, `name`, `type` | Authored layer identity. |
+| `participation` | `content`, `transformCarrier`, `precompositionBoundary`, `matteSource`, `hiddenMatteSource`, `hiddenParent`, `transformParticipant`, `skippedHidden`, or `skippedOutsideFrame`. |
+| `renderOrder` | Back-to-front graph order for records that participate in output construction. Skipped records use `null`. |
+| `visibility` | Selected frame, authored `ip`/`op`, `hd`, half-open rule, and ordinary-content visibility. |
+| `timing` | Input frame, `st`, `sr`, frame rate, resulting local frame, and optional `tm` seconds/property trace. |
+| `parentChain` | Transform-parent indices, paths, hidden flags, and frame-window membership. |
+| `masks` | Mask source path, target layer path, mode, inversion, opacity, path payload, and diagnostics. |
+| `matte` | Track-matte mode, resolved source layer path, target layer path, explicit/implicit source flag, and diagnostics. |
+| `precomposition` | Referenced asset id/path, child composition path, local frame, size, and child count. |
+| `diagnostics` | Layer-local graph diagnostics with source and target paths where an edge is involved. |
+
+This is the measurable layer-language answer before rendering:
+
+- A normal visible layer is `content`.
+- A visible null layer is `transformCarrier`.
+- A visible precomp layer is `precompositionBoundary`; its children are evaluated
+  in the precomp composition stack at the layer's local frame.
+- Hidden parent layers are `hiddenParent` when a visible descendant references
+  them.
+- Matte source layers are `matteSource` or `hiddenMatteSource`; they participate
+  in compositing and are recorded separately from ordinary content.
+- Non-hidden layers outside their half-open `ip`/`op` window are
+  `skippedOutsideFrame`; hidden layers with no active graph role are
+  `skippedHidden`.
+
+Mask and matte diagnostics are not pixel judgments. They record source/target
+edges so a later backend can prove it handled or reported the exact compositing
+relationship.
+
 ## Property Evaluation Trace
 
 `LottieFrameEvaluator` returns a typed `LottiePropertyEvaluationTrace` beside
