@@ -4,6 +4,7 @@
 [![Linux CI](https://github.com/mihaelamj/PureLottie/actions/workflows/linux-ci.yml/badge.svg)](https://github.com/mihaelamj/PureLottie/actions/workflows/linux-ci.yml)
 [![Windows CI](https://github.com/mihaelamj/PureLottie/actions/workflows/windows-ci.yml/badge.svg)](https://github.com/mihaelamj/PureLottie/actions/workflows/windows-ci.yml)
 [![Wasm CI](https://github.com/mihaelamj/PureLottie/actions/workflows/wasm-ci.yml/badge.svg)](https://github.com/mihaelamj/PureLottie/actions/workflows/wasm-ci.yml)
+[![Oracle CI](https://github.com/mihaelamj/PureLottie/actions/workflows/oracle-ci.yml/badge.svg)](https://github.com/mihaelamj/PureLottie/actions/workflows/oracle-ci.yml)
 
 PureLottie is a typed Lottie document model and importer.
 
@@ -19,6 +20,7 @@ PureLottie is a typed Lottie document model and importer.
 | Linux CI | `.github/workflows/linux-ci.yml` | `LottieModel` builds and tests on Linux without resolving PureLayer. |
 | Windows CI | `.github/workflows/windows-ci.yml` | `LottieModel` builds and tests on Windows without resolving PureLayer. |
 | Wasm CI | `.github/workflows/wasm-ci.yml` | `LottieModel` compiles for `wasm32-unknown-wasi`. |
+| Oracle CI | `.github/workflows/oracle-ci.yml` | `Tools/LottieOracle` validates the curated fixture manifest and live-loads every curated fixture through pinned `lottie-web`. |
 
 The macOS full package gate requires access to the private PureLayer dependency. Configure one of these repository secrets to enable it:
 
@@ -110,8 +112,10 @@ with validation eligibility, selected frame rationale, pixel diffs, and RenderIR
 trace context.
 
 ```sh
-npm install --prefix Tools/LottieOracle
+npm ci --prefix Tools/LottieOracle
 npx --prefix Tools/LottieOracle playwright install chromium
+npm --prefix Tools/LottieOracle test
+npm --prefix Tools/LottieOracle run validate-fixtures
 npm --prefix Tools/LottieOracle run oracle -- --fixture eligible-shape-position
 ```
 
@@ -119,6 +123,11 @@ The harness compares pixels only when validation, `ImportReport`, RenderIR
 diagnostics, and RenderIR-to-PureLayer backend evidence are clean. Generated
 artifacts live under
 `Tools/LottieOracle/artifacts/`.
+
+The curated fixture manifest records parse/load/intent/non-empty validation
+status for each fixture. The validation command emits fixture ids and manifest
+paths for failures, so a fixture is not trusted merely because it exists in the
+tree.
 
 ## APNG Export
 

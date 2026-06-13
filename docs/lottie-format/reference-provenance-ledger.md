@@ -27,10 +27,10 @@ actionable.
 | --- | --- | ---: | --- | --- |
 | Raw public Lottie corpus | `Tests/Fixtures/LottieCorpus` | 857 JSON files | Discovery corpus for observed Lottie fields and unsupported-feature evidence. | `FixtureCorpusTests` checks root Lottie keys; `CorpusSemanticLedgerTests` checks counts, unique payloads, source counts, licenses, field classification, and eligibility reasons. |
 | Raw corpus licenses | `Tests/Fixtures/LottieCorpus/_licenses` | 6 files | Preserve upstream license text beside copied fixtures. | `CorpusSemanticLedgerTests.testCorpusSourceProvenanceIsPinned` checks required license files. |
-| Curated source-intent oracle corpus | `Tests/Fixtures/LottieOracle` | 31 source JSON files | Vetted regression corpus with small source fixtures and selected frame rationales. | `LottieOracleCorpusTests` checks manifest size, coverage families, frame lists, and lottie-web intent alignment. |
+| Curated source-intent oracle corpus | `Tests/Fixtures/LottieOracle` | 31 source JSON files | Vetted regression corpus with small source fixtures and selected frame rationales. | `LottieOracleCorpusTests` checks manifest size, coverage families, frame lists, validation statuses, and lottie-web intent alignment; `npm --prefix Tools/LottieOracle run validate-fixtures` live-loads every curated fixture through pinned lottie-web. |
 | Committed lottie-web numeric traces | `Tests/Fixtures/LottieOracle/lottie-web-intent` | 31 JSON traces | Browser-side numeric reference facts before PNG comparison. | `LottieOracleCorpusTests.everyCorpusFixtureHasCommittedLottieWebNumericIntentSnapshot` checks schema, renderer, lottie-web version, size, selected frames, and path counts. |
 | Golden source-intent trace | `Tests/Fixtures/SourceIntentTrace` | 1 JSON trace | Stable v1 source-intent schema round-trip fixture. | `LottieSourceIntentTraceTests` checks decode, provenance, vocabularies, and JSON coding round trip. |
-| lottie-web oracle tool | `Tools/LottieOracle` | 1 Node tool package | External browser/reference harness kept outside `Package.swift`. | `npm --prefix Tools/LottieOracle test` checks fixture manifest, eligibility gates, package pins, image comparison helpers, and package isolation. |
+| lottie-web oracle tool | `Tools/LottieOracle` | 1 Node tool package | External browser/reference harness kept outside `Package.swift`. | `npm --prefix Tools/LottieOracle test` checks fixture manifest, eligibility gates, package pins, image comparison helpers, path-bearing validation diagnostics, and package isolation; `npm --prefix Tools/LottieOracle run validate-fixtures` checks live lottie-web fixture usability. |
 | Frame dump tools | `Tools/LottieFrameDump`, `Tools/LottieAPNGDump` | 2 Swift executables | Emit PureLayer frames/APNGs with semantic summaries after source-intent gates. | Built by `swift build`; covered by import/APNG/oracle tests and oracle filename checks. |
 | Lottie format docs | `docs/lottie-format` | 3 checked-in files before this ledger | Human-readable source-intent, conformance, and matrix contracts. | Swift/Node tests pin referenced fixture counts and trace behavior; this ledger records remaining documentation provenance gaps. |
 
@@ -73,12 +73,27 @@ The curated corpus is the regression set selected from authored fixtures under
 | Fixture revision | Repository history plus manifest path; external browser behavior is pinned by `lottie-web@5.13.0`. |
 | License/provenance note | PureLottie test fixtures, not copied from the raw external corpus. |
 | Purpose | Numeric source-intent and browser-reference checks before PNG/APNG inspection. |
-| Validation | Manifest tests, committed-intent tests, RenderIR comparison tests, source-intent lowering gate, APNG pre-export source-intent gate. |
+| Validation | Manifest tests, committed-intent tests, RenderIR comparison tests, source-intent lowering gate, APNG pre-export source-intent gate, and live lottie-web usability validation. |
 
 Every manifest entry records a fixture id, description, protected bug class,
 coverage tags, semantic status, source fixture path, lottie-web trace path,
 selected frames with rationale, renderer, and reference non-empty/validation
 expectations.
+
+Every manifest entry also records a machine-readable fixture usability record:
+
+| Validation field | Current value | Meaning | Checked by |
+| --- | --- | --- | --- |
+| `validation.status` | `usable` for 31 fixtures | The fixture is allowed to serve as curated oracle evidence. | `validate-fixtures.mjs`, `LottieOracleCorpusTests` |
+| `validation.sourceJSON` | `parses` for 31 fixtures | The source fixture parses as JSON and has required Lottie root keys. | `validate-fixtures.mjs` |
+| `validation.lottieWeb` | `loads` for 31 fixtures | The source fixture live-loads in pinned `lottie-web@5.13.0` with the manifest renderer. | `npm --prefix Tools/LottieOracle run validate-fixtures` |
+| `validation.numericIntent` | `committed` for 31 fixtures | The selected source frames have committed lottie-web numeric intent traces. | `validate-fixtures.mjs`, `LottieOracleCorpusTests` |
+| `validation.referenceNonEmpty` | `passed` for 31 fixtures | Each selected frame has visible painted lottie-web path evidence when `expectReferenceNonEmpty` is true. | `validate-fixtures.mjs` |
+| `validation.failureReasons` | empty for 31 fixtures | A usable fixture carries no unresolved usability failure reason. | `validate-fixtures.mjs` |
+
+The validator reports failures as positive-rule diagnostics with the manifest
+path and fixture id, for example
+`oracle-fixtures.json[0].validation` for a bad usability record.
 
 ## Oracle Tool Dependencies
 
