@@ -435,6 +435,7 @@ public enum LottieRenderedArtifactManifestBuiltinValidation {
             LottieRenderedArtifactManifestAnyValidation(rendererIdentityIsPresent),
             LottieRenderedArtifactManifestAnyValidation(exportPolicyIsComplete),
             LottieRenderedArtifactManifestAnyValidation(artifactRecordsArePathBearingAndUnique),
+            LottieRenderedArtifactManifestAnyValidation(exportGeneratedFrameCountMatchesFrameArtifacts),
             LottieRenderedArtifactManifestAnyValidation(artifactEvidenceLinksArePathBearing),
             LottieRenderedArtifactManifestAnyValidation(frameArtifactsLinkSourceIntentAndGeometry),
             LottieRenderedArtifactManifestAnyValidation(evidenceReferencesArePathBearing),
@@ -602,6 +603,30 @@ public enum LottieRenderedArtifactManifestBuiltinValidation {
                 }
             }
             return errors
+        }
+    }
+
+    public static var exportGeneratedFrameCountMatchesFrameArtifacts:
+        Validation<LottieRenderedArtifactManifest, LottieRenderedArtifactManifest>
+    {
+        Validation(
+            ruleID: "rendered-artifact-manifest.export.frame-count",
+            description: "Rendered artifact export generated frame count matches png frame artifacts"
+        ) { context in
+            guard context.subject.export.kind == "png-sequence" else { return [] }
+            let frameArtifactCount = context.subject.artifacts.filter { $0.kind == "png-frame" }.count
+            guard context.subject.export.generatedFrameCount == frameArtifactCount else {
+                return [
+                    error(
+                        ruleID: "rendered-artifact-manifest.export.frame-count",
+                        description: "Rendered artifact export generated frame count matches png frame artifacts",
+                        at: context.codingPath
+                            .appending(.key("export"))
+                            .appending(.key("generatedFrameCount"))
+                    ),
+                ]
+            }
+            return []
         }
     }
 

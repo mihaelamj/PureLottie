@@ -88,6 +88,7 @@ struct LottieFrameDump {
             geometryTraceFiles: geometryTraceFiles,
             lottieWebIntent: options.lottieWebIntent
         )
+        _ = try LottieReviewFrameFolder.loadValidated(from: options.output)
     }
 
     private static func fileName(for frame: Double) -> String {
@@ -488,7 +489,7 @@ private struct Options {
     init(arguments: [String]) throws {
         var input: URL?
         var output: URL?
-        var frames: [Double] = [0]
+        var frames: [Double]?
         var scale = 1.0
         var lottieWebIntent: URL?
 
@@ -529,6 +530,7 @@ private struct Options {
 
         guard let input else { throw UsageError("Missing --input") }
         guard let output else { throw UsageError("Missing --output") }
+        guard let frames, !frames.isEmpty else { throw UsageError("Missing --frames") }
         guard let lottieWebIntent else { throw UsageError("Missing --lottie-web-intent") }
         self.input = input
         self.output = output

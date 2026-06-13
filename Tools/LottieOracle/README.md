@@ -82,7 +82,7 @@ Artifacts are written to `Tools/LottieOracle/artifacts/<fixture-id>/`:
 | Path | Contents |
 | --- | --- |
 | `reference/` | PNG frames rendered by pinned `lottie-web`. |
-| `purelayer/` | PNG frames rendered by `swift run LottieFrameDump`, plus `oracle-summary.json`. |
+| `purelayer/` | PNG frames rendered by `swift run LottieFrameDump`, plus `oracle-summary.json`, `rendered-artifact-manifest.json`, and post-export folder validation. |
 | `diff/` | Pixel-difference PNGs, one per compared frame. |
 | `lottie-web-intent.json` | Numeric lottie-web facts: layer matrices, opacity, SVG path data, styles, bounds, and sampled path bounds. |
 | `semantic-traces.json` | RenderIR node, trace, and backend evidence summaries for every selected frame. |

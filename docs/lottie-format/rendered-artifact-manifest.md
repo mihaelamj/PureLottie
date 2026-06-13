@@ -51,7 +51,7 @@ The root object is a `LottieRenderedArtifactManifest`.
   "artifacts": [
     {
       "kind": "png-frame",
-      "path": "frames/frame_0000000.00.png",
+      "path": "frames/frame_0000.00.png",
       "frameIndex": 0,
       "sourceFrame": 0,
       "timeSeconds": 0,
@@ -203,6 +203,38 @@ Example: `ip=100`, `fr=10`, and requested source frames `100, 105, 109` produce
 A valid manifest must include at least one `lottie-web-intent` reference and at
 least one geometry reference (`geometry-json` or `geometry-csv`).
 
+## Complete Review Frame Folders
+
+A PNG sequence review folder is complete only when the files on disk agree with
+both machine-readable records written beside them:
+
+- `rendered-artifact-manifest.json` lists each `png-frame` artifact with its
+  relative path, `frameIndex`, `sourceFrame`, and `timeSeconds`.
+- `oracle-summary.json` carries `frameTiming`, whose samples explain why exactly
+  that frame count was generated.
+
+`LottieFrameDump` now treats `--frames` as mandatory. Omitting it would recreate
+the one-frame placeholder failure mode, so the tool refuses to run without an
+explicit source-frame list. After writing the PNGs, geometry trace, summary, and
+manifest, the tool loads the folder back through `LottieReviewFrameFolder` and
+fails if any postcondition is false.
+
+The folder postcondition rejects:
+
+- missing expected PNG files;
+- zero-byte PNG files;
+- unexpected extra PNG files left from an earlier run;
+- manifest frame counts that disagree with `png-frame` artifacts;
+- timing rationale counts that disagree with the manifest;
+- per-frame `frameIndex`, `sourceFrame`, or `timeSeconds` drift between the
+  manifest and `frameTiming.samples`;
+- `png-frame` paths that are absolute or escape the reviewed folder;
+- one-frame exports for multi-frame source windows.
+
+The last rule is intentional. A single-frame review folder is valid only when
+the Lottie source window itself spans one frame. A long animation sampled at one
+frame is a diagnostic snapshot, not complete visual review evidence.
+
 `findings` carries validation, import, RenderIR, and backend findings that were
 known when the artifact was generated. Findings may be empty only when the
 artifact set is clean; when present, every finding must have a stable phase,
@@ -260,6 +292,7 @@ carry JSON paths.
 - Rendered artifact renderer identity backend and command are present
 - Rendered artifact export policy declares kind scale fps and generated frame count
 - Rendered artifact records are path-bearing unique and frame-addressed when needed
+- Rendered artifact export generated frame count matches png frame artifacts
 - Rendered artifact evidence links use stable kinds paths frame addresses and notes
 - Rendered frame artifacts link to source-intent and geometry evidence for the same frame
 - Rendered artifact evidence references use stable kinds non-empty paths and notes
@@ -272,6 +305,13 @@ carry JSON paths.
 - Artifact frame timing samples match the declared source frame and time formulas
 - APNG artifact frame timing records start exclusive end output fps and inclusive sample end
 - Explicit artifact frame timing records the requested source-frame list
+- Review frame folders carry valid rendered artifact manifests and frame timing rationales
+- Review frame folder generated frame count matches manifest artifacts and timing samples
+- Review frame folder frame artifacts match timing sample frame indexes source frames and seconds
+- Review frame folder png artifact paths stay inside the reviewed folder
+- Review frame folder contains every expected png frame as a non-empty file
+- Review frame folder contains no unexpected png frame files
+- Review frame folder one-frame exports are backed by a one-frame source window
 
 ## Proof Boundary
 
