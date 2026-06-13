@@ -3,6 +3,13 @@
     "id": "eligible-shape-position",
     "description": "Shape layer with one filled rectangle and animated layer position.",
     "bugClass": "Animated layer position was previously judged from shifted PNGs instead of numeric translation.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves animated-position, rectangle, fill, transform source-intent coverage and protects: Animated layer position was previously judged from shifted PNGs instead of numeric translation.",
     "coverage": [
       "animated-position",
       "rectangle",
@@ -43,6 +50,12 @@
     "id": "static-rectangle-fill",
     "description": "Static centered rectangle with a solid fill.",
     "bugClass": "Baseline geometry and fill color must be correct before animation is considered.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection"
+    ],
+    "purpose": "Proves static-position, rectangle, fill source-intent coverage and protects: Baseline geometry and fill color must be correct before animation is considered.",
     "coverage": [
       "static-position",
       "rectangle",
@@ -82,6 +95,13 @@
     "id": "animated-position-linear",
     "description": "Rectangle with a linear animated layer position.",
     "bugClass": "Linear position in-betweens must match source-frame interpolation, not image inspection.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves animated-position, rectangle, fill, transform source-intent coverage and protects: Linear position in-betweens must match source-frame interpolation, not image inspection.",
     "coverage": [
       "animated-position",
       "rectangle",
@@ -122,6 +142,13 @@
     "id": "split-position-ellipse",
     "description": "Ellipse whose position is authored as split x and y properties.",
     "bugClass": "Split-position values must rejoin into one evaluated layer position before lowering.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves split-position, ellipse, fill, transform source-intent coverage and protects: Split-position values must rejoin into one evaluated layer position before lowering.",
     "coverage": [
       "split-position",
       "ellipse",
@@ -162,6 +189,13 @@
     "id": "anchor-rotation-rectangle",
     "description": "Rectangle rotated around its center by an explicit layer anchor.",
     "bugClass": "Anchor translation and clockwise rotation order must agree with lottie-web matrices.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves anchor, rotation, rectangle, fill source-intent coverage and protects: Anchor translation and clockwise rotation order must agree with lottie-web matrices.",
     "coverage": [
       "anchor",
       "rotation",
@@ -202,6 +236,13 @@
     "id": "scale-rotation-anchor",
     "description": "Rectangle with anchor, non-uniform scale, and rotation.",
     "bugClass": "Scale, anchor, and rotation composition must be measurable before target backend assignment.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves anchor, scale, rotation, rectangle source-intent coverage and protects: Scale, anchor, and rotation composition must be measurable before target backend assignment.",
     "coverage": [
       "anchor",
       "scale",
@@ -242,6 +283,12 @@
     "id": "animated-opacity-rectangle",
     "description": "Rectangle with animated layer opacity.",
     "bugClass": "Opacity must be sampled numerically at the source frame, not inferred from raster alpha by eye.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection"
+    ],
+    "purpose": "Proves opacity, rectangle, fill source-intent coverage and protects: Opacity must be sampled numerically at the source frame, not inferred from raster alpha by eye.",
     "coverage": [
       "opacity",
       "rectangle",
@@ -281,6 +328,13 @@
     "id": "group-transform-rectangle",
     "description": "Shape group transform translates and rotates a rectangle inside a layer.",
     "bugClass": "Shape transforms are scoped to the group and must not be mistaken for layer transforms.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves shape-transform, rectangle, fill source-intent coverage and protects: Shape transforms are scoped to the group and must not be mistaken for layer transforms.",
     "coverage": [
       "shape-transform",
       "rectangle",
@@ -320,6 +374,13 @@
     "id": "group-opacity-two-shapes",
     "description": "A transparency group contains two filled shapes with group opacity.",
     "bugClass": "Group opacity is an atomic compositing fact and must not be flattened silently per shape.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves shape-group, group-opacity, rectangle, ellipse source-intent coverage and protects: Group opacity is an atomic compositing fact and must not be flattened silently per shape.",
     "coverage": [
       "shape-group",
       "group-opacity",
@@ -360,6 +421,13 @@
     "id": "parent-null-transform-child",
     "description": "Shape layer parented to a visible null transform carrier.",
     "bugClass": "Parent transform composition must use the parent layer matrix before the child matrix.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves parent-transform, null-layer, rectangle, fill source-intent coverage and protects: Parent transform composition must use the parent layer matrix before the child matrix.",
     "coverage": [
       "parent-transform",
       "null-layer",
@@ -400,6 +468,13 @@
     "id": "parent-animated-transform-child",
     "description": "Shape layer inherits an animated parent null position.",
     "bugClass": "Animated parent matrices must affect the child world matrix at every sampled frame.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves parent-transform, animated-position, null-layer, rectangle source-intent coverage and protects: Animated parent matrices must affect the child world matrix at every sampled frame.",
     "coverage": [
       "parent-transform",
       "animated-position",
@@ -440,6 +515,12 @@
     "id": "ellipse-fill",
     "description": "Static filled ellipse centered in the composition.",
     "bugClass": "Ellipse noon-start geometry and bounds must be captured in source space.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection"
+    ],
+    "purpose": "Proves ellipse, fill source-intent coverage and protects: Ellipse noon-start geometry and bounds must be captured in source space.",
     "coverage": [
       "ellipse",
       "fill"
@@ -478,6 +559,13 @@
     "id": "ellipse-reversed-direction",
     "description": "Ellipse with reversed direction flag.",
     "bugClass": "Direction changes trim and path ordering even when the untrimmed bounds look identical.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves ellipse, direction, fill source-intent coverage and protects: Direction changes trim and path ordering even when the untrimmed bounds look identical.",
     "coverage": [
       "ellipse",
       "direction",
@@ -517,6 +605,13 @@
     "id": "rounded-rectangle",
     "description": "Rounded rectangle with non-zero roundness.",
     "bugClass": "Rounded rectangle control points require the lottie-web radius clamp and roundCorner constant.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves rectangle, roundness, fill source-intent coverage and protects: Rounded rectangle control points require the lottie-web radius clamp and roundCorner constant.",
     "coverage": [
       "rectangle",
       "roundness",
@@ -556,6 +651,12 @@
     "id": "raw-bezier-triangle",
     "description": "Closed authored Bezier triangle path with a fill.",
     "bugClass": "Raw path vertices and tangents must be preserved without primitive regeneration.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection"
+    ],
+    "purpose": "Proves path, fill source-intent coverage and protects: Raw path vertices and tangents must be preserved without primitive regeneration.",
     "coverage": [
       "path",
       "fill"
@@ -594,6 +695,12 @@
     "id": "raw-bezier-cubic",
     "description": "Open cubic Bezier path with a stroke.",
     "bugClass": "Cubic path length and bounds must come from authored tangents, not a polyline guess.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection"
+    ],
+    "purpose": "Proves path, stroke source-intent coverage and protects: Cubic path length and bounds must come from authored tangents, not a polyline guess.",
     "coverage": [
       "path",
       "stroke"
@@ -632,6 +739,13 @@
     "id": "polygon-five",
     "description": "Five-point polygon generated by the polystar primitive.",
     "bugClass": "Polygon point flooring, rotation, and direction must match lottie-web source geometry.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves polygon, polystar, fill source-intent coverage and protects: Polygon point flooring, rotation, and direction must match lottie-web source geometry.",
     "coverage": [
       "polygon",
       "polystar",
@@ -671,6 +785,13 @@
     "id": "star-five",
     "description": "Five-point star generated by the polystar primitive.",
     "bugClass": "Star inner and outer radii must survive source evaluation before any PureDraw lowering.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves star, polystar, fill source-intent coverage and protects: Star inner and outer radii must survive source evaluation before any PureDraw lowering.",
     "coverage": [
       "star",
       "polystar",
@@ -710,6 +831,13 @@
     "id": "fill-rule-evenodd",
     "description": "Self-intersecting filled path using the even-odd fill rule.",
     "bugClass": "Fill-rule style facts must be retained because identical vertices can rasterize differently.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves path, fill-rule, fill source-intent coverage and protects: Fill-rule style facts must be retained because identical vertices can rasterize differently.",
     "coverage": [
       "path",
       "fill-rule",
@@ -749,6 +877,12 @@
     "id": "stroke-basic-line",
     "description": "Open line path with a simple stroke.",
     "bugClass": "Stroke color, opacity, and width must be measured as style facts separate from fill.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection"
+    ],
+    "purpose": "Proves path, stroke source-intent coverage and protects: Stroke color, opacity, and width must be measured as style facts separate from fill.",
     "coverage": [
       "path",
       "stroke"
@@ -787,6 +921,12 @@
     "id": "stroke-caps-joins",
     "description": "Open angled path with round caps and joins.",
     "bugClass": "Line caps and joins are render-affecting stroke facts and must not disappear from the trace.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection"
+    ],
+    "purpose": "Proves path, stroke, line-cap, line-join source-intent coverage and protects: Line caps and joins are render-affecting stroke facts and must not disappear from the trace.",
     "coverage": [
       "path",
       "stroke",
@@ -827,6 +967,13 @@
     "id": "stroke-dash",
     "description": "Open line path with dash, gap, and offset entries.",
     "bugClass": "Dash arrays are numeric stroke facts and must be represented or reported before pixels.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves path, stroke, dash source-intent coverage and protects: Dash arrays are numeric stroke facts and must be represented or reported before pixels.",
     "coverage": [
       "path",
       "stroke",
@@ -866,6 +1013,13 @@
     "id": "animated-stroke-width",
     "description": "Stroke width animated from thin to thick.",
     "bugClass": "Animated stroke width must be sampled from source frames before lowerer decisions.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves path, stroke, animated-width source-intent coverage and protects: Animated stroke width must be sampled from source frames before lowerer decisions.",
     "coverage": [
       "path",
       "stroke",
@@ -905,6 +1059,13 @@
     "id": "trim-rectangle-half",
     "description": "Rectangle stroke trimmed to the first half of its contour.",
     "bugClass": "Trim start/end percentages must map to contour length, not an arbitrary quadrant guess.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves rectangle, stroke, trim source-intent coverage and protects: Trim start/end percentages must map to contour length, not an arbitrary quadrant guess.",
     "coverage": [
       "rectangle",
       "stroke",
@@ -944,6 +1105,13 @@
     "id": "trim-ellipse-quadrant",
     "description": "Ellipse stroke trimmed to the first quarter of its contour.",
     "bugClass": "Ellipse trim direction and noon-start ordering must be measurable numerically.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves ellipse, stroke, trim source-intent coverage and protects: Ellipse trim direction and noon-start ordering must be measurable numerically.",
     "coverage": [
       "ellipse",
       "stroke",
@@ -983,6 +1151,13 @@
     "id": "animated-trim-path",
     "description": "Line stroke whose trim end animates from zero to full length.",
     "bugClass": "Animated trim must produce source-frame segment facts before rendered output is trusted.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves path, stroke, trim, animated-trim source-intent coverage and protects: Animated trim must produce source-frame segment facts before rendered output is trusted.",
     "coverage": [
       "path",
       "stroke",
@@ -1023,6 +1198,13 @@
     "id": "layer-window-in-out",
     "description": "A foreground layer appears only inside its half-open frame window.",
     "bugClass": "Layer ip/op semantics must be proven at numeric frame boundaries.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves frame-window, rectangle, fill source-intent coverage and protects: Layer ip/op semantics must be proven at numeric frame boundaries.",
     "coverage": [
       "frame-window",
       "rectangle",
@@ -1066,6 +1248,13 @@
     "id": "mask-add-rectangle",
     "description": "Additive rectangular mask clips a filled rectangle layer.",
     "bugClass": "Mask path, mode, inversion, and opacity are source graph facts before backend masking.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves mask, rectangle, fill source-intent coverage and protects: Mask path, mode, inversion, and opacity are source graph facts before backend masking.",
     "coverage": [
       "mask",
       "rectangle",
@@ -1105,6 +1294,13 @@
     "id": "alpha-matte-rectangle",
     "description": "Alpha matte layer clips the target rectangle.",
     "bugClass": "Track matte source-target relationship must be explicit instead of guessed from layer order.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves matte, rectangle, ellipse, fill source-intent coverage and protects: Track matte source-target relationship must be explicit instead of guessed from layer order.",
     "coverage": [
       "matte",
       "rectangle",
@@ -1145,6 +1341,13 @@
     "id": "precomp-static-child",
     "description": "Root layer instantiates a precomposition containing a shape child.",
     "bugClass": "Precomp boundaries and child composition paths must be visible in source intent.",
+    "evidenceRoles": [
+      "conformance",
+      "regression",
+      "visual-inspection",
+      "engine-divergence"
+    ],
+    "purpose": "Proves precomp, animated-position, rectangle, fill source-intent coverage and protects: Precomp boundaries and child composition paths must be visible in source intent.",
     "coverage": [
       "precomp",
       "animated-position",
@@ -1185,6 +1388,13 @@
     "id": "time-remap-precomp-diagnosed",
     "description": "Precomposition layer uses time remap to sample a child animation at a fixed local time.",
     "bugClass": "Time remap is a diagnosed semantic boundary until lowering consumes the evaluator exactly.",
+    "evidenceRoles": [
+      "unsupported-feature",
+      "regression",
+      "engine-divergence",
+      "visual-inspection"
+    ],
+    "purpose": "Proves precomp, time-remap, diagnostic, animated-position source-intent coverage and protects: Time remap is a diagnosed semantic boundary until lowering consumes the evaluator exactly.",
     "coverage": [
       "precomp",
       "time-remap",

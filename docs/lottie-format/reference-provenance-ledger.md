@@ -1,7 +1,8 @@
 # Reference Provenance Ledger
 
-Status: issue #54-#56 inventory ledger and update workflow for the references
-and fixtures that support PureLottie tests and Lottie-format documentation.
+Status: issue #54-#57 inventory ledger, update workflow, and evidence-role
+classification for the references and fixtures that support PureLottie tests and
+Lottie-format documentation.
 
 This ledger is not a conformance claim. It is the audit map that says where each
 reference came from, why it exists, how it is validated today, and which facts
@@ -14,6 +15,8 @@ actionable.
   version when known, purpose, license/provenance note, and validation status.
 - Additions, updates, and removals follow
   [Reference Update and Audit Workflow](reference-update-audit-workflow.md).
+- Curated fixture purpose uses
+  [Fixture Evidence Roles](fixture-evidence-roles.md).
 - Unknown source facts are recorded as `UNKNOWN` with a follow-up action; they
   are never implied to be safe.
 - Raw fixture files are discovery material. Curated oracle fixtures are the
@@ -34,7 +37,7 @@ actionable.
 | Golden source-intent trace | `Tests/Fixtures/SourceIntentTrace` | 1 JSON trace | Stable v1 source-intent schema round-trip fixture. | `LottieSourceIntentTraceTests` checks decode, provenance, vocabularies, and JSON coding round trip. |
 | lottie-web oracle tool | `Tools/LottieOracle` | 1 Node tool package | External browser/reference harness kept outside `Package.swift`. | `npm --prefix Tools/LottieOracle test` checks fixture manifest, eligibility gates, package pins, image comparison helpers, path-bearing validation diagnostics, and package isolation; `npm --prefix Tools/LottieOracle run validate-fixtures` checks live lottie-web fixture usability. |
 | Frame dump tools | `Tools/LottieFrameDump`, `Tools/LottieAPNGDump` | 2 Swift executables | Emit PureLayer frames/APNGs with semantic summaries after source-intent gates. | Built by `swift build`; covered by import/APNG/oracle tests and oracle filename checks. |
-| Lottie format docs | `docs/lottie-format` | 5 checked-in files including this ledger | Human-readable source-intent, conformance, matrix, provenance, and update workflow contracts. | Swift/Node tests pin referenced fixture counts, trace behavior, and referenced workflow commands. |
+| Lottie format docs | `docs/lottie-format` | 6 checked-in files including this ledger | Human-readable source-intent, conformance, matrix, provenance, evidence role, and update workflow contracts. | Swift/Node tests pin referenced fixture counts, trace behavior, role vocabulary, and referenced workflow commands. |
 
 ## Raw Corpus Sources
 
@@ -69,6 +72,7 @@ The curated corpus is the regression set selected from authored fixtures under
 | Source fixtures | 31 JSON files in `Tests/Fixtures/LottieOracle` |
 | Numeric browser traces | 31 JSON files in `Tests/Fixtures/LottieOracle/lottie-web-intent` |
 | Semantic status split | 30 `modeled`, 1 `diagnosed` |
+| Evidence role split | 30 `conformance`, 31 `regression`, 31 `visual-inspection`, 24 `engine-divergence`, 1 `unsupported-feature` |
 | Renderer | `svg` |
 | lottie-web package | `lottie-web@5.13.0` |
 | Source provenance | Local PureLottie-authored regression fixtures tracked by Git and identified by manifest `id`. |
@@ -78,9 +82,10 @@ The curated corpus is the regression set selected from authored fixtures under
 | Validation | Manifest tests, committed-intent tests, RenderIR comparison tests, source-intent lowering gate, APNG pre-export source-intent gate, and live lottie-web usability validation. |
 
 Every manifest entry records a fixture id, description, protected bug class,
-coverage tags, semantic status, source fixture path, lottie-web trace path,
-selected frames with rationale, renderer, and reference non-empty/validation
-expectations.
+evidence roles, purpose, coverage tags, semantic status, source fixture path,
+lottie-web trace path, selected frames with rationale, renderer, and reference
+non-empty/validation expectations. The role vocabulary is documented in
+[Fixture Evidence Roles](fixture-evidence-roles.md).
 
 Every manifest entry also records a machine-readable fixture usability record:
 
@@ -137,11 +142,11 @@ The conformance and source-intent docs cite these research references:
 | Durable checked-in revision for the lottie-web source snapshot used by prose research | Browser behavior is pinned by npm package version, but prose citations to source files need a source checkout revision. | Reference Update and Audit Workflow defines the manual record; #58 should make this machine-checkable. |
 | Checked-in resolved PureLayer/PureDraw dependency revision | `Package.swift` tracks PureLayer `main`; build logs resolve a commit but the repo does not pin it. | #58 should decide how provenance validation records target-oracle revisions without changing dependency policy. |
 
-## Issue #54-#56 Completion Criteria
+## Issue #54-#57 Completion Criteria
 
 This ledger covers the current references and fixtures used by tests and docs,
 records known source/revision/purpose/validation facts, and makes unknowns
 explicit. The linked update workflow defines reversible add/update/remove rules,
-required validation commands, stale-reference cleanup, and review evidence.
-Later #37 child issues turn this inventory into stricter machine validation and
-role classification.
+required validation commands, stale-reference cleanup, and review evidence. The
+linked fixture role vocabulary classifies curated fixtures by evidence purpose.
+Issue #58 turns this inventory into stricter machine validation.

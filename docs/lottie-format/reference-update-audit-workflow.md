@@ -52,9 +52,9 @@ where it failed, and which fixture id or document path caused it.
 
 1. Add the source Lottie JSON under `Tests/Fixtures/LottieOracle`.
 2. Add a manifest entry to `Tools/LottieOracle/oracle-fixtures.json` with id,
-   description, protected bug class, coverage tags, semantic status, source path,
-   lottie-web trace path, selected frames, frame rationales, renderer, expected
-   non-empty behavior, and validation fields.
+   description, protected bug class, evidence roles, purpose, coverage tags,
+   semantic status, source path, lottie-web trace path, selected frames, frame
+   rationales, renderer, expected non-empty behavior, and validation fields.
 3. Generate or refresh the committed lottie-web numeric trace with:
 
    ```sh
@@ -90,8 +90,9 @@ Treat an update as replacing one reversible chain with another:
    generated lottie-web intent by hand.
 3. Update selected frame rationales when frames change. The rationale must say
    why those source frames are sufficient for the protected behavior.
-4. Re-run the oracle and Swift checks from the adding workflow.
-5. Confirm old generated artifacts are removed when they no longer correspond to
+4. Update evidence roles and purpose when coverage or test intent changes.
+5. Re-run the oracle and Swift checks from the adding workflow.
+6. Confirm old generated artifacts are removed when they no longer correspond to
    the manifest entry.
 
 ## Adding or Updating Raw Corpus References
