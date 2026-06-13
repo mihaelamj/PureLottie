@@ -23,16 +23,21 @@ struct LottieFrameDump {
 
         let size = LottieRenderSurface.pixelSize(width: animation.width, height: animation.height, scale: options.scale)
         let exporter = MovieExporter()
+        let frameTiming = LottieArtifactFrameTiming.explicitSourceFrameList(
+            source: .init(animation: animation),
+            sourceFrames: options.frames
+        )
+        try frameTiming.validate()
         var dumpedFrames: [DumpFrameSummary] = []
-        for frame in options.frames {
-            let time = max(0, (frame - animation.inPoint) / animation.frameRate)
+        for sample in frameTiming.samples {
+            let frame = sample.sourceFrame
             let fileName = Self.fileName(for: frame)
             let url = options.output.appendingPathComponent(fileName)
             let root = renderRoot(animation: animation, sourceFrame: frame, scale: options.scale)
             try exporter.writeScreenshot(of: root, size: size, at: 0, to: url)
             dumpedFrames.append(DumpFrameSummary(
                 frame: frame,
-                timeSeconds: time,
+                timeSeconds: sample.timeSeconds,
                 file: fileName,
                 rendered: true
             ))
@@ -67,6 +72,7 @@ struct LottieFrameDump {
             validationErrors: validationErrors,
             importFindings: importFindings,
             dumpedFrames: dumpedFrames,
+            frameTiming: frameTiming,
             geometryTraceFiles: geometryTraceFiles
         )
     }
@@ -90,6 +96,7 @@ struct LottieFrameDump {
         validationErrors: [ValidationError],
         importFindings: [ImportReport.Finding],
         dumpedFrames: [DumpFrameSummary],
+        frameTiming: LottieArtifactFrameTiming,
         geometryTraceFiles: GeometryTraceFiles?
     ) throws {
         let renderFrames = optionsRenderFrames(animation: animation, input: input, dumpedFrames: dumpedFrames)
@@ -119,6 +126,7 @@ struct LottieFrameDump {
                 findings: importFindings.map(ImportFindingSummary.init)
             ),
             frames: dumpedFrames,
+            frameTiming: frameTiming,
             renderIR: renderFrames
         )
 
@@ -306,6 +314,7 @@ private struct DumpSummary: Encodable {
     var validation: ValidationSummary
     var importReport: ImportReportSummary
     var frames: [DumpFrameSummary]
+    var frameTiming: LottieArtifactFrameTiming
     var renderIR: [RenderFrameSummary]
 }
 
