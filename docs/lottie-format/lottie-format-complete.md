@@ -23,6 +23,21 @@ exactly the ones a spec-only importer drops silently.
 
 ---
 
+## 0. Verification (the "100%" claim is checked, not asserted)
+
+"100%, nothing left unsaid" is a claim, so it is mechanically verified rather than
+trusted. `verify-coverage.sh` (in this folder) extracts every property key and
+every enum const value from the pinned official schema and fails if any is absent
+from this document. Last run against `lottie/lottie-spec @ 4b55957` (2026-06-13):
+**70/70 property keys and 28/28 enum const values present, 0 gaps, exit 0.**
+
+Honest limits: this verifies the official `lottie-spec` schema only; the superset
+in section 9 is prose (no machine schema exists for it). The single-character
+const values (`a`,`b`,`c`,`d`,`g`,`i`,`n`,`o`,`s`,`v`) match loosely, so their
+"present" result is weak; the integer and multi-character consts are firm. Status
+of the completeness claim: `theorem (bounded to lottie-spec @4b55957)` for keys,
+`witnessed` for the loosely-matched single-char consts.
+
 ## 1. Document structure
 
 ### Animation (root)
