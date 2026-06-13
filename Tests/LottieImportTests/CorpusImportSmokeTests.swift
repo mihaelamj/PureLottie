@@ -4,11 +4,12 @@ import LottieModel
 import XCTest
 
 final class CorpusImportSmokeTests: XCTestCase {
-    func testCorpusDecodeAndImportOptIn() throws {
-        guard ProcessInfo.processInfo.environment["PURELOTTIE_RUN_CORPUS_IMPORT"] == "1" else {
-            throw XCTSkip("Set PURELOTTIE_RUN_CORPUS_IMPORT=1 to decode and import the full Lottie fixture corpus.")
-        }
-
+    /// Decodes and imports every committed Lottie fixture in the corpus and
+    /// asserts none fail unexpectedly. Runs unconditionally (~8s): the corpus is
+    /// committed, so this is the broadest decode+import coverage in the suite and
+    /// is worth the cost. The single `knownInvalidFixtures` entry is a deliberate
+    /// type-confusion repro and is the only documented exception.
+    func testFullCorpusDecodesAndImports() throws {
         var failures: [String] = []
         for file in try fixtureFiles() {
             do {
