@@ -70,6 +70,15 @@ source-intent` boundary, the loss taxonomy, required path-bearing evidence, and
 the rule that PNG/APNG files are inspection artifacts only after the numeric
 source-intent gates pass.
 
+## Rendered Artifact Manifest
+
+Rendered PNG and APNG evidence must be accompanied by the manifest contract in
+`docs/lottie-format/rendered-artifact-manifest.md`. The manifest records source
+fixture identity, renderer identity, export policy, generated artifact paths,
+source-intent evidence, geometry evidence, and any validation/import/backend
+findings. It lives in `LottieEvaluation`, imports no PureLayer or PureDraw
+symbols, and validates with path-bearing OpenAPIKit-style rules.
+
 ## Backend Gap Evidence
 
 `LottieRenderIRLowerer` reports unsupported PureLayer/PureDraw backend behavior
