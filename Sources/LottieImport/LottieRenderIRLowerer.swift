@@ -60,11 +60,23 @@ private final class RenderIRLoweringContext {
             let path = diagnostic.evidence ?? diagnostic.codingPath.description
             switch diagnostic.classification {
             case .approximate:
-                report.approximate(diagnostic.reason, at: path, sourcePath: diagnostic.codingPath, sourceRange: diagnostic.range)
+                report.approximate(
+                    diagnostic.reason,
+                    at: path,
+                    sourcePath: diagnostic.codingPath,
+                    sourceRange: diagnostic.range,
+                    evidence: semanticDiagnosticEvidence(diagnostic, owner: .intentionalApproximation)
+                )
             case .exact, .metadata:
                 continue
             case .reported, .gap:
-                report.skip(diagnostic.reason, at: path, sourcePath: diagnostic.codingPath, sourceRange: diagnostic.range)
+                report.skip(
+                    diagnostic.reason,
+                    at: path,
+                    sourcePath: diagnostic.codingPath,
+                    sourceRange: diagnostic.range,
+                    evidence: semanticDiagnosticEvidence(diagnostic, owner: .pureLottieSemantics)
+                )
             }
         }
     }
@@ -544,6 +556,36 @@ private final class RenderIRLoweringContext {
             vmTrace: node.map(traceEvidence),
             renderNode: node.map(renderNodeEvidence),
             renderTerm: term,
+            expectedLottieWebFrameArtifact: evidenceContext.expectedLottieWebFrameArtifact,
+            pureLayerFrameArtifact: evidenceContext.pureLayerFrameArtifact
+        )
+    }
+
+    private func semanticDiagnosticEvidence(
+        _ diagnostic: ValidationError,
+        owner: LottieBackendGapEvidence.Owner
+    ) -> LottieBackendGapEvidence {
+        let sourcePath = diagnostic.evidence ?? diagnostic.codingPath.description
+        return LottieBackendGapEvidence(
+            owner: owner,
+            sourceFixture: evidenceContext.sourceFixture,
+            sourceFrame: frame.sourceFrame,
+            frameRate: frame.frameRate,
+            lottiePath: sourcePath,
+            jsonPath: diagnostic.codingPath.description,
+            sourceRange: diagnostic.range,
+            renderTerm: LottieBackendGapEvidence.RenderTerm(
+                kind: "frameDiagnostic",
+                sourcePath: sourcePath,
+                jsonPath: diagnostic.codingPath.description,
+                values: [
+                    "classification": diagnostic.classification.rawValue,
+                    "phase": diagnostic.phase.rawValue,
+                    "reason": diagnostic.reason,
+                    "ruleID": diagnostic.ruleID,
+                    "severity": diagnostic.severity.rawValue,
+                ]
+            ),
             expectedLottieWebFrameArtifact: evidenceContext.expectedLottieWebFrameArtifact,
             pureLayerFrameArtifact: evidenceContext.pureLayerFrameArtifact
         )
