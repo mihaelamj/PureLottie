@@ -128,7 +128,10 @@ public struct LottieNumericOracleDiffer: Sendable {
             summary: LottieNumericOracleDiffReport.Summary(
                 comparedFields: comparisons.count,
                 passedComparisons: comparisons.filter { $0.result == .pass }.count,
-                failedComparisons: comparisons.filter { $0.result == .fail }.count
+                failedComparisons: comparisons.filter { $0.result == .fail }.count,
+                witnessedComparisons: comparisons.filter { $0.witness.status == .witnessed }.count,
+                assertedComparisons: comparisons.filter { $0.witness.status == .asserted }.count,
+                blockedComparisons: comparisons.filter { $0.witness.status == .blocked }.count
             ),
             fixtures: fixtureReports
         )
@@ -149,9 +152,10 @@ public struct LottieNumericOracleDiffer: Sendable {
         let rows = report.fixtures
             .flatMap(\.comparisons)
             .map { comparison in
-                "| \(comparison.fixtureID) | \(format(comparison.frame)) | \(comparison.field) | \(comparison.result.rawValue) | \(comparison.toleranceID) | \(format(comparison.expectedValue)) | \(format(comparison.actualValue)) | \(format(comparison.delta)) | \(comparison.expectedPath) | \(comparison.actualPath) |"
+                "| \(comparison.fixtureID) | \(format(comparison.frame)) | \(comparison.field) | \(comparison.result.rawValue) | \(comparison.witness.status.rawValue) | \(comparison.toleranceID) | \(format(comparison.expectedValue)) | \(format(comparison.actualValue)) | \(format(comparison.delta)) | \(comparison.expectedPath) | \(comparison.actualPath) |"
             }
             .joined(separator: "\n")
+        let coverage = witnessCoverage(report.summary)
 
         return """
         # Numeric Oracle Diff
@@ -162,14 +166,24 @@ public struct LottieNumericOracleDiffer: Sendable {
         - Compared fields: \(report.summary.comparedFields)
         - Passed: \(report.summary.passedComparisons)
         - Failed: \(report.summary.failedComparisons)
+        - Witnessed comparisons: \(report.summary.witnessedComparisons)
+        - Asserted comparisons: \(report.summary.assertedComparisons)
+        - Blocked comparisons: \(report.summary.blockedComparisons)
+        - Witnessed coverage: \(coverage)
 
         ## Comparisons
 
-        | Fixture | Frame | Field | Result | Tolerance | Expected | Actual | Delta | Expected path | Actual path |
-        | --- | ---: | --- | --- | --- | ---: | ---: | ---: | --- | --- |
+        | Fixture | Frame | Field | Result | Witness | Tolerance | Expected | Actual | Delta | Expected path | Actual path |
+        | --- | ---: | --- | --- | --- | --- | ---: | ---: | ---: | --- | --- |
         \(rows)
 
         """
+    }
+
+    private func witnessCoverage(_ summary: LottieNumericOracleDiffReport.Summary) -> String {
+        guard summary.comparedFields > 0 else { return "0/0 (n/a)" }
+        let percent = Double(summary.witnessedComparisons) / Double(summary.comparedFields) * 100
+        return "\(summary.witnessedComparisons)/\(summary.comparedFields) (\(String(format: "%.1f", percent))%)"
     }
 
     private func report(
@@ -182,6 +196,7 @@ public struct LottieNumericOracleDiffer: Sendable {
         let animation = try LottieAnimation.decode(from: Data(contentsOf: lottieURL))
         let intent = try LottieWebIntentTrace.decodeValidated(from: Data(contentsOf: intentURL))
         let builder = LottieRenderIRBuilder(animation: animation)
+        let witness = fixture.witness
 
         var comparisons: [LottieNumericOracleDiffComparison] = []
         for frameIndex in intent.frames.indices {
@@ -229,6 +244,7 @@ public struct LottieNumericOracleDiffer: Sendable {
             source: fixture.lottie,
             lottieWebIntent: fixture.lottieWebIntent,
             semanticStatus: fixture.semanticStatus,
+            witness: witness,
             selectedFrames: intent.frames.map(\.frame),
             result: comparisons.contains { $0.result == .fail } ? .fail : .pass,
             comparisons: comparisons
@@ -245,7 +261,7 @@ public struct LottieNumericOracleDiffer: Sendable {
     ) throws -> [LottieNumericOracleDiffComparison] {
         try [
             numericComparison(
-                fixture: fixture.id,
+                fixture: fixture,
                 frame: webFrame.frame,
                 field: "composition.width",
                 expectedPath: "$.width",
@@ -256,7 +272,7 @@ public struct LottieNumericOracleDiffer: Sendable {
                 tolerances: tolerances
             ),
             numericComparison(
-                fixture: fixture.id,
+                fixture: fixture,
                 frame: webFrame.frame,
                 field: "composition.height",
                 expectedPath: "$.height",
@@ -285,7 +301,7 @@ public struct LottieNumericOracleDiffer: Sendable {
                     continue
                 }
                 try comparisons.append(missingActual(
-                    fixture: fixture.id,
+                    fixture: fixture,
                     frame: webFrame.frame,
                     field: "layer.opacity",
                     expectedPath: "$.frames[\(frameIndex)].layers[\(layerIndex)].opacity",
@@ -298,7 +314,7 @@ public struct LottieNumericOracleDiffer: Sendable {
             }
 
             try comparisons.append(numericComparison(
-                fixture: fixture.id,
+                fixture: fixture,
                 frame: webFrame.frame,
                 field: "layer.opacity",
                 expectedPath: "$.frames[\(frameIndex)].layers[\(layerIndex)].opacity",
@@ -313,7 +329,7 @@ public struct LottieNumericOracleDiffer: Sendable {
                 continue
             }
             try comparisons.append(numericComparison(
-                fixture: fixture.id,
+                fixture: fixture,
                 frame: webFrame.frame,
                 field: "layer.translation.x",
                 expectedPath: "$.frames[\(frameIndex)].layers[\(layerIndex)].matrix[12]",
@@ -324,7 +340,7 @@ public struct LottieNumericOracleDiffer: Sendable {
                 tolerances: tolerances
             ))
             try comparisons.append(numericComparison(
-                fixture: fixture.id,
+                fixture: fixture,
                 frame: webFrame.frame,
                 field: "layer.translation.y",
                 expectedPath: "$.frames[\(frameIndex)].layers[\(layerIndex)].matrix[13]",
@@ -350,7 +366,7 @@ public struct LottieNumericOracleDiffer: Sendable {
             let node = renderFrame.nodes.first { $0.layerIndex == mask.layerInd }
             let renderMask = node?.masks.first { $0.name == mask.name && $0.mode == mask.mode }
             try comparisons.append(numericComparison(
-                fixture: fixture.id,
+                fixture: fixture,
                 frame: webFrame.frame,
                 field: "mask.opacity",
                 expectedPath: "$.frames[\(frameIndex)].masks[\(maskIndex)].opacity",
@@ -374,19 +390,22 @@ public struct LottieNumericOracleDiffer: Sendable {
     ) throws -> [LottieNumericOracleDiffComparison] {
         var comparisons: [LottieNumericOracleDiffComparison] = []
         for (precompositionIndex, precomposition) in webFrame.precompositions.enumerated() {
+            guard let renderedFrame = precomposition.renderedFrame else {
+                continue
+            }
             let node = renderFrame.nodes.first { candidate in
                 guard candidate.layerIndex == precomposition.layerInd else { return false }
                 if case .precompositionBoundary = candidate.kind { return true }
                 return false
             }
             try comparisons.append(numericComparison(
-                fixture: fixture.id,
+                fixture: fixture,
                 frame: webFrame.frame,
                 field: "precomposition.renderedFrame",
                 expectedPath: "$.frames[\(frameIndex)].precompositions[\(precompositionIndex)].renderedFrame",
                 actualPath: node.map { "\($0.source.sourcePath).localFrame" }
                     ?? "RenderIR.nodes[layerInd=\(precomposition.layerInd)].localFrame",
-                expected: precomposition.renderedFrame,
+                expected: renderedFrame,
                 actual: node?.localFrame,
                 toleranceID: "frame.source-frame.absolute",
                 tolerances: tolerances
@@ -408,7 +427,7 @@ public struct LottieNumericOracleDiffer: Sendable {
             let trace = renderFrame.trimTraces(forLayerIndex: trim.layerInd).first
             let actualPath = trace?.jsonPath ?? "RenderIR.nodes[layerInd=\(trim.layerInd)].trimTraces[\(trimIndex)]"
             try comparisons.append(numericComparison(
-                fixture: fixture.id,
+                fixture: fixture,
                 frame: webFrame.frame,
                 field: "trim.startFraction",
                 expectedPath: "$.frames[\(frameIndex)].trims[\(trimIndex)].startFraction",
@@ -419,7 +438,7 @@ public struct LottieNumericOracleDiffer: Sendable {
                 tolerances: tolerances
             ))
             try comparisons.append(numericComparison(
-                fixture: fixture.id,
+                fixture: fixture,
                 frame: webFrame.frame,
                 field: "trim.endFraction",
                 expectedPath: "$.frames[\(frameIndex)].trims[\(trimIndex)].endFraction",
@@ -430,7 +449,7 @@ public struct LottieNumericOracleDiffer: Sendable {
                 tolerances: tolerances
             ))
             try comparisons.append(numericComparison(
-                fixture: fixture.id,
+                fixture: fixture,
                 frame: webFrame.frame,
                 field: "trim.offsetTurns",
                 expectedPath: "$.frames[\(frameIndex)].trims[\(trimIndex)].offsetTurns",
@@ -445,7 +464,7 @@ public struct LottieNumericOracleDiffer: Sendable {
     }
 
     private func numericComparison(
-        fixture: String,
+        fixture: LottieNumericOracleFixture,
         frame: Double,
         field: String,
         expectedPath: String,
@@ -470,7 +489,7 @@ public struct LottieNumericOracleDiffer: Sendable {
         let tolerance = try tolerances.threshold(id: toleranceID)
         let delta = abs(expected - actual)
         return LottieNumericOracleDiffComparison(
-            fixtureID: fixture,
+            fixtureID: fixture.id,
             frame: frame,
             field: field,
             expectedPath: expectedPath,
@@ -480,12 +499,13 @@ public struct LottieNumericOracleDiffer: Sendable {
             toleranceID: toleranceID,
             tolerance: tolerance,
             delta: delta,
+            witness: fixture.witness,
             result: delta <= tolerance ? .pass : .fail
         )
     }
 
     private func missingActual(
-        fixture: String,
+        fixture: LottieNumericOracleFixture,
         frame: Double,
         field: String,
         expectedPath: String,
@@ -495,7 +515,7 @@ public struct LottieNumericOracleDiffer: Sendable {
         tolerances: LottieOracleToleranceLedger
     ) throws -> LottieNumericOracleDiffComparison {
         try LottieNumericOracleDiffComparison(
-            fixtureID: fixture,
+            fixtureID: fixture.id,
             frame: frame,
             field: field,
             expectedPath: expectedPath,
@@ -505,6 +525,7 @@ public struct LottieNumericOracleDiffer: Sendable {
             toleranceID: toleranceID,
             tolerance: tolerances.threshold(id: toleranceID),
             delta: nil,
+            witness: fixture.witness,
             result: .fail
         )
     }
@@ -549,6 +570,18 @@ public struct LottieNumericOracleFixture: Decodable, Sendable, Equatable {
             "time-remap",
         ])
     }
+
+    public var witness: LottieClaimWitness {
+        Self.witness(forIntentPath: lottieWebIntent)
+    }
+
+    public static func witness(forIntentPath path: String) -> LottieClaimWitness {
+        LottieClaimWitness(
+            status: .witnessed,
+            evidence: [path],
+            reason: "Expected numeric values are read from a committed lottie-web intent trace generated by pinned lottie-web in Chromium."
+        )
+    }
 }
 
 public struct LottieNumericOracleDiffReport: Codable, Sendable, Equatable {
@@ -559,13 +592,16 @@ public struct LottieNumericOracleDiffReport: Codable, Sendable, Equatable {
 
     public struct Schema: Codable, Sendable, Equatable {
         public var name = "purelottie.numeric-oracle-diff"
-        public var version = 1
+        public var version = 2
     }
 
     public struct Summary: Codable, Sendable, Equatable {
         public var comparedFields: Int
         public var passedComparisons: Int
         public var failedComparisons: Int
+        public var witnessedComparisons: Int
+        public var assertedComparisons: Int
+        public var blockedComparisons: Int
     }
 }
 
@@ -574,6 +610,7 @@ public struct LottieNumericOracleDiffFixtureReport: Codable, Sendable, Equatable
     public var source: String
     public var lottieWebIntent: String
     public var semanticStatus: String
+    public var witness: LottieClaimWitness
     public var selectedFrames: [Double]
     public var result: LottieNumericOracleDiffResult
     public var comparisons: [LottieNumericOracleDiffComparison]
@@ -590,6 +627,7 @@ public struct LottieNumericOracleDiffComparison: Codable, Sendable, Equatable {
     public var toleranceID: String
     public var tolerance: Double
     public var delta: Double?
+    public var witness: LottieClaimWitness
     public var result: LottieNumericOracleDiffResult
 }
 

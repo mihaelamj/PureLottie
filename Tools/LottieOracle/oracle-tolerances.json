@@ -10,7 +10,14 @@
       "unit": "unitInterval",
       "comparison": "absolute-difference",
       "threshold": 0.000001,
-      "reason": "Opacity comparisons use normalized unit-interval values from lottie-web and PureLottie; this threshold only absorbs floating-point representation noise."
+      "reason": "Opacity comparisons use normalized unit-interval values from lottie-web and PureLottie; this threshold only absorbs floating-point representation noise.",
+      "witness": {
+        "status": "asserted",
+        "evidence": [
+          "Tools/LottieOracle/oracle-tolerances.json"
+        ],
+        "reason": "This threshold is an asserted PureLottie tolerance pending the derived arithmetic bound required by issue #104."
+      }
     },
     {
       "id": "matrix.translation.css-pixel.absolute",
@@ -18,7 +25,14 @@
       "unit": "cssPixel",
       "comparison": "absolute-difference",
       "threshold": 0.05,
-      "reason": "Translation is compared after lottie-web SVG matrix extraction and PureLottie source evaluation; five hundredths of a CSS pixel separates numeric intent from raster inspection noise."
+      "reason": "Translation is compared after lottie-web SVG matrix extraction and PureLottie source evaluation; five hundredths of a CSS pixel separates numeric intent from raster inspection noise.",
+      "witness": {
+        "status": "asserted",
+        "evidence": [
+          "Tools/LottieOracle/oracle-tolerances.json"
+        ],
+        "reason": "This threshold is an asserted PureLottie tolerance pending the derived arithmetic bound required by issue #104."
+      }
     },
     {
       "id": "frame.source-frame.absolute",
@@ -26,7 +40,14 @@
       "unit": "sourceFrame",
       "comparison": "absolute-difference",
       "threshold": 0.000001,
-      "reason": "Precomposition and time-remap comparisons use Lottie source-frame coordinates before seconds conversion or backend rendering, so only floating-point representation noise is tolerated."
+      "reason": "Precomposition and time-remap comparisons use Lottie source-frame coordinates before seconds conversion or backend rendering, so only floating-point representation noise is tolerated.",
+      "witness": {
+        "status": "asserted",
+        "evidence": [
+          "Tools/LottieOracle/oracle-tolerances.json"
+        ],
+        "reason": "This threshold is an asserted PureLottie tolerance pending the derived arithmetic bound required by issue #104."
+      }
     },
     {
       "id": "bounds.css-pixel.absolute",
@@ -34,7 +55,14 @@
       "unit": "cssPixel",
       "comparison": "absolute-difference",
       "threshold": 0.00001,
-      "reason": "Bounds compare geometric source facts, not pixels; this threshold covers SVG floating-point serialization while still rejecting visible coordinate drift."
+      "reason": "Bounds compare geometric source facts, not pixels; this threshold covers SVG floating-point serialization while still rejecting visible coordinate drift.",
+      "witness": {
+        "status": "asserted",
+        "evidence": [
+          "Tools/LottieOracle/oracle-tolerances.json"
+        ],
+        "reason": "This threshold is an asserted PureLottie tolerance pending the derived arithmetic bound required by issue #104."
+      }
     },
     {
       "id": "path-length.css-pixel.absolute",
@@ -42,7 +70,14 @@
       "unit": "cssPixel",
       "comparison": "absolute-difference",
       "threshold": 0.000001,
-      "reason": "Path length comparisons are numeric geometry checks produced by lottie-web getTotalLength and PureLottie source geometry, so only floating-point noise is tolerated."
+      "reason": "Path length comparisons are numeric geometry checks produced by lottie-web getTotalLength and PureLottie source geometry, so only floating-point noise is tolerated.",
+      "witness": {
+        "status": "asserted",
+        "evidence": [
+          "Tools/LottieOracle/oracle-tolerances.json"
+        ],
+        "reason": "This threshold is an asserted PureLottie tolerance pending the derived arithmetic bound required by issue #104."
+      }
     },
     {
       "id": "trim.segment.unit-interval.absolute",
@@ -50,7 +85,14 @@
       "unit": "unitInterval",
       "comparison": "absolute-difference",
       "threshold": 0.000001,
-      "reason": "Trim segment comparisons use normalized start and end fractions before backend rasterization; this threshold covers only floating-point fraction representation noise."
+      "reason": "Trim segment comparisons use normalized start and end fractions before backend rasterization; this threshold covers only floating-point fraction representation noise.",
+      "witness": {
+        "status": "asserted",
+        "evidence": [
+          "Tools/LottieOracle/oracle-tolerances.json"
+        ],
+        "reason": "This threshold is an asserted PureLottie tolerance pending the derived arithmetic bound required by issue #104."
+      }
     },
     {
       "id": "pixel.max-channel.exact",
@@ -58,7 +100,14 @@
       "unit": "rgbaChannelValue",
       "comparison": "max-channel-difference",
       "threshold": 0,
-      "reason": "Pixel comparison defaults to exact RGBA channel equality; any non-zero threshold must be deliberately requested and recorded separately before visual artifacts are trusted."
+      "reason": "Pixel comparison defaults to exact RGBA channel equality; any non-zero threshold must be deliberately requested and recorded separately before visual artifacts are trusted.",
+      "witness": {
+        "status": "asserted",
+        "evidence": [
+          "Tools/LottieOracle/oracle-tolerances.json"
+        ],
+        "reason": "This threshold is an asserted PureLottie tolerance pending the derived arithmetic bound required by issue #104."
+      }
     }
   ]
 }

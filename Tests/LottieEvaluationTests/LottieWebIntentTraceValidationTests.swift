@@ -38,7 +38,7 @@ struct LottieWebIntentTraceValidationTests {
         expectClose(mask.opacity, 1)
         expectClose(mask.localBBox.minX, 3)
         expectClose(mask.localBBox.maxX, 34)
-        #expect(mask.pathD.isEmpty == false)
+        #expect(mask.pathD?.isEmpty == false)
 
         let matteFrame = try intentFrame("alpha-matte-rectangle", sourceFrame: 5)
         #expect(matteFrame.matteCount == 1)

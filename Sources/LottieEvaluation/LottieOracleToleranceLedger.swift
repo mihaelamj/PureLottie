@@ -17,6 +17,7 @@ public struct LottieOracleToleranceLedger: Codable, Equatable, Sendable, Validat
         public var comparison: String
         public var threshold: Double
         public var reason: String
+        public var witness: LottieClaimWitness
     }
 
     public func tolerance(id: String) throws -> Tolerance {
@@ -79,9 +80,16 @@ public final class LottieOracleToleranceLedgerValidator {
         visit(ledger, at: JSONPath(), in: ledger, errors: &errors)
         visit(ledger.schema, at: JSONPath([.key("schema")]), in: ledger, errors: &errors)
         for index in ledger.tolerances.indices {
+            let tolerancePath = JSONPath([.key("tolerances"), .index(index)])
             visit(
                 ledger.tolerances[index],
-                at: JSONPath([.key("tolerances"), .index(index)]),
+                at: tolerancePath,
+                in: ledger,
+                errors: &errors
+            )
+            visit(
+                ledger.tolerances[index].witness,
+                at: tolerancePath.appending(.key("witness")),
                 in: ledger,
                 errors: &errors
             )
@@ -225,6 +233,7 @@ public enum LottieOracleToleranceBuiltinValidation {
             LottieOracleToleranceAnyValidation(toleranceVocabularyIsStable),
             LottieOracleToleranceAnyValidation(toleranceThresholdsAreFiniteAndNonNegative),
             LottieOracleToleranceAnyValidation(toleranceReasonsAreSpecific),
+            LottieOracleToleranceAnyValidation(toleranceWitnessClassificationsAreExplicit),
         ]
     }
 
@@ -367,6 +376,15 @@ public enum LottieOracleToleranceBuiltinValidation {
                     ),
                 ]
         }
+    }
+
+    public static var toleranceWitnessClassificationsAreExplicit:
+        Validation<LottieOracleToleranceLedger, LottieClaimWitness>
+    {
+        LottieClaimWitnessValidation.claimWitnessIsExplicit(
+            ruleIDPrefix: "oracle-tolerance.witness",
+            description: "Oracle tolerance witness classifications state witnessed asserted or blocked evidence"
+        )
     }
 
     private static func error(

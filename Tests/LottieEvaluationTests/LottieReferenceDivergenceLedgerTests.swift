@@ -17,6 +17,8 @@ struct LottieReferenceDivergenceLedgerTests {
         #expect(ids.contains("transform.layer-position-sampled-matrix"))
         #expect(ids.contains("trim.length-normalized-segments"))
         #expect(ids.contains("precomp.time-remap-diagnosed-boundary"))
+        #expect(ledger.divergences.allSatisfy { $0.witness.status == .witnessed })
+        #expect(ledger.divergences.allSatisfy { $0.witness.evidence.isEmpty == false })
     }
 
     @Test("engine divergence fixtures link to ledger-backed facts")
@@ -59,6 +61,9 @@ struct LottieReferenceDivergenceLedgerTests {
             for evidence in divergence.comparisonEvidence {
                 #expect(fileExists(root.appendingPathComponent(evidence)), "\(divergence.id) missing evidence path \(evidence)")
             }
+            for evidence in divergence.witness.evidence {
+                #expect(fileExists(root.appendingPathComponent(evidence)), "\(divergence.id) missing witness evidence \(evidence)")
+            }
             for pointer in divergence.sourcePointers {
                 #expect(
                     LottieReferenceDivergenceBuiltinValidation.supportedSourcePointerKinds.contains(pointer.kind),
@@ -78,6 +83,8 @@ struct LottieReferenceDivergenceLedgerTests {
         ledger.divergences[0].sourcePointers[0].kind = "blog"
         ledger.divergences[0].sourcePointers[0].path = ""
         ledger.divergences[0].sourcePointers[0].note = ""
+        ledger.divergences[0].witness.evidence = []
+        ledger.divergences[0].witness.reason = ""
 
         let errors = LottieReferenceDivergenceLedgerValidator().collectErrors(in: ledger)
         let paths = Set(errors.map(\.codingPath.description))
@@ -88,6 +95,8 @@ struct LottieReferenceDivergenceLedgerTests {
         #expect(paths.contains("$.divergences[0].sourcePointers[0].kind"))
         #expect(paths.contains("$.divergences[0].sourcePointers[0].path"))
         #expect(paths.contains("$.divergences[0].sourcePointers[0].note"))
+        #expect(paths.contains("$.divergences[0].witness.evidence"))
+        #expect(paths.contains("$.divergences[0].witness.reason"))
     }
 
     @Test("missing reference divergence keys decode as validation errors with paths")

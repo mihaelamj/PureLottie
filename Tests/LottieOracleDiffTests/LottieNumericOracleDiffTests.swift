@@ -11,14 +11,21 @@ struct LottieNumericOracleDiffTests {
         let report = try differ.report(manifestURL: manifestURL(), toleranceURL: toleranceURL())
         let repeated = try differ.report(manifestURL: manifestURL(), toleranceURL: toleranceURL())
 
+        #expect(report.schema.version == 2)
         #expect(report.fixtureCount >= 30)
         #expect(report.summary.comparedFields > 100)
         #expect(report.summary.failedComparisons == 0)
+        #expect(report.summary.witnessedComparisons == report.summary.comparedFields)
+        #expect(report.summary.assertedComparisons == 0)
+        #expect(report.summary.blockedComparisons == 0)
         #expect(report.fixtures.allSatisfy { $0.result == .pass })
+        #expect(report.fixtures.allSatisfy { $0.witness.status == .witnessed })
         #expect(report.fixtures.flatMap(\.comparisons).allSatisfy { comparison in
             !comparison.expectedPath.isEmpty
                 && !comparison.actualPath.isEmpty
                 && !comparison.toleranceID.isEmpty
+                && comparison.witness.status == .witnessed
+                && comparison.witness.evidence.isEmpty == false
         })
         let encodedReport = try encoded(report)
         let encodedRepeated = try encoded(repeated)
@@ -44,9 +51,12 @@ struct LottieNumericOracleDiffTests {
         )
         let markdown = try String(contentsOf: markdownURL, encoding: .utf8)
 
+        #expect(report.schema.version == 2)
         #expect(report.fixtureCount == 1)
         #expect(report.summary.failedComparisons == 0)
-        #expect(markdown.contains("| Fixture | Frame | Field | Result | Tolerance | Expected | Actual | Delta | Expected path | Actual path |"))
+        #expect(report.summary.witnessedComparisons == report.summary.comparedFields)
+        #expect(markdown.contains("- Witnessed coverage: "))
+        #expect(markdown.contains("| Fixture | Frame | Field | Result | Witness | Tolerance | Expected | Actual | Delta | Expected path | Actual path |"))
         #expect(markdown.contains("eligible-shape-position"))
     }
 

@@ -20,6 +20,7 @@ public struct LottieReferenceDivergenceLedger: Codable, Equatable, Sendable, Val
         public var observedBehavior: String
         public var comparisonEvidence: [String]
         public var sourcePointers: [SourcePointer]
+        public var witness: LottieClaimWitness
     }
 
     public struct SourcePointer: Codable, Equatable, Sendable, Validatable {
@@ -87,6 +88,7 @@ public final class LottieReferenceDivergenceLedgerValidator {
             let divergencePath = JSONPath([.key("divergences"), .index(divergenceIndex)])
             let divergence = ledger.divergences[divergenceIndex]
             visit(divergence, at: divergencePath, in: ledger, errors: &errors)
+            visit(divergence.witness, at: divergencePath.appending(.key("witness")), in: ledger, errors: &errors)
             for pointerIndex in divergence.sourcePointers.indices {
                 visit(
                     divergence.sourcePointers[pointerIndex],
@@ -217,6 +219,7 @@ public enum LottieReferenceDivergenceBuiltinValidation {
             LottieReferenceDivergenceAnyValidation(divergenceRecordsAreComplete),
             LottieReferenceDivergenceAnyValidation(divergenceStatusesUseStableVocabulary),
             LottieReferenceDivergenceAnyValidation(sourcePointersUseStableVocabularyAndPaths),
+            LottieReferenceDivergenceAnyValidation(divergenceWitnessClassificationsAreExplicit),
         ]
     }
 
@@ -364,6 +367,15 @@ public enum LottieReferenceDivergenceBuiltinValidation {
             }
             return errors
         }
+    }
+
+    public static var divergenceWitnessClassificationsAreExplicit:
+        Validation<LottieReferenceDivergenceLedger, LottieClaimWitness>
+    {
+        LottieClaimWitnessValidation.claimWitnessIsExplicit(
+            ruleIDPrefix: "reference-divergence.witness",
+            description: "Reference divergence witness classifications state witnessed asserted or blocked evidence"
+        )
     }
 
     private static func recordError(

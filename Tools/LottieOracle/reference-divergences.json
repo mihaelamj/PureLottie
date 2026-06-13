@@ -39,7 +39,15 @@
           "path": "Sources/LottieEvaluation/LottieTransformEvaluator.swift",
           "note": "Evaluates PureLottie source-frame transform matrices."
         }
-      ]
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/eligible-shape-position.json",
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/animated-position-linear.json"
+        ],
+        "reason": "Committed lottie-web intent traces record the reference-engine numeric fact that this divergence describes."
+      }
     },
     {
       "id": "transform.split-position-rejoins-vector",
@@ -70,7 +78,14 @@
           "path": "Sources/LottieEvaluation/LottieTransformEvaluator.swift",
           "note": "Builds transform component traces for split position."
         }
-      ]
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/split-position-ellipse.json"
+        ],
+        "reason": "Committed lottie-web intent traces record the reference-engine numeric fact that this divergence describes."
+      }
     },
     {
       "id": "transform.anchor-scale-rotation-order",
@@ -103,7 +118,15 @@
           "path": "Sources/LottieEvaluation/LottieTransformEvaluator.swift",
           "note": "Documents and implements matrix operation order."
         }
-      ]
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/anchor-rotation-rectangle.json",
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/scale-rotation-anchor.json"
+        ],
+        "reason": "Committed lottie-web intent traces record the reference-engine numeric fact that this divergence describes."
+      }
     },
     {
       "id": "transform.shape-group-scope",
@@ -133,7 +156,14 @@
           "path": "Sources/LottieEvaluation/LottieShapeProgram.swift",
           "note": "Maintains group-scoped shape transform operations."
         }
-      ]
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/group-transform-rectangle.json"
+        ],
+        "reason": "Committed lottie-web intent traces record the reference-engine numeric fact that this divergence describes."
+      }
     },
     {
       "id": "opacity.shape-group-atomic",
@@ -163,7 +193,14 @@
           "path": "Sources/LottieEvaluation/LottieShapeProgram.swift",
           "note": "Records group compositing scope before lowering."
         }
-      ]
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/group-opacity-two-shapes.json"
+        ],
+        "reason": "Committed lottie-web intent traces record the reference-engine numeric fact that this divergence describes."
+      }
     },
     {
       "id": "transform.parent-world-matrix",
@@ -200,7 +237,15 @@
           "path": "Sources/LottieEvaluation/LottieTransformEvaluator.swift",
           "note": "Appends parent matrix evidence."
         }
-      ]
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/parent-null-transform-child.json",
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/parent-animated-transform-child.json"
+        ],
+        "reason": "Committed lottie-web intent traces record the reference-engine numeric fact that this divergence describes."
+      }
     },
     {
       "id": "geometry.ellipse-direction-noon-order",
@@ -230,7 +275,14 @@
           "path": "Sources/LottieEvaluation/LottieSourceGeometryEvaluator.swift",
           "note": "Emits direction evidence for generated source geometry."
         }
-      ]
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/ellipse-reversed-direction.json"
+        ],
+        "reason": "Committed lottie-web intent traces record the reference-engine numeric fact that this divergence describes."
+      }
     },
     {
       "id": "geometry.rounded-rectangle-clamp",
@@ -260,7 +312,14 @@
           "path": "Sources/LottieEvaluation/LottieSourceGeometryEvaluator.swift",
           "note": "Records the rounded-rectangle constants used by source geometry."
         }
-      ]
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/rounded-rectangle.json"
+        ],
+        "reason": "Committed lottie-web intent traces record the reference-engine numeric fact that this divergence describes."
+      }
     },
     {
       "id": "geometry.polystar-point-flooring",
@@ -292,7 +351,15 @@
           "path": "Sources/LottieEvaluation/LottieSourceGeometryEvaluator.swift",
           "note": "Expands polygon and star source geometry."
         }
-      ]
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/polygon-five.json",
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/star-five.json"
+        ],
+        "reason": "Committed lottie-web intent traces record the reference-engine numeric fact that this divergence describes."
+      }
     },
     {
       "id": "style.fill-rule-evenodd",
@@ -322,7 +389,14 @@
           "path": "Sources/LottieEvaluation/LottieShapeProgram.swift",
           "note": "Retains fill style metadata in the shape program."
         }
-      ]
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/fill-rule-evenodd.json"
+        ],
+        "reason": "Committed lottie-web intent traces record the reference-engine numeric fact that this divergence describes."
+      }
     },
     {
       "id": "stroke.dash-and-width-source-facts",
@@ -358,7 +432,15 @@
           "path": "Sources/LottieEvaluation/LottieRenderIR.swift",
           "note": "Evaluates source-frame stroke values."
         }
-      ]
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/stroke-dash.json",
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/animated-stroke-width.json"
+        ],
+        "reason": "Committed lottie-web intent traces record the reference-engine numeric fact that this divergence describes."
+      }
     },
     {
       "id": "trim.length-normalized-segments",
@@ -392,7 +474,16 @@
           "path": "Sources/LottieEvaluation/LottieSourceTrimEvaluator.swift",
           "note": "Records normalized trim ranges and selected source segments."
         }
-      ]
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/trim-rectangle-half.json",
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/trim-ellipse-quadrant.json",
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/animated-trim-path.json"
+        ],
+        "reason": "Committed lottie-web intent traces record the reference-engine numeric fact that this divergence describes."
+      }
     },
     {
       "id": "timing.layer-frame-window-half-open",
@@ -423,7 +514,14 @@
           "path": "Sources/LottieEvaluation/LottieFrameEvaluator.swift",
           "note": "Applies composition and layer frame windows."
         }
-      ]
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/layer-window-in-out.json"
+        ],
+        "reason": "Committed lottie-web intent traces record the reference-engine numeric fact that this divergence describes."
+      }
     },
     {
       "id": "mask.source-graph-before-backend",
@@ -459,7 +557,14 @@
           "path": "Tests/LottieImportTests/LottieLoweringSourceIntentGateTests.swift",
           "note": "Checks backend evidence is attached before lowering gaps are trusted."
         }
-      ]
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/mask-add-rectangle.json"
+        ],
+        "reason": "Committed lottie-web intent traces record the reference-engine numeric fact that this divergence describes."
+      }
     },
     {
       "id": "matte.source-target-layer-binding",
@@ -489,7 +594,14 @@
           "path": "Sources/LottieEvaluation/LottieLayerGraphEvaluator.swift",
           "note": "Binds matte source and target records."
         }
-      ]
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/alpha-matte-rectangle.json"
+        ],
+        "reason": "Committed lottie-web intent traces record the reference-engine numeric fact that this divergence describes."
+      }
     },
     {
       "id": "precomp.local-source-frame",
@@ -521,7 +633,14 @@
           "path": "Sources/LottieEvaluation/LottieLayerGraphEvaluator.swift",
           "note": "Resolves precomposition layer graph boundaries."
         }
-      ]
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/precomp-static-child.json"
+        ],
+        "reason": "Committed lottie-web intent traces record the reference-engine numeric fact that this divergence describes."
+      }
     },
     {
       "id": "precomp.time-remap-diagnosed-boundary",
@@ -556,7 +675,14 @@
           "path": "Tests/LottieImportTests/TimeRemapImportReportTests.swift",
           "note": "Proves the boundary is reported instead of silently lowered."
         }
-      ]
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "Tests/Fixtures/LottieOracle/lottie-web-intent/time-remap-precomp-diagnosed.json"
+        ],
+        "reason": "Committed lottie-web intent traces record the reference-engine numeric fact that this divergence describes."
+      }
     }
   ]
 }

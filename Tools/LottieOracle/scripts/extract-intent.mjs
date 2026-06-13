@@ -26,6 +26,7 @@ function writeJson(file, value) {
 
 export async function extractLottieIntent({
   input,
+  source = input,
   output = null,
   frames,
   scale = 1,
@@ -118,7 +119,7 @@ export async function extractLottieIntent({
         name: 'purelottie.lottie-web-intent',
         version: 1
       },
-      source: input,
+      source,
       renderer,
       lottieWeb: {
         package: `npm:lottie-web@${lottiePackage.version}`,
