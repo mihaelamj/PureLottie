@@ -109,11 +109,11 @@ final class ReferenceProvenanceLedgerTests: XCTestCase {
         XCTAssertTrue(ledger.contains("17 entries"))
         XCTAssertTrue(ledger.contains("## Issue #54-#58 Completion Criteria"))
         XCTAssertTrue(ledger.contains("composable positive-rule validation"))
-        XCTAssertTrue(ledger.contains("10 checked-in files including this ledger"))
+        XCTAssertTrue(ledger.contains("11 checked-in files including this ledger"))
         XCTAssertTrue(ledger.contains("Reversibility Compiler Contract"))
         XCTAssertEqual(
             try regularFiles(in: repositoryRoot().appendingPathComponent("docs/lottie-format", isDirectory: true)).count,
-            10
+            11
         )
     }
 
