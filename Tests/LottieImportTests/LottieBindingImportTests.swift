@@ -5,6 +5,31 @@ import Testing
 
 @Suite("Lottie binding import")
 struct LottieBindingImportTests {
+    @Test("Validated importer reports layer blend mode instead of silently dropping it")
+    func validatedImporterReportsLayerBlendMode() throws {
+        let scene = try LottieImporter().scene(from: Data("""
+        {
+          "v": "5.7.4",
+          "fr": 30,
+          "ip": 0,
+          "op": 30,
+          "w": 64,
+          "h": 64,
+          "layers": [
+            { "ty": 4, "nm": "Blend", "ind": 1, "bm": 3, "ip": 0, "op": 30, "ks": {}, "shapes": [] }
+          ],
+          "assets": []
+        }
+        """.utf8))
+
+        #expect(scene.report.findings.count == 1)
+        let finding = try #require(scene.report.findings.first)
+        #expect(finding.feature == "layer blend mode 3")
+        #expect(finding.path == "root > layer 'Blend'")
+        #expect(finding.sourcePath?.description == "$.layers[0].bm")
+        #expect(finding.sourceRange != nil)
+    }
+
     @Test("Raw model import reports duplicate layer indices and missing parents")
     func rawImportReportsDuplicateIndicesAndMissingParents() throws {
         let scene = try importRaw("""

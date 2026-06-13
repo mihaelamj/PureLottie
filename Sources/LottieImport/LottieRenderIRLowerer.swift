@@ -170,11 +170,12 @@ private final class RenderIRLoweringContext {
 
     private func reportNodeBackendGaps(_ node: LottieRenderNode) {
         if let blendMode = node.compositing.blendMode, blendMode != 0 {
+            let source = node.compositing.blendModeSource ?? node.source
             skipBackend(
                 "layer blend mode \(blendMode)",
-                at: node.source,
+                at: source,
                 node: node,
-                term: evidenceTerm("layerCompositing", source: node.source, values: ["blendMode": "\(blendMode)"])
+                term: evidenceTerm("layerCompositing", source: source, values: ["blendMode": "\(blendMode)"])
             )
         }
         for filter in node.filters {

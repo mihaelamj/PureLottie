@@ -141,6 +141,8 @@ public struct LottieRenderMatte: Sendable, Equatable {
 public struct LottieRenderCompositing: Sendable, Equatable {
     /// Lottie layer blend mode, once modeled.
     public var blendMode: Int?
+    /// Source provenance for `blendMode`, when authored.
+    public var blendModeSource: LottieRenderSource?
 }
 
 /// Placeholder for effect/filter terms once the model decodes `ef`.
@@ -681,7 +683,16 @@ private struct LottieRenderFrameEmitter {
             masks: masks,
             matte: matte,
             matteSourceMarker: layer.trackMatteSource,
-            compositing: LottieRenderCompositing(blendMode: nil),
+            compositing: LottieRenderCompositing(
+                blendMode: layer.blendMode,
+                blendModeSource: layer.blendMode.map { _ in
+                    LottieRenderSource(
+                        sourcePath: source.sourcePath,
+                        jsonPath: source.jsonPath.appending(.key("bm")),
+                        sourceRange: nil
+                    )
+                }
+            ),
             filters: [],
             kind: kind,
             explanation: explanation

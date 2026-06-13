@@ -163,6 +163,7 @@ struct RenderFeatureValidationTests {
             "ty": 4.5,
             "nm": "Fractional",
             "ind": 1,
+            "bm": 0.5,
             "tt": 0.5,
             "td": 0.5,
             "sr": "fast",
@@ -181,6 +182,7 @@ struct RenderFeatureValidationTests {
         """)
 
         expect(errors, contains: "lottie.layer.type-modeled", at: "$.layers[0].ty")
+        expect(errors, contains: "lottie.layer.compositing-field", at: "$.layers[0].bm")
         expect(errors, contains: "lottie.layer.matte-field", at: "$.layers[0].tt")
         expect(errors, contains: "lottie.layer.matte-field", at: "$.layers[0].td")
         expect(errors, contains: "lottie.layer.time-locality", at: "$.layers[0].sr")
@@ -228,6 +230,7 @@ struct RenderFeatureValidationTests {
             "ty": 4,
             "nm": "Modeled",
             "ind": 1,
+            "bm": 3,
             "ip": 0,
             "op": 30,
             "ks": {},

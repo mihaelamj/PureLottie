@@ -116,6 +116,7 @@ public enum BuiltinValidation {
             AnyValidation(layerAssetReferencesResolve),
             AnyValidation(layerMatteReferencesResolve),
             AnyValidation(layerTypesAreModeledOrReported),
+            AnyValidation(layerCompositingFieldsAreModeledOrReported),
             AnyValidation(layerMatteFieldsAreModeledOrReported),
             AnyValidation(layerSilentRiskFieldsAreModeledOrReported),
             AnyValidation(layerTimeFieldsAreModeled),
@@ -560,7 +561,6 @@ public enum BuiltinValidation {
             phase: .semantic,
             fields: [
                 "ao": "Auto-orient changes rotation from the position path tangent.",
-                "bm": "Blend mode changes layer compositing.",
                 "ef": "Effects can change rendered pixels.",
                 "t": "Text documents and text animators change rendered pixels.",
             ],
@@ -608,6 +608,30 @@ public enum BuiltinValidation {
                             range: typeValue.range,
                             phase: .semantic,
                             classification: .gap
+                        ),
+                    ]
+                }
+                return []
+            }
+        )
+    }
+
+    public static var layerCompositingFieldsAreModeledOrReported: Validation<LottieSourceDocument, JSONValue> {
+        Validation(
+            ruleID: "lottie.layer.compositing-field",
+            description: "Layer compositing fields are modeled or reported before rendering",
+            phase: .semantic,
+            check: { context in
+                guard context.subject.objectMembers != nil, isLayerPath(context.codingPath) else { return [] }
+                guard let blendMode = context.subject.member("bm") else { return [] }
+                guard integralNumber(blendMode) != nil else {
+                    return [
+                        integerFieldError(
+                            ruleID: "lottie.layer.compositing-field",
+                            field: "Layer blend mode `bm`",
+                            key: "bm",
+                            value: blendMode,
+                            path: context.codingPath
                         ),
                     ]
                 }
