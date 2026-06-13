@@ -30,6 +30,13 @@ Validate the curated corpus before trusting it as evidence:
 npm --prefix Tools/LottieOracle run validate-fixtures
 ```
 
+Numeric comparison tolerances are recorded in
+`Tools/LottieOracle/oracle-tolerances.json`. Swift oracle tests load that ledger
+by id for opacity, matrix translation, bounds, path length, and trim segment
+comparisons; the Node oracle tests pin the exact pixel-diff tolerance. Do not
+introduce a new comparison threshold without adding a ledger entry that names
+the feature, unit, comparison, threshold, and reason.
+
 Regenerate the curated corpus fixtures and committed lottie-web intent snapshots:
 
 ```sh
