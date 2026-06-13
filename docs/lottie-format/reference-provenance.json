@@ -500,12 +500,12 @@
       "kind": "validation-idiom",
       "path": "Sources/LottieModel/Validation.swift",
       "source": {
-        "type": "canonical-rule",
-        "value": "/Volumes/Code/DeveloperExt/private/mihaela-agents/Rules/universal/validation-rules.md"
+        "type": "git",
+        "value": "https://github.com/mattpolzin/OpenAPIKit"
       },
       "revision": {
         "status": "known",
-        "value": "OpenAPIKit upstream main 1d42ea6477 as recorded by canonical validation rules"
+        "value": "OpenAPIKit upstream main 1d42ea6477, as analyzed by the canonical validation rule"
       },
       "license": {
         "status": "known",
