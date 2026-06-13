@@ -11,12 +11,12 @@ struct LottieAPNGExportTests {
     func validatedLottieImportsExportThroughPureLayerAsAnimatedPNG() throws {
         let data = try Data(contentsOf: fixture("eligible-shape-position.json"))
         let animation = try LottieAnimation.decode(from: data)
-        let intent = try JSONDecoder().decode(
-            APNGLottieWebIntentTrace.self,
+        let intent = try LottieWebIntentTrace.decodeValidated(
             from: Data(contentsOf: fixture("lottie-web-intent/eligible-shape-position.json"))
         )
+        let tolerances = try loadTolerances()
         let sourceFrame = LottieRenderIRBuilder(animation: animation).frame(at: 5)
-        assertSourceIntentIsMeasured(sourceFrame, intent: intent)
+        try assertSourceIntentIsMeasured(sourceFrame, intent: intent, tolerances: tolerances)
 
         let scene = try LottieImporter().scene(from: data)
         #expect(scene.report.isClean)
@@ -37,7 +37,11 @@ struct LottieAPNGExportTests {
         #expect(animationControlFrameCount(apng) == 13)
     }
 
-    private func assertSourceIntentIsMeasured(_ frame: LottieRenderFrame, intent: APNGLottieWebIntentTrace) {
+    private func assertSourceIntentIsMeasured(
+        _ frame: LottieRenderFrame,
+        intent: LottieWebIntentTrace,
+        tolerances: LottieOracleToleranceLedger
+    ) throws {
         #expect(frame.diagnostics.isEmpty)
         let node = frame.nodes.first
         #expect(node != nil)
@@ -49,8 +53,9 @@ struct LottieAPNGExportTests {
         }
 
         #expect(webLayer.matrix.indices.contains(13))
-        expectClose(webLayer.matrix[12], node.transform.worldMatrix.values[12], tolerance: 0.05)
-        expectClose(webLayer.matrix[13], node.transform.worldMatrix.values[13], tolerance: 0.05)
+        let translationTolerance = try tolerances.threshold(id: "matrix.translation.css-pixel.absolute")
+        expectClose(webLayer.matrix[12], node.transform.worldMatrix.values[12], tolerance: translationTolerance)
+        expectClose(webLayer.matrix[13], node.transform.worldMatrix.values[13], tolerance: translationTolerance)
 
         guard case let .shape(shape) = node.kind,
               let draw = shape.draws.first,
@@ -61,10 +66,11 @@ struct LottieAPNGExportTests {
         }
 
         #expect(fragment.sourceGeometry.bezier.vertices.isEmpty == false)
-        expectClose(fragment.sourceGeometry.bounds.minX, 20)
-        expectClose(fragment.sourceGeometry.bounds.minY, 20)
-        expectClose(fragment.sourceGeometry.bounds.maxX, 44)
-        expectClose(fragment.sourceGeometry.bounds.maxY, 44)
+        let boundsTolerance = try tolerances.threshold(id: "bounds.css-pixel.absolute")
+        expectClose(fragment.sourceGeometry.bounds.minX, 20, tolerance: boundsTolerance)
+        expectClose(fragment.sourceGeometry.bounds.minY, 20, tolerance: boundsTolerance)
+        expectClose(fragment.sourceGeometry.bounds.maxX, 44, tolerance: boundsTolerance)
+        expectClose(fragment.sourceGeometry.bounds.maxY, 44, tolerance: boundsTolerance)
     }
 
     private func fixture(_ name: String) -> URL {
@@ -73,6 +79,16 @@ struct LottieAPNGExportTests {
             .deletingLastPathComponent()
             .appendingPathComponent("Fixtures/LottieOracle", isDirectory: true)
             .appendingPathComponent(name)
+    }
+
+    private func loadTolerances() throws -> LottieOracleToleranceLedger {
+        try LottieOracleToleranceLedger.decodeValidated(
+            from: Data(contentsOf: URL(fileURLWithPath: #filePath)
+                .deletingLastPathComponent()
+                .deletingLastPathComponent()
+                .deletingLastPathComponent()
+                .appendingPathComponent("Tools/LottieOracle/oracle-tolerances.json"))
+        )
     }
 
     private func chunkTypes(_ bytes: [UInt8]) -> [String] {
@@ -113,21 +129,7 @@ struct LottieAPNGExportTests {
             UInt32(bytes[offset + 3])
     }
 
-    private func expectClose(_ actual: Double, _ expected: Double, tolerance: Double = 0.000_001) {
+    private func expectClose(_ actual: Double, _ expected: Double, tolerance: Double) {
         #expect(abs(actual - expected) <= tolerance)
-    }
-}
-
-private struct APNGLottieWebIntentTrace: Decodable {
-    var frames: [Frame]
-
-    struct Frame: Decodable {
-        var frame: Double
-        var layers: [Layer]
-    }
-
-    struct Layer: Decodable {
-        var name: String
-        var matrix: [Double]
     }
 }

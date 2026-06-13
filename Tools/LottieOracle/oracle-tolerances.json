@@ -1,0 +1,56 @@
+{
+  "schema": {
+    "name": "purelottie.oracle-tolerances",
+    "version": 1
+  },
+  "tolerances": [
+    {
+      "id": "opacity.unit-interval.absolute",
+      "feature": "opacity",
+      "unit": "unitInterval",
+      "comparison": "absolute-difference",
+      "threshold": 0.000001,
+      "reason": "Opacity comparisons use normalized unit-interval values from lottie-web and PureLottie; this threshold only absorbs floating-point representation noise."
+    },
+    {
+      "id": "matrix.translation.css-pixel.absolute",
+      "feature": "matrix-translation",
+      "unit": "cssPixel",
+      "comparison": "absolute-difference",
+      "threshold": 0.05,
+      "reason": "Translation is compared after lottie-web SVG matrix extraction and PureLottie source evaluation; five hundredths of a CSS pixel separates numeric intent from raster inspection noise."
+    },
+    {
+      "id": "bounds.css-pixel.absolute",
+      "feature": "bounds",
+      "unit": "cssPixel",
+      "comparison": "absolute-difference",
+      "threshold": 0.00001,
+      "reason": "Bounds compare geometric source facts, not pixels; this threshold covers SVG floating-point serialization while still rejecting visible coordinate drift."
+    },
+    {
+      "id": "path-length.css-pixel.absolute",
+      "feature": "path-length",
+      "unit": "cssPixel",
+      "comparison": "absolute-difference",
+      "threshold": 0.000001,
+      "reason": "Path length comparisons are numeric geometry checks produced by lottie-web getTotalLength and PureLottie source geometry, so only floating-point noise is tolerated."
+    },
+    {
+      "id": "trim.segment.unit-interval.absolute",
+      "feature": "trim-segment",
+      "unit": "unitInterval",
+      "comparison": "absolute-difference",
+      "threshold": 0.000001,
+      "reason": "Trim segment comparisons use normalized start and end fractions before backend rasterization; this threshold covers only floating-point fraction representation noise."
+    },
+    {
+      "id": "pixel.max-channel.exact",
+      "feature": "pixel-diff",
+      "unit": "rgbaChannelValue",
+      "comparison": "max-channel-difference",
+      "threshold": 0,
+      "reason": "Pixel comparison defaults to exact RGBA channel equality; any non-zero threshold must be deliberately requested and recorded separately before visual artifacts are trusted."
+    }
+  ]
+}

@@ -13,11 +13,11 @@ struct LottieLoweringSourceIntentGateTests {
         var matchedShapeCount = 0
         var evidenceFindingCount = 0
         var trimTraceCount = 0
+        let tolerances = try loadTolerances()
 
         for entry in try loadManifest() {
             let animation = try LottieAnimation.decode(from: Data(contentsOf: url(fromOracleRootPath: entry.lottie)))
-            let intent = try JSONDecoder().decode(
-                CorpusLottieWebIntentTrace.self,
+            let intent = try LottieWebIntentTrace.decodeValidated(
                 from: Data(contentsOf: url(fromOracleRootPath: entry.lottieWebIntent))
             )
             let builder = LottieRenderIRBuilder(animation: animation)
@@ -42,11 +42,12 @@ struct LottieLoweringSourceIntentGateTests {
                     frame: renderFrame
                 )
 
-                let comparison = compareLoweredState(
+                let comparison = try compareLoweredState(
                     tree: tree,
                     frame: renderFrame,
                     webFrame: webFrame,
-                    entry: entry
+                    entry: entry,
+                    tolerances: tolerances
                 )
                 matchedLayerCount += comparison.layers
                 matchedShapeCount += comparison.shapes
@@ -61,6 +62,7 @@ struct LottieLoweringSourceIntentGateTests {
 
     @Test("trim source intent is measurable before PureLayer stroke fractions are asserted")
     func trimSourceIntentIsMeasurableBeforePureLayerStrokeFractionsAreAsserted() throws {
+        let trimSegmentTolerance = try loadTolerances().threshold(id: "trim.segment.unit-interval.absolute")
         let animation = try LottieAnimation.decode(from: Data(contentsOf: fixture("trim-ellipse-quadrant.json")))
         let frame = LottieRenderIRBuilder(animation: animation).frame(at: 5)
         let node = try #require(frame.nodes.first)
@@ -75,8 +77,8 @@ struct LottieLoweringSourceIntentGateTests {
 
         #expect(trace.sourceFrame == 5)
         #expect(trace.authoredMultiple == 1)
-        expectClose(trace.normalization.normalizedStartFraction, 0)
-        expectClose(trace.normalization.normalizedEndFraction, 0.25)
+        expectClose(trace.normalization.normalizedStartFraction, 0, tolerance: trimSegmentTolerance)
+        expectClose(trace.normalization.normalizedEndFraction, 0.25, tolerance: trimSegmentTolerance)
         #expect(trace.inputPaths.isEmpty == false)
         #expect(trace.totalLength > 0)
         #expect(trace.selectedSegments.isEmpty == false)
@@ -87,8 +89,8 @@ struct LottieLoweringSourceIntentGateTests {
         let layer = try #require(tree.root.sublayers.first { $0.name == node.id.description })
         let shapeLayer = try #require(allShapeLayers(in: layer).first)
 
-        expectClose(shapeLayer.strokeStart, trace.normalization.normalizedStartFraction)
-        expectClose(shapeLayer.strokeEnd, trace.normalization.normalizedEndFraction)
+        expectClose(shapeLayer.strokeStart, trace.normalization.normalizedStartFraction, tolerance: trimSegmentTolerance)
+        expectClose(shapeLayer.strokeEnd, trace.normalization.normalizedEndFraction, tolerance: trimSegmentTolerance)
     }
 
     private func assertMeasuredSourceIntent(_ frame: LottieRenderFrame, entry: CorpusFixtureManifestEntry) {
@@ -208,9 +210,10 @@ struct LottieLoweringSourceIntentGateTests {
     private func compareLoweredState(
         tree: LottieRenderLayerTree,
         frame: LottieRenderFrame,
-        webFrame: CorpusLottieWebIntentTrace.Frame,
-        entry: CorpusFixtureManifestEntry
-    ) -> (layers: Int, shapes: Int) {
+        webFrame: LottieWebIntentTrace.Frame,
+        entry: CorpusFixtureManifestEntry,
+        tolerances: LottieOracleToleranceLedger
+    ) throws -> (layers: Int, shapes: Int) {
         var matchedLayers = 0
         var matchedShapes = 0
 
@@ -222,7 +225,7 @@ struct LottieLoweringSourceIntentGateTests {
             matchedLayers += 1
             expectClose(layer.opacity, node.opacity)
             assertTransform(layer.transform, matches: node.transform.worldMatrix.values, entry: entry, node: node)
-            assertDirectLottieWebTranslation(webFrame: webFrame, node: node, entry: entry)
+            try assertDirectLottieWebTranslation(webFrame: webFrame, node: node, entry: entry, tolerances: tolerances)
             assertMaskState(layer: layer, node: node)
 
             if case let .shape(shape) = node.kind {
@@ -243,16 +246,18 @@ struct LottieLoweringSourceIntentGateTests {
     }
 
     private func assertDirectLottieWebTranslation(
-        webFrame: CorpusLottieWebIntentTrace.Frame,
+        webFrame: LottieWebIntentTrace.Frame,
         node: LottieRenderNode,
-        entry: CorpusFixtureManifestEntry
-    ) {
+        entry: CorpusFixtureManifestEntry,
+        tolerances: LottieOracleToleranceLedger
+    ) throws {
         guard entry.hasDirectTranslationComparison else { return }
         guard let webLayer = webFrame.layers.first(where: { $0.name == node.layerName }) else { return }
         guard webLayer.matrix.indices.contains(13) else { return }
 
-        expectClose(webLayer.matrix[12], node.transform.worldMatrix.values[12], tolerance: 0.05)
-        expectClose(webLayer.matrix[13], node.transform.worldMatrix.values[13], tolerance: 0.05)
+        let translationTolerance = try tolerances.threshold(id: "matrix.translation.css-pixel.absolute")
+        expectClose(webLayer.matrix[12], node.transform.worldMatrix.values[12], tolerance: translationTolerance)
+        expectClose(webLayer.matrix[13], node.transform.worldMatrix.values[13], tolerance: translationTolerance)
     }
 
     private func assertTransform(
@@ -425,6 +430,12 @@ struct LottieLoweringSourceIntentGateTests {
         )
     }
 
+    private func loadTolerances() throws -> LottieOracleToleranceLedger {
+        try LottieOracleToleranceLedger.decodeValidated(
+            from: Data(contentsOf: repositoryRoot().appendingPathComponent("Tools/LottieOracle/oracle-tolerances.json"))
+        )
+    }
+
     private func url(fromOracleRootPath path: String) -> URL {
         URL(fileURLWithPath: path, relativeTo: repositoryRoot().appendingPathComponent("Tools/LottieOracle", isDirectory: true))
             .standardizedFileURL
@@ -549,20 +560,6 @@ private struct CorpusFixtureManifestEntry: Decodable {
             "shape-transform",
             "time-remap",
         ])
-    }
-}
-
-private struct CorpusLottieWebIntentTrace: Decodable {
-    var frames: [Frame]
-
-    struct Frame: Decodable {
-        var frame: Double
-        var layers: [Layer]
-    }
-
-    struct Layer: Decodable {
-        var name: String
-        var matrix: [Double]
     }
 }
 

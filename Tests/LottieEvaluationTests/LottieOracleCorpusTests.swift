@@ -92,6 +92,10 @@ struct LottieOracleCorpusTests {
 
     @Test("corpus snapshots line up with RenderIR root layer facts")
     func corpusSnapshotsLineUpWithRenderIRRootLayerFacts() throws {
+        let tolerances = try loadTolerances()
+        let opacityTolerance = try tolerances.threshold(id: "opacity.unit-interval.absolute")
+        let translationTolerance = try tolerances.threshold(id: "matrix.translation.css-pixel.absolute")
+
         for entry in try loadManifest() {
             let animation = try LottieAnimation.decode(from: Data(contentsOf: url(fromOracleRootPath: entry.lottie)))
             let intent = try LottieWebIntentTrace.decodeValidated(
@@ -114,10 +118,10 @@ struct LottieOracleCorpusTests {
                     guard let webLayer = webFrame.layers.first(where: { $0.name == node.layerName }) else {
                         continue
                     }
-                    expectClose(webLayer.opacity, node.opacity, tolerance: 0.000_001)
+                    expectClose(webLayer.opacity, node.opacity, tolerance: opacityTolerance)
                     if entry.hasDirectTranslationComparison, webLayer.matrix.indices.contains(13) {
-                        expectClose(webLayer.matrix[12], node.transform.worldMatrix.values[12], tolerance: 0.05)
-                        expectClose(webLayer.matrix[13], node.transform.worldMatrix.values[13], tolerance: 0.05)
+                        expectClose(webLayer.matrix[12], node.transform.worldMatrix.values[12], tolerance: translationTolerance)
+                        expectClose(webLayer.matrix[13], node.transform.worldMatrix.values[13], tolerance: translationTolerance)
                     }
                 }
             }
@@ -134,6 +138,12 @@ struct LottieOracleCorpusTests {
     private func url(fromOracleRootPath path: String) -> URL {
         URL(fileURLWithPath: path, relativeTo: repositoryRoot().appendingPathComponent("Tools/LottieOracle", isDirectory: true))
             .standardizedFileURL
+    }
+
+    private func loadTolerances() throws -> LottieOracleToleranceLedger {
+        try LottieOracleToleranceLedger.decodeValidated(
+            from: Data(contentsOf: repositoryRoot().appendingPathComponent("Tools/LottieOracle/oracle-tolerances.json"))
+        )
     }
 
     private func repositoryRoot() -> URL {

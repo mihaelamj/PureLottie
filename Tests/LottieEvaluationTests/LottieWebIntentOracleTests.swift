@@ -18,6 +18,11 @@ struct LottieWebIntentOracleTests {
         #expect(oracle.renderer == "svg")
         #expect(oracle.frames.map(\.frame) == [0, 5, 9])
 
+        let tolerances = try loadTolerances()
+        let opacityTolerance = try tolerances.threshold(id: "opacity.unit-interval.absolute")
+        let translationTolerance = try tolerances.threshold(id: "matrix.translation.css-pixel.absolute")
+        let boundsTolerance = try tolerances.threshold(id: "bounds.css-pixel.absolute")
+        let pathLengthTolerance = try tolerances.threshold(id: "path-length.css-pixel.absolute")
         let builder = LottieRenderIRBuilder(animation: animation)
         for webFrame in oracle.frames {
             let pureFrame = builder.frame(at: webFrame.frame)
@@ -35,9 +40,9 @@ struct LottieWebIntentOracleTests {
             #expect(webLayer.outPoint == 10)
             #expect(webLayer.renderedFrame == webFrame.frame)
 
-            expectClose(webLayer.opacity, node.opacity)
-            expectClose(webLayer.matrix[12], node.transform.worldMatrix.values[12])
-            expectClose(webLayer.matrix[13], node.transform.worldMatrix.values[13])
+            expectClose(webLayer.opacity, node.opacity, tolerance: opacityTolerance)
+            expectClose(webLayer.matrix[12], node.transform.worldMatrix.values[12], tolerance: translationTolerance)
+            expectClose(webLayer.matrix[13], node.transform.worldMatrix.values[13], tolerance: translationTolerance)
 
             guard case let .shape(shape) = node.kind else {
                 Issue.record("Expected a shape RenderIR node.")
@@ -47,11 +52,11 @@ struct LottieWebIntentOracleTests {
             let fragment = try #require(draw.fragments.first)
             let bounds = fragment.sourceGeometry.bounds
 
-            expectClose(webPath.localBBox.minX, bounds.minX)
-            expectClose(webPath.localBBox.minY, bounds.minY)
-            expectClose(webPath.localBBox.maxX, bounds.maxX)
-            expectClose(webPath.localBBox.maxY, bounds.maxY)
-            expectClose(webPath.pathLength, 96)
+            expectClose(webPath.localBBox.minX, bounds.minX, tolerance: boundsTolerance)
+            expectClose(webPath.localBBox.minY, bounds.minY, tolerance: boundsTolerance)
+            expectClose(webPath.localBBox.maxX, bounds.maxX, tolerance: boundsTolerance)
+            expectClose(webPath.localBBox.maxY, bounds.maxY, tolerance: boundsTolerance)
+            expectClose(webPath.pathLength, 96, tolerance: pathLengthTolerance)
             #expect(webPath.d.contains("M44,20"))
             #expect(webPath.style.fill == "rgb(25, 102, 255)")
             #expect(webPath.style.stroke == "none")
@@ -61,12 +66,12 @@ struct LottieWebIntentOracleTests {
                 return
             }
             #expect(fill.color.prefix(3).map { Int(floor($0 * 255)) } == [25, 102, 255])
-            expectClose(fill.opacity, webPath.style.fillOpacity)
+            expectClose(fill.opacity, webPath.style.fillOpacity, tolerance: opacityTolerance)
 
-            expectClose(webLayerBounds.minX, bounds.minX + node.transform.worldMatrix.values[12], tolerance: 0.000_01)
-            expectClose(webLayerBounds.minY, bounds.minY + node.transform.worldMatrix.values[13])
-            expectClose(webLayerBounds.maxX, bounds.maxX + node.transform.worldMatrix.values[12], tolerance: 0.000_01)
-            expectClose(webLayerBounds.maxY, bounds.maxY + node.transform.worldMatrix.values[13])
+            expectClose(webLayerBounds.minX, bounds.minX + node.transform.worldMatrix.values[12], tolerance: boundsTolerance)
+            expectClose(webLayerBounds.minY, bounds.minY + node.transform.worldMatrix.values[13], tolerance: boundsTolerance)
+            expectClose(webLayerBounds.maxX, bounds.maxX + node.transform.worldMatrix.values[12], tolerance: boundsTolerance)
+            expectClose(webLayerBounds.maxY, bounds.maxY + node.transform.worldMatrix.values[13], tolerance: boundsTolerance)
         }
     }
 
@@ -78,7 +83,17 @@ struct LottieWebIntentOracleTests {
             .appendingPathComponent(name)
     }
 
-    private func expectClose(_ actual: Double, _ expected: Double, tolerance: Double = 0.000_001) {
+    private func loadTolerances() throws -> LottieOracleToleranceLedger {
+        try LottieOracleToleranceLedger.decodeValidated(
+            from: Data(contentsOf: URL(fileURLWithPath: #filePath)
+                .deletingLastPathComponent()
+                .deletingLastPathComponent()
+                .deletingLastPathComponent()
+                .appendingPathComponent("Tools/LottieOracle/oracle-tolerances.json"))
+        )
+    }
+
+    private func expectClose(_ actual: Double, _ expected: Double, tolerance: Double) {
         #expect(abs(actual - expected) <= tolerance)
     }
 }
