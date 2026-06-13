@@ -33,15 +33,29 @@ final class ReferenceProvenanceLedgerTests: XCTestCase {
             .filter { $0.deletingLastPathComponent().lastPathComponent == "LottieOracle" }
         let intentFixtures = try jsonFiles(in: repositoryRoot().appendingPathComponent("Tests/Fixtures/LottieOracle/lottie-web-intent", isDirectory: true))
         let statuses = Dictionary(grouping: manifest.map(\.semanticStatus), by: { $0 }).mapValues(\.count)
+        let validationStatuses = Dictionary(grouping: manifest.map(\.validation.status), by: { $0 }).mapValues(\.count)
 
         XCTAssertEqual(manifest.count, 31)
         XCTAssertEqual(sourceFixtures.count, manifest.count)
         XCTAssertEqual(intentFixtures.count, manifest.count)
         XCTAssertEqual(statuses["modeled"], 30)
         XCTAssertEqual(statuses["diagnosed"], 1)
+        XCTAssertEqual(validationStatuses["usable"], 31)
+        XCTAssertTrue(manifest.allSatisfy { $0.validation.sourceJSON == "parses" })
+        XCTAssertTrue(manifest.allSatisfy { $0.validation.lottieWeb == "loads" })
+        XCTAssertTrue(manifest.allSatisfy { $0.validation.numericIntent == "committed" })
+        XCTAssertTrue(manifest.allSatisfy { $0.validation.referenceNonEmpty == "passed" })
+        XCTAssertTrue(manifest.allSatisfy(\.validation.failureReasons.isEmpty))
         XCTAssertTrue(ledger.contains("31 source JSON files"))
         XCTAssertTrue(ledger.contains("31 JSON files in `Tests/Fixtures/LottieOracle/lottie-web-intent`"))
         XCTAssertTrue(ledger.contains("30 `modeled`, 1 `diagnosed`"))
+        XCTAssertTrue(ledger.contains("`validation.status` | `usable` for 31 fixtures"))
+        XCTAssertTrue(ledger.contains("`validation.sourceJSON` | `parses` for 31 fixtures"))
+        XCTAssertTrue(ledger.contains("`validation.lottieWeb` | `loads` for 31 fixtures"))
+        XCTAssertTrue(ledger.contains("`validation.numericIntent` | `committed` for 31 fixtures"))
+        XCTAssertTrue(ledger.contains("`validation.referenceNonEmpty` | `passed` for 31 fixtures"))
+        XCTAssertTrue(ledger.contains("`validation.failureReasons` | empty for 31 fixtures"))
+        XCTAssertTrue(ledger.contains("`npm --prefix Tools/LottieOracle run validate-fixtures`"))
         XCTAssertTrue(ledger.contains("lottie-web@5.13.0"))
         XCTAssertTrue(ledger.contains("Local PureLottie-authored regression fixtures tracked by Git"))
         XCTAssertTrue(ledger.contains("Repository history plus manifest path"))
@@ -167,4 +181,14 @@ private let expectedCorpusSources = [
 
 private struct OracleManifestEntry: Decodable {
     var semanticStatus: String
+    var validation: FixtureValidation
+
+    struct FixtureValidation: Decodable {
+        var status: String
+        var sourceJSON: String
+        var lottieWeb: String
+        var numericIntent: String
+        var referenceNonEmpty: String
+        var failureReasons: [String]
+    }
 }

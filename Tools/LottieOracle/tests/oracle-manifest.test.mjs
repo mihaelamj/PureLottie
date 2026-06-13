@@ -14,6 +14,7 @@ test('oracle dependencies are exact external pins', () => {
   assert.equal(packageJson.dependencies.pngjs, '7.0.0');
   assert.equal(packageJson.scripts['build-corpus'], 'node scripts/build-curated-corpus.mjs');
   assert.equal(packageJson.scripts['extract-intent'], 'node scripts/extract-intent.mjs');
+  assert.equal(packageJson.scripts['validate-fixtures'], 'node scripts/validate-fixtures.mjs --check-lottie-web');
 
   for (const version of Object.values(packageJson.dependencies)) {
     assert.match(version, /^\d+\.\d+\.\d+$/);
@@ -33,6 +34,14 @@ test('curated fixtures declare frame rationale and resolve to committed traces',
     assert.ok(fixture.coverage.length > 0);
     assert.equal(typeof fixture.expectedValidationEligible, 'boolean');
     assert.equal(fixture.expectReferenceNonEmpty, true);
+    assert.deepEqual(fixture.validation, {
+      status: 'usable',
+      sourceJSON: 'parses',
+      lottieWeb: 'loads',
+      numericIntent: 'committed',
+      referenceNonEmpty: 'passed',
+      failureReasons: []
+    });
     assert.ok(fixture.frames.length >= 3);
     assert.ok(fs.existsSync(path.resolve(oracleRoot, fixture.lottie)));
 

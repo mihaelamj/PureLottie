@@ -1,0 +1,40 @@
+name: Oracle CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lottie-web-oracle:
+    name: LottieOracle validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: Tools/LottieOracle/package-lock.json
+
+      - name: Install oracle dependencies
+        run: npm ci --prefix Tools/LottieOracle
+
+      - name: Install Chromium
+        run: npx --prefix Tools/LottieOracle playwright install --with-deps chromium
+
+      - name: Test oracle tool
+        run: npm --prefix Tools/LottieOracle test
+
+      - name: Validate curated fixtures against lottie-web
+        run: npm --prefix Tools/LottieOracle run validate-fixtures

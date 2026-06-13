@@ -13,6 +13,13 @@ struct LottieOracleCorpusTests {
         #expect(Set(manifest.map(\.id)).count == manifest.count)
         #expect(manifest.allSatisfy { !$0.coverage.isEmpty })
         #expect(manifest.allSatisfy { $0.frames.count >= 3 })
+        #expect(manifest.allSatisfy { $0.validation.status == "usable" })
+        #expect(manifest.allSatisfy { $0.validation.sourceJSON == "parses" })
+        #expect(manifest.allSatisfy { $0.validation.lottieWeb == "loads" })
+        #expect(manifest.allSatisfy { $0.validation.numericIntent == "committed" })
+        #expect(manifest.allSatisfy { $0.validation.referenceNonEmpty == "passed" })
+        let entriesWithValidationFailures = manifest.filter { !$0.validation.failureReasons.isEmpty }
+        #expect(entriesWithValidationFailures.isEmpty)
 
         let coverage = Set(manifest.flatMap(\.coverage))
         for required in [
@@ -128,9 +135,19 @@ private struct CorpusFixtureManifestEntry: Decodable {
     var lottieWebIntent: String
     var renderer: String
     var frames: [Frame]
+    var validation: FixtureValidation
 
     struct Frame: Decodable {
         var frame: Double
+    }
+
+    struct FixtureValidation: Decodable {
+        var status: String
+        var sourceJSON: String
+        var lottieWeb: String
+        var numericIntent: String
+        var referenceNonEmpty: String
+        var failureReasons: [String]
     }
 
     enum SemanticStatus: String, Decodable {

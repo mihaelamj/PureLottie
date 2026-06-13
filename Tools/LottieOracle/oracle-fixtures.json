@@ -29,7 +29,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "static-rectangle-fill",
@@ -60,7 +68,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "animated-position-linear",
@@ -92,7 +108,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "split-position-ellipse",
@@ -124,7 +148,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "anchor-rotation-rectangle",
@@ -156,7 +188,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "scale-rotation-anchor",
@@ -188,7 +228,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "animated-opacity-rectangle",
@@ -219,7 +267,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "group-transform-rectangle",
@@ -250,7 +306,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "group-opacity-two-shapes",
@@ -282,7 +346,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "parent-null-transform-child",
@@ -314,7 +386,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "parent-animated-transform-child",
@@ -346,7 +426,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "ellipse-fill",
@@ -376,7 +464,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "ellipse-reversed-direction",
@@ -407,7 +503,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "rounded-rectangle",
@@ -438,7 +542,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "raw-bezier-triangle",
@@ -468,7 +580,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "raw-bezier-cubic",
@@ -498,7 +618,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "polygon-five",
@@ -529,7 +657,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "star-five",
@@ -560,7 +696,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "fill-rule-evenodd",
@@ -591,7 +735,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "stroke-basic-line",
@@ -621,7 +773,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "stroke-caps-joins",
@@ -653,7 +813,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "stroke-dash",
@@ -684,7 +852,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "animated-stroke-width",
@@ -715,7 +891,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "trim-rectangle-half",
@@ -746,7 +930,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "trim-ellipse-quadrant",
@@ -777,7 +969,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "animated-trim-path",
@@ -809,7 +1009,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "layer-window-in-out",
@@ -844,7 +1052,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "mask-add-rectangle",
@@ -875,7 +1091,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "alpha-matte-rectangle",
@@ -907,7 +1131,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "precomp-static-child",
@@ -939,7 +1171,15 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": true
+    "expectedValidationEligible": true,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   },
   {
     "id": "time-remap-precomp-diagnosed",
@@ -971,6 +1211,14 @@
     "scale": 1,
     "renderer": "svg",
     "expectReferenceNonEmpty": true,
-    "expectedValidationEligible": false
+    "expectedValidationEligible": false,
+    "validation": {
+      "status": "usable",
+      "sourceJSON": "parses",
+      "lottieWeb": "loads",
+      "numericIntent": "committed",
+      "referenceNonEmpty": "passed",
+      "failureReasons": []
+    }
   }
 ]

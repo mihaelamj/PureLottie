@@ -9,7 +9,7 @@ It is deliberately outside `Package.swift`. The Swift package still depends only
 Install the pinned Node dependencies:
 
 ```sh
-npm install --prefix Tools/LottieOracle
+npm ci --prefix Tools/LottieOracle
 ```
 
 Install the Chromium browser used by Playwright if it is not already present:
@@ -22,6 +22,12 @@ Run the selected fixture:
 
 ```sh
 npm --prefix Tools/LottieOracle run oracle -- --fixture eligible-shape-position
+```
+
+Validate the curated corpus before trusting it as evidence:
+
+```sh
+npm --prefix Tools/LottieOracle run validate-fixtures
 ```
 
 Regenerate the curated corpus fixtures and committed lottie-web intent snapshots:
@@ -69,9 +75,16 @@ vetted fixtures from `Tests/Fixtures/LottieOracle`. Each fixture has:
 - a small source Lottie JSON file;
 - selected source frames with rationale;
 - coverage tags and a bug-class explanation;
+- a machine-readable validation record stating that the JSON parses, pinned
+  lottie-web loads it, the numeric intent trace is committed, and selected
+  reference frames are non-empty;
 - a committed `purelottie.lottie-web-intent` snapshot under
   `Tests/Fixtures/LottieOracle/lottie-web-intent`;
 - a semantic status of `modeled` or `diagnosed`.
+
+The validation command reports failures with manifest paths and fixture ids. A
+failing fixture is not evidence until the manifest records the failure reason or
+the source/trace problem is fixed.
 
 The raw 857-file corpus under `Tests/Fixtures/LottieCorpus` remains discovery
 material. This curated set is the regression oracle.
