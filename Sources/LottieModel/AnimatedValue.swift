@@ -97,10 +97,10 @@ public struct LottieKeyframe<Value: Decodable & Sendable & Equatable>: Decodable
         time = try container.decode(Double.self, forKey: .time)
         startValue = try Self.decodeValueIfPresent(in: container, key: .startValue)
         endValue = try Self.decodeValueIfPresent(in: container, key: .endValue)
-        easeIn = try? container.decodeIfPresent(EasingHandle.self, forKey: .easeIn)
-        easeOut = try? container.decodeIfPresent(EasingHandle.self, forKey: .easeOut)
-        spatialOut = try? container.decodeIfPresent([Double].self, forKey: .spatialOut)
-        spatialIn = try? container.decodeIfPresent([Double].self, forKey: .spatialIn)
+        easeIn = try container.decodeIfPresent(EasingHandle.self, forKey: .easeIn)
+        easeOut = try container.decodeIfPresent(EasingHandle.self, forKey: .easeOut)
+        spatialOut = try container.decodeIfPresent([Double].self, forKey: .spatialOut)
+        spatialIn = try container.decodeIfPresent([Double].self, forKey: .spatialIn)
         isHold = try (container.decodeIfPresent(Int.self, forKey: .hold) ?? 0) == 1
     }
 
