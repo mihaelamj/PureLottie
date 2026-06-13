@@ -8,8 +8,7 @@ struct LottieWebIntentOracleTests {
     @Test("committed lottie-web intent trace matches PureLottie source facts")
     func committedLottieWebIntentTraceMatchesPureLottieSourceFacts() throws {
         let animation = try LottieAnimation.decode(from: Data(contentsOf: fixture("eligible-shape-position.json")))
-        let oracle = try JSONDecoder().decode(
-            LottieWebIntentTrace.self,
+        let oracle = try LottieWebIntentTrace.decodeValidated(
             from: Data(contentsOf: fixture("lottie-web-intent/eligible-shape-position.json"))
         )
 
@@ -81,61 +80,5 @@ struct LottieWebIntentOracleTests {
 
     private func expectClose(_ actual: Double, _ expected: Double, tolerance: Double = 0.000_001) {
         #expect(abs(actual - expected) <= tolerance)
-    }
-}
-
-private struct LottieWebIntentTrace: Decodable {
-    var schema: Schema
-    var renderer: String
-    var lottieWeb: LottieWeb
-    var frames: [Frame]
-
-    struct Schema: Decodable {
-        var name: String
-        var version: Int
-    }
-
-    struct LottieWeb: Decodable {
-        var version: String
-    }
-
-    struct Frame: Decodable {
-        var frame: Double
-        var layerCount: Int
-        var pathCount: Int
-        var layers: [Layer]
-        var paths: [Path]
-    }
-
-    struct Layer: Decodable {
-        var name: String
-        var type: Int
-        var ind: Int
-        var inPoint: Double
-        var outPoint: Double
-        var renderedFrame: Double
-        var opacity: Double
-        var matrix: [Double]
-        var layerElementBounds: Bounds?
-    }
-
-    struct Path: Decodable {
-        var d: String
-        var pathLength: Double
-        var localBBox: Bounds
-        var style: Style
-    }
-
-    struct Style: Decodable {
-        var fill: String
-        var fillOpacity: Double
-        var stroke: String
-    }
-
-    struct Bounds: Decodable {
-        var minX: Double
-        var minY: Double
-        var maxX: Double
-        var maxY: Double
     }
 }
