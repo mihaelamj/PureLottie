@@ -8,9 +8,11 @@ import XCTest
 /// (`LottieSourceDocument.parse` + `LottieValidator`). This covers the typed
 /// Decodable layer underneath it: `LottieAnimation.decode` must reject malformed
 /// or type-confused input with a thrown error (it strict-decodes; it must not
-/// silently produce a model), and it must be total over arbitrary bytes -- throw
-/// or succeed, never trap. Reaching the end of the fuzz loop is the totality
-/// proof: a trap (force-unwrap, fatalError) would abort the test process.
+/// silently produce a model), and across a deterministic fuzz sample it must
+/// throw or succeed, never trap. Reaching the end of the loop proves no input in
+/// the sample traps (a trap, e.g. force-unwrap or fatalError, would abort the
+/// test process); this samples robustness, it does not prove totality over all
+/// inputs.
 ///
 /// `FuzzPRNG` is the deterministic generator declared in `LottieTotalityTests`
 /// (same test target).
