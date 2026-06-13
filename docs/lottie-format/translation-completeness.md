@@ -22,13 +22,16 @@ proven incomplete and its path is named.
 
 ### Format coverage is complete (theorem, bounded to lottie-spec @4b55957)
 
-Every property key the official schema defines is modeled or reported; the model
-decodes exactly the modeled keys (a partition theorem, both directions); and the
-typed decode is total on malformed input (rejects or throws, never traps).
+Every property key the official schema defines is modeled or reported, and the
+model decodes exactly the modeled keys (a partition theorem, both directions).
+Separately, the typed decode rejects the malformed inputs tested and traps on
+none of a 1000+ input deterministic fuzz; that robustness is `sampled` (it does
+not prove totality over all inputs).
 - Evidence: `LottieFeatureCoverageTests` (key-set guard, modeled decode-backing,
   partition theorem), `LottieModelDecodeTotalityTests` (malformed rejection +
   fuzz), `docs/lottie-format/verify-coverage.sh` (70/70 keys, 28/28 enums, pinned).
-- Status: `theorem (bounded to lottie-spec @4b55957)`. (Closed #138.)
+- Status: coverage and partition are `theorem (bounded to lottie-spec @4b55957)`
+  (exhaustive over all 70 keys); fuzz robustness is `sampled`. (Closed #138.)
 
 The checks bit, which is why this is trusted: they caught four registry lies
 (`g`, `np`, `u`, `ver` falsely marked modeled) and the typed-decode fuzz gap that
