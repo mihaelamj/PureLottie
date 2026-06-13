@@ -89,10 +89,22 @@ itself a result:
   and PureLayer renders exactly 660 (the geometric intersection). PureLayer's
   additive mask is **correct**; lottie-web's value was the anomaly. See
   `LottieRenderOracleTests.additiveMaskClipsToIntersection`.
-- So the remaining five #134 items are **unverified**: they need the same
-  geometry-grounded coordinate check before being called PureLayer bugs. The
-  honest claim is "PureLayer and lottie-web diverge on N cases; which side is
-  correct is established only where the geometry has been computed."
+- A second case (split-position-ellipse) was then root-caused the same way and
+  is **also not a PureLottie bug**: the lowered `ShapeLayer.path` is the full
+  ellipse centred at local origin (`[-8,8]×[-8,8]`) and the layer transform is
+  correct (`m41=18, m42=32`), so the shape lands fully inside the 64×64 canvas.
+  The clip comes from a PureLayer compositor defect: a layer's `masksToBounds`
+  clip rectangle is offset by a descendant's translation transform, so the
+  canvas clip eats the negative-local half of every translated shape. Reduced to
+  a minimal Lottie-free repro and filed as `mihaelamj/PureLayer#160`. See
+  `LottieRenderOracleTests` and PureLottie #134.
+- So the remaining three #134 items (dash, stroke caps, raw cubic bezier) are
+  **unverified**: they need the same geometry-grounded coordinate check before
+  being called PureLayer bugs. The honest claim is "PureLayer and lottie-web
+  diverge on N cases; which side is correct is established only where the
+  geometry has been computed, and so far each computed case has found PureLayer
+  correct (mask) or a separately-filed PureLayer bug (split position), never a
+  PureLottie translation error."
 - A claim of "100% render-equivalent translation" is still unproven (the
   divergences are real and most are unattributed). But "PureLayer renders six
   features wrong" was an overclaim resting on lottie-web-as-ground-truth.
@@ -125,7 +137,9 @@ numeric theorem.
 We cannot prove, and do not claim, **render-equivalent** translation: PureLayer
 and lottie-web diverge on several fixtures, and that gap is real. We also do not
 claim the inverse ("PureLayer renders them wrong") beyond what the geometry has
-shown: coordinate root-cause on the mask case proved PureLayer correct there, so
-the divergences are mostly unattributed pending the same check. The path to a
+shown: coordinate root-cause proved PureLayer correct on the mask case and found
+a separately-filed PureLayer compositor bug (`PureLayer#160`) on the
+split-position case, with neither being a PureLottie translation error; the
+remaining divergences are unattributed pending the same check. The path to a
 real render oracle (#140 + #21) is named, not hand-waved. Claiming either a green
 render or a blanket PureLayer-is-broken would be the shortcut this effort forbids.
