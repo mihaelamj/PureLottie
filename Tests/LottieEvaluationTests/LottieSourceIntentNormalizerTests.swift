@@ -9,7 +9,6 @@ import Testing
 
 @Suite("Lottie source-intent normalizer and confluence")
 struct LottieSourceIntentNormalizerTests {
-
     private func mockProvenance(name: String) -> LottieSourceIntentProvenance {
         LottieSourceIntentProvenance(
             sourcePath: "mock > \(name)",
@@ -52,14 +51,14 @@ struct LottieSourceIntentNormalizerTests {
             2, 0, 0, 0,
             0, 3, 0, 0,
             0, 0, 1, 0,
-            10, 20, 0, 1
+            10, 20, 0, 1,
         ], name: "t1")
-        
+
         let tIdentity = try makeTransform(matrixValues: [
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
-            0, 0, 0, 1
+            0, 0, 0, 1,
         ], name: "identity")
 
         let geom = LottieSourceIntentGeometry(
@@ -109,7 +108,7 @@ struct LottieSourceIntentNormalizerTests {
             2, 0, 0, 0,
             0, 3, 0, 0,
             0, 0, 1, 0,
-            10, 20, 0, 1
+            10, 20, 0, 1,
         ], name: "t1")
 
         // T2: Rotate + Translate
@@ -117,7 +116,7 @@ struct LottieSourceIntentNormalizerTests {
             0, -1, 0, 0,
             1, 0, 0, 0,
             0, 0, 1, 0,
-            5, -10, 0, 1
+            5, -10, 0, 1,
         ], name: "t2")
 
         // T3: Scale + Translate
@@ -125,7 +124,7 @@ struct LottieSourceIntentNormalizerTests {
             1.5, 0, 0, 0,
             0, 2, 0, 0,
             0, 0, 1, 0,
-            2, 4, 0, 1
+            2, 4, 0, 1,
         ], name: "t3")
 
         let geom = LottieSourceIntentGeometry(
@@ -137,7 +136,7 @@ struct LottieSourceIntentNormalizerTests {
         )
 
         let normalizer = LottieSourceIntentNormalizer()
-        
+
         var ltrSteps: [LottieSourceIntentRewriteStep] = []
         let ltrResult = normalizer.normalize(geom, strategy: .leftToRight, steps: &ltrSteps)
 
@@ -147,10 +146,10 @@ struct LottieSourceIntentNormalizerTests {
         // Verify the normal form is unique (confluence)
         #expect(ltrResult.transformStack.count == 1)
         #expect(rtlResult.transformStack.count == 1)
-        
+
         // Assert bit-identical values for matrices
         #expect(ltrResult.transformStack[0].matrix.values == rtlResult.transformStack[0].matrix.values)
-        
+
         // Ensure steps were taken
         #expect(ltrSteps.count == 2)
         #expect(rtlSteps.count == 2)
@@ -171,7 +170,7 @@ struct LottieSourceIntentNormalizerTests {
         )
 
         let normalizer = LottieSourceIntentNormalizer()
-        
+
         var ltrSteps: [LottieSourceIntentRewriteStep] = []
         let ltrResult = normalizer.normalize(geom, strategy: .leftToRight, steps: &ltrSteps)
 
