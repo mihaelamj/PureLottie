@@ -131,8 +131,120 @@ struct LottieSourceIntentRoundTripGateTests {
         #expect(errors.contains { $0.ruleID == "lottie.round-trip.loss.reason" })
     }
 
+    @Test("path style trim mask and matte facts round trip from curated fixtures")
+    func pathStyleTrimMaskAndMatteFactsRoundTripFromCuratedFixtures() throws {
+        let fillRule = try roundTripReport(fixture: "fill-rule-evenodd.json")
+        try fillRule.validate()
+        #expect(fillRule.findingCount == 0)
+        let fillLayer = try #require(fillRule.frames.first?.layers.first)
+        #expect(fillLayer.geometryCount == fillLayer.decompiledGeometryCount)
+        #expect(fillLayer.styleCount == fillLayer.decompiledStyleCount)
+
+        let fillIntent = try decompiledIntent(fixture: "fill-rule-evenodd.json")
+        let fillStyle = try #require(fillIntent.frames.first?.visibleLayers.first?.styles.first)
+        #expect(fillStyle.fillRule == 2)
+
+        let trim = try roundTripReport(fixture: "trim-ellipse-quadrant.json")
+        try trim.validate()
+        #expect(trim.findingCount == 0)
+        let trimLayer = try #require(trim.frames.first?.layers.first)
+        #expect(trimLayer.trimTraceCount == 1)
+        #expect(trimLayer.trimTraceCount == trimLayer.decompiledTrimTraceCount)
+        let trimIntent = try decompiledIntent(fixture: "trim-ellipse-quadrant.json")
+        let trimTrace = try #require(trimIntent.frames.first?.visibleLayers.first?.trimTraces?.first)
+        #expect(trimTrace.normalization.normalizedStartFraction == 0)
+        #expect(trimTrace.normalization.normalizedEndFraction == 0.25)
+        #expect(trimTrace.selectedSegments.count == 1)
+
+        let mask = try roundTripReport(fixture: "mask-add-rectangle.json")
+        try mask.validate()
+        #expect(mask.findingCount == 0)
+        let maskLayer = try #require(mask.frames.first?.layers.first)
+        #expect(maskLayer.maskCount == 1)
+        #expect(maskLayer.maskCount == maskLayer.decompiledMaskCount)
+
+        let matte = try roundTripReport(fixture: "alpha-matte-rectangle.json")
+        try matte.validate()
+        #expect(matte.findingCount == 0)
+        #expect(matte.frames.first?.layers.contains { $0.hasMatte && $0.decompiledHasMatte } == true)
+    }
+
+    @Test("backend approximate style and trim facts produce path-bearing losses")
+    func backendApproximateStyleAndTrimFactsProducePathBearingLosses() throws {
+        let trim = try roundTripReport(fixture: "trim-ellipse-quadrant.json")
+        try trim.validate()
+        #expect(trim.lossCount > 0)
+        #expect(trim.frames.flatMap(\.losses).contains { loss in
+            loss.ruleID == "lottie.round-trip.trim.approximation"
+                && loss.sourcePath?.contains("Trim") == true
+                && loss.jsonPath?.contains(".shapes") == true
+        })
+
+        let stroke = try roundTripReport(fixture: "stroke-dash.json")
+        try stroke.validate()
+        #expect(stroke.findingCount == 0)
+        let losses = stroke.frames.flatMap(\.losses)
+        #expect(losses.contains { $0.ruleID == "lottie.round-trip.style.stroke-dash-loss" && $0.sourcePath?.contains("stroke") == true })
+        #expect(losses.allSatisfy { loss in
+            !(loss.modelPath.isEmpty)
+                && loss.sourcePath?.isEmpty == false
+                && loss.jsonPath?.isEmpty == false
+                && loss.reason.isEmpty == false
+        })
+    }
+
+    @Test("round trip report validation rejects negative feature counts")
+    func roundTripReportValidationRejectsNegativeFeatureCounts() throws {
+        #expect(LottieSourceIntentRoundTripReportValidator().validationDescriptions.contains(
+            "Round-trip layer feature-family counts are nonnegative"
+        ))
+
+        var report = try roundTripReport(fixture: "fill-rule-evenodd.json")
+        report.frames[0].layers[0].geometryCount = -1
+
+        let errors = LottieSourceIntentRoundTripReportValidator().collectErrors(in: report)
+        #expect(errors.contains { $0.ruleID == "lottie.round-trip.layer.feature-count" })
+    }
+
     private func decode(_ source: String) throws -> LottieAnimation {
         try LottieAnimation.decode(from: Data(source.utf8))
+    }
+
+    private func roundTripReport(fixture name: String, frame: Double = 0) throws -> LottieSourceIntentRoundTripReport {
+        let animation = try decodeFixture(name)
+        return LottieSourceIntentTransformTimingRoundTripGate().report(
+            animation: animation,
+            source: LottieDecompiledSourceIntentSource(identity: name, path: fixture(name).path, frameCount: 0),
+            selectedFrames: [
+                LottieSourceIntentRoundTripSelection(
+                    frame: frame,
+                    rationale: "Curated fixture \(name) checks source-intent feature round trip before rendering."
+                ),
+            ]
+        )
+    }
+
+    private func decompiledIntent(fixture name: String, frame: Double = 0) throws -> LottieDecompiledSourceIntent {
+        let animation = try decodeFixture(name)
+        let renderFrame = LottieRenderIRBuilder(animation: animation).frame(at: frame)
+        let intent = LottieSourceIntentDecompiler().decompile(
+            frame: renderFrame,
+            source: LottieDecompiledSourceIntentSource(identity: name, path: fixture(name).path, frameCount: 0)
+        )
+        try intent.validate()
+        return intent
+    }
+
+    private func decodeFixture(_ name: String) throws -> LottieAnimation {
+        try LottieAnimation.decode(from: Data(contentsOf: fixture(name)))
+    }
+
+    private func fixture(_ name: String) -> URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Fixtures/LottieOracle", isDirectory: true)
+            .appendingPathComponent(name)
     }
 
     private var transformTimingAnimation: String {

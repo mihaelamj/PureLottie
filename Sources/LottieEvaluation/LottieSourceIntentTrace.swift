@@ -138,6 +138,7 @@ public struct LottieSourceIntentLayer: Codable, Sendable, Equatable {
     public var styles: [LottieSourceIntentStyle]
     public var masks: [LottieSourceIntentMask]
     public var matte: LottieSourceIntentMatte?
+    public var trimTraces: [LottieSourceTrimTrace]?
     public var diagnostics: [LottieSourceIntentDiagnostic]
     public var provenance: LottieSourceIntentProvenance
 
@@ -154,6 +155,7 @@ public struct LottieSourceIntentLayer: Codable, Sendable, Equatable {
         styles: [LottieSourceIntentStyle] = [],
         masks: [LottieSourceIntentMask] = [],
         matte: LottieSourceIntentMatte? = nil,
+        trimTraces: [LottieSourceTrimTrace]? = nil,
         diagnostics: [LottieSourceIntentDiagnostic] = [],
         provenance: LottieSourceIntentProvenance
     ) {
@@ -169,6 +171,7 @@ public struct LottieSourceIntentLayer: Codable, Sendable, Equatable {
         self.styles = styles
         self.masks = masks
         self.matte = matte
+        self.trimTraces = trimTraces
         self.diagnostics = diagnostics
         self.provenance = provenance
     }
@@ -375,6 +378,7 @@ public struct LottieSourceIntentStyle: Codable, Sendable, Equatable {
     public var kind: LottieSourceIntentStyleKind
     public var color: [Double]?
     public var opacity: Double?
+    public var fillRule: Int?
     public var width: Double?
     public var lineCap: Int?
     public var lineJoin: Int?
@@ -388,6 +392,7 @@ public struct LottieSourceIntentStyle: Codable, Sendable, Equatable {
         kind: LottieSourceIntentStyleKind,
         color: [Double]? = nil,
         opacity: Double? = nil,
+        fillRule: Int? = nil,
         width: Double? = nil,
         lineCap: Int? = nil,
         lineJoin: Int? = nil,
@@ -400,6 +405,7 @@ public struct LottieSourceIntentStyle: Codable, Sendable, Equatable {
         self.kind = kind
         self.color = color
         self.opacity = opacity
+        self.fillRule = fillRule
         self.width = width
         self.lineCap = lineCap
         self.lineJoin = lineJoin
