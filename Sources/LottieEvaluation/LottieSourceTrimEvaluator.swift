@@ -530,7 +530,11 @@ public struct LottieSourceTrimEvaluator: Sendable {
                 )
             }
         }
-        return selectedSegments.enumerated().compactMap { offset, selected -> LottieSourceTrimResultPathTrace? in
+        var activeSegments = selectedSegments
+        if LottieFaultInjector.isActive(.droppedTrimSegment), !activeSegments.isEmpty {
+            activeSegments.removeLast()
+        }
+        return activeSegments.enumerated().compactMap { offset, selected -> LottieSourceTrimResultPathTrace? in
             guard let path = measuredPaths.first(where: { $0.pathIndex == selected.pathIndex }) else { return nil }
             let bezier = path.resultPath(for: selected)
             return LottieSourceTrimResultPathTrace(

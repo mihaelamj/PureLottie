@@ -75,12 +75,14 @@ public struct LottieTransformMatrix: Codable, Sendable, Equatable {
     }
 
     public func concatenating(_ other: LottieTransformMatrix) -> LottieTransformMatrix {
+        let lhs = LottieFaultInjector.isActive(.wrongMatrixMultiplicationOrder) ? other : self
+        let rhs = LottieFaultInjector.isActive(.wrongMatrixMultiplicationOrder) ? self : other
         var result = [Double](repeating: 0, count: 16)
         for row in 0 ..< 4 {
             for column in 0 ..< 4 {
                 var sum = 0.0
                 for index in 0 ..< 4 {
-                    sum += values[row * 4 + index] * other.values[index * 4 + column]
+                    sum += lhs.values[row * 4 + index] * rhs.values[index * 4 + column]
                 }
                 result[row * 4 + column] = sum
             }

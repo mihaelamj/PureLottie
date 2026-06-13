@@ -307,9 +307,13 @@ public struct LottieFrameEvaluator: Sendable {
             )
         }
 
-        let segmentIndex = keyframes.indices.dropLast().first { index in
+        var segmentIndex = keyframes.indices.dropLast().first { index in
             sourceFrame < keyframes[index + 1].time - offsetFrame
         } ?? keyframes.startIndex
+
+        if LottieFaultInjector.isActive(.offByOneKeyframeIndex) && keyframes.count > 2 {
+            segmentIndex = (segmentIndex + 1) % (keyframes.count - 1)
+        }
 
         let keyframe = keyframes[segmentIndex]
         let next = keyframes[segmentIndex + 1]

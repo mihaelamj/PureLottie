@@ -325,7 +325,7 @@ struct LottieBoundedExhaustiveTests {
             do {
                 let document = try LottieSourceDocument.parse(jsonString)
                 let validator = LottieValidator()
-                
+
                 var passedValidation = false
                 do {
                     try document.validate(using: validator)
@@ -333,12 +333,12 @@ struct LottieBoundedExhaustiveTests {
                 } catch {
                     rejectedCount += 1
                 }
-                
+
                 if passedValidation {
                     do {
                         // If it passes validation, import and round-trip must succeed without throwing or crashing
                         let animation = try document.decodeAnimation()
-                        
+
                         // We run round-trip on frame 0 and 5
                         let roundTripGate = LottieSourceIntentTransformTimingRoundTripGate()
                         let report = roundTripGate.report(
@@ -349,7 +349,7 @@ struct LottieBoundedExhaustiveTests {
                                 LottieSourceIntentRoundTripSelection(frame: 5.0, rationale: "Exhaustive testing frame 5.0"),
                             ]
                         )
-                        
+
                         try report.validate()
                         passedCount += 1
                     } catch {
