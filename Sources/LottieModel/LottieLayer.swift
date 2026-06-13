@@ -44,6 +44,8 @@ public struct LottieLayer: Decodable, Sendable, Equatable {
     public var is3D: Bool
     /// Auto-orient (`ao`) rotates the layer to follow the position path tangent.
     public var autoOrient: Int?
+    /// Lottie layer blend mode (`bm`) for compositing, when authored.
+    public var blendMode: Int?
     /// Shape items, for shape layers.
     public var shapes: [LottieShape]?
     /// Solid-layer color as `#rrggbb`, with its size.
@@ -77,6 +79,7 @@ public struct LottieLayer: Decodable, Sendable, Equatable {
         case transform = "ks"
         case is3D = "ddd"
         case autoOrient = "ao"
+        case blendMode = "bm"
         case shapes
         case solidColor = "sc"
         case solidWidth = "sw"
@@ -105,6 +108,7 @@ public struct LottieLayer: Decodable, Sendable, Equatable {
         transform = try container.decodeIfPresent(LottieTransform.self, forKey: .transform)
         is3D = try (container.decodeIfPresent(Int.self, forKey: .is3D) ?? 0) != 0
         autoOrient = try container.decodeIfPresent(Int.self, forKey: .autoOrient)
+        blendMode = try container.decodeIfPresent(Int.self, forKey: .blendMode)
         shapes = try container.decodeIfPresent([LottieShape].self, forKey: .shapes)
         solidColor = try container.decodeIfPresent(String.self, forKey: .solidColor)
         solidWidth = try container.decodeIfPresent(Double.self, forKey: .solidWidth)

@@ -27,6 +27,26 @@ struct LottieBindingValidationTests {
         #expect(animation.layers[1].trackMatteParent == 1)
     }
 
+    @Test("Layer blend mode decodes as backend compositing fact")
+    func layerBlendModeDecodesAsBackendCompositingFact() throws {
+        let animation = try LottieAnimation.decode(from: Data("""
+        {
+          "v": "5.7.4",
+          "fr": 30,
+          "ip": 0,
+          "op": 30,
+          "w": 64,
+          "h": 64,
+          "layers": [
+            { "ty": 4, "nm": "Blend", "ind": 1, "bm": 3, "ip": 0, "op": 30, "ks": {}, "shapes": [] }
+          ],
+          "assets": []
+        }
+        """.utf8))
+
+        #expect(animation.layers[0].blendMode == 3)
+    }
+
     @Test("Duplicate asset ids and layer indices are source validation errors")
     func duplicateBindingSymbolsAreValidationErrors() throws {
         let document = try LottieSourceDocument.parse("""

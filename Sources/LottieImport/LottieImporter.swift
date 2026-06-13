@@ -144,6 +144,14 @@ public struct LottieImporter {
                 sourceRange: sourceRange(for: boundLayer, field: "tm", binding: binding)
             )
         }
+        if let blendMode = lottieLayer.blendMode, blendMode != 0 {
+            context.report.skip(
+                "layer blend mode \(blendMode)",
+                at: path,
+                sourcePath: boundLayer.sourcePath?.appending(.key("bm")),
+                sourceRange: sourceRange(for: boundLayer, field: "bm", binding: binding)
+            )
+        }
         if let source = lottieLayer.trackMatteSource {
             context.report.skip(
                 "track matte source marker \(source)",

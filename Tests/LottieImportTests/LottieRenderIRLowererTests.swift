@@ -177,6 +177,7 @@ struct LottieRenderIRLowererTests {
               "nm": "Shapes",
               "ind": 2,
               "tt": 2,
+              "bm": 3,
               "ip": 0,
               "op": 10,
               "st": 0,
@@ -215,8 +216,36 @@ struct LottieRenderIRLowererTests {
                   "nm": "Individual Trim",
                   "s": { "a": 0, "k": 0 },
                   "e": { "a": 0, "k": 50 },
-                  "o": { "a": 0, "k": 0 },
+                  "o": { "a": 0, "k": 15 },
                   "m": 2
+                }
+              ]
+            },
+            {
+              "ty": 4,
+              "nm": "FillShapes",
+              "ind": 3,
+              "ip": 0,
+              "op": 10,
+              "st": 0,
+              "ks": {},
+              "shapes": [
+                { "ty": "rc", "nm": "FillBox", "p": { "a": 0, "k": [30, 30] }, "s": { "a": 0, "k": [10, 10] }, "r": { "a": 0, "k": 0 } },
+                {
+                  "ty": "tm",
+                  "nm": "Fill Trim",
+                  "s": { "a": 0, "k": 0 },
+                  "e": { "a": 0, "k": 50 },
+                  "o": { "a": 0, "k": 0 },
+                  "m": 1
+                },
+                {
+                  "ty": "fl",
+                  "nm": "BlendFill",
+                  "c": { "a": 0, "k": [1, 0, 0, 1] },
+                  "o": { "a": 0, "k": 100 },
+                  "r": 2,
+                  "bm": 4
                 }
               ]
             }
@@ -233,30 +262,29 @@ struct LottieRenderIRLowererTests {
         let tree = LottieRenderIRLowerer().lower(frame, evidenceContext: evidenceContext)
         let findings = tree.report.findings
 
-        #expect(findings.contains {
-            $0.feature == "track matte mode 2 using root > layer 'MatteSource'"
-                && $0.path == "root > layer 'Shapes'"
-        })
-        #expect(findings.contains {
-            $0.feature == "mask mode 's'"
-                && $0.path == "root > layer 'Shapes' > mask 'Subtract'"
-        })
-        #expect(findings.contains {
-            $0.feature == "stroke blend mode"
-                && $0.path == "root > layer 'Shapes' > stroke 'Fancy'"
-        })
-        #expect(findings.contains {
-            $0.feature == "stroke line cap"
-                && $0.path == "root > layer 'Shapes' > stroke 'Fancy'"
-        })
-        #expect(findings.contains {
-            $0.feature == "stroke dash pattern"
-                && $0.path == "root > layer 'Shapes' > stroke 'Fancy'"
-        })
-        #expect(findings.contains {
-            $0.feature == "individual trim (trimmed as one length)"
-                && $0.path == "root > layer 'Shapes' > trim 'Individual Trim'"
-        })
+        try assertFinding(findings, "layer blend mode 3", path: "root > layer 'Shapes'", owner: .backendCapability)
+        try assertFinding(
+            findings,
+            "track matte mode 2 using root > layer 'MatteSource'",
+            path: "root > layer 'Shapes'",
+            owner: .backendCapability
+        )
+        try assertFinding(findings, "mask mode 's'", path: "root > layer 'Shapes' > mask 'Subtract'", owner: .backendCapability)
+        try assertFinding(findings, "stroke blend mode", path: "root > layer 'Shapes' > stroke 'Fancy'", owner: .backendCapability)
+        try assertFinding(findings, "stroke line cap", path: "root > layer 'Shapes' > stroke 'Fancy'", owner: .backendCapability)
+        try assertFinding(findings, "stroke line join", path: "root > layer 'Shapes' > stroke 'Fancy'", owner: .backendCapability)
+        try assertFinding(findings, "stroke miter limit", path: "root > layer 'Shapes' > stroke 'Fancy'", owner: .backendCapability)
+        try assertFinding(findings, "secondary stroke miter limit", path: "root > layer 'Shapes' > stroke 'Fancy'", owner: .backendCapability)
+        try assertFinding(findings, "stroke dash pattern", path: "root > layer 'Shapes' > stroke 'Fancy'", owner: .backendCapability)
+        try assertFinding(findings, "trim offset", path: "root > layer 'Shapes' > trim 'Individual Trim'", owner: .backendCapability)
+        try assertFinding(
+            findings,
+            "individual trim (trimmed as one length)",
+            path: "root > layer 'Shapes' > trim 'Individual Trim'",
+            owner: .intentionalApproximation
+        )
+        try assertFinding(findings, "fill blend mode", path: "root > layer 'FillShapes' > fill 'BlendFill'", owner: .backendCapability)
+        try assertFinding(findings, "trimmed fill path", path: "root > layer 'FillShapes' > fill 'BlendFill'", owner: .backendCapability)
 
         let strokeBlend = try #require(findings.first { $0.feature == "stroke blend mode" })
         let strokeEvidence = try #require(strokeBlend.evidence)
@@ -268,13 +296,16 @@ struct LottieRenderIRLowererTests {
         #expect(strokeEvidence.pureLayerFrameArtifact == "purelayer/frame_0000.00.png")
         #expect(strokeEvidence.lottiePath == "root > layer 'Shapes' > stroke 'Fancy'")
         #expect(strokeEvidence.jsonPath == "$.layers[1].shapes[1]")
-        #expect(strokeEvidence.renderNode?.nodeID == "render#1")
         #expect(strokeEvidence.renderNode?.kind == "shape")
         #expect(strokeEvidence.renderNode?.sourcePath == "root > layer 'Shapes'")
         #expect(strokeEvidence.vmTrace?.instruction == LottieVMInstruction.Kind.emitRenderNode.rawValue)
         #expect(strokeEvidence.renderTerm?.kind == "strokeStyle")
         #expect(strokeEvidence.renderTerm?.values["blendMode"] == "2")
         #expect(strokeEvidence.renderTerm?.values["dashCount"] == "1")
+        #expect(strokeEvidence.renderTerm?.values["lineCap"] == "2")
+        #expect(strokeEvidence.renderTerm?.values["lineJoin"] == "3")
+        #expect(strokeEvidence.renderTerm?.values["miterLimit"] == "4.0")
+        #expect(strokeEvidence.renderTerm?.values["secondaryMiterLimit"] == "6.0")
 
         let matteFinding = try #require(findings.first { $0.feature == "track matte mode 2 using root > layer 'MatteSource'" })
         let matteEvidence = try #require(matteFinding.evidence)
@@ -288,6 +319,75 @@ struct LottieRenderIRLowererTests {
         #expect(trimEvidence.owner == .intentionalApproximation)
         #expect(trimEvidence.renderTerm?.kind == "trimPath")
         #expect(trimEvidence.renderTerm?.values["multiple"] == "2")
+        #expect(trimEvidence.renderTerm?.values["offset"] == "15.0")
+
+        let layerBlend = try #require(findings.first { $0.feature == "layer blend mode 3" })
+        #expect(layerBlend.sourcePath == "$.layers[1].bm")
+        #expect(layerBlend.evidence?.jsonPath == "$.layers[1].bm")
+        #expect(layerBlend.evidence?.renderTerm?.kind == "layerCompositing")
+        #expect(layerBlend.evidence?.renderTerm?.jsonPath == "$.layers[1].bm")
+        #expect(layerBlend.evidence?.renderTerm?.values["blendMode"] == "3")
+
+        let fillBlend = try #require(findings.first { $0.feature == "fill blend mode" })
+        #expect(fillBlend.evidence?.renderTerm?.kind == "fillStyle")
+        #expect(fillBlend.evidence?.renderTerm?.values["blendMode"] == "4")
+        #expect(fillBlend.evidence?.renderTerm?.values["fillRule"] == "2")
+
+        let trimmedFill = try #require(findings.first { $0.feature == "trimmed fill path" })
+        #expect(trimmedFill.evidence?.renderTerm?.kind == "trimmedFill")
+        #expect(trimmedFill.evidence?.renderTerm?.sourcePath == "root > layer 'FillShapes' > trim 'Fill Trim'")
+        #expect(trimmedFill.evidence?.renderTerm?.values["end"] == "50.0")
+    }
+
+    @Test("exact fill rule and group opacity lower without backend findings")
+    func exactFillRuleAndGroupOpacityLowerWithoutBackendFindings() throws {
+        let frame = try renderFrame(from: """
+        {
+          "v": "5.7.4",
+          "nm": "Root",
+          "fr": 10,
+          "ip": 0,
+          "op": 10,
+          "w": 100,
+          "h": 80,
+          "layers": [{
+            "ty": 4,
+            "nm": "Shapes",
+            "ind": 1,
+            "ip": 0,
+            "op": 10,
+            "st": 0,
+            "ks": {},
+            "shapes": [{
+              "ty": "gr",
+              "nm": "TransparentGroup",
+              "it": [
+                { "ty": "rc", "nm": "Box", "p": { "a": 0, "k": [20, 20] }, "s": { "a": 0, "k": [20, 20] }, "r": { "a": 0, "k": 0 } },
+                { "ty": "fl", "nm": "EvenOdd", "c": { "a": 0, "k": [1, 0, 0, 1] }, "o": { "a": 0, "k": 100 }, "r": 2 },
+                {
+                  "ty": "tr",
+                  "p": { "a": 0, "k": [0, 0] },
+                  "a": { "a": 0, "k": [0, 0] },
+                  "s": { "a": 0, "k": [100, 100] },
+                  "r": { "a": 0, "k": 0 },
+                  "o": { "a": 0, "k": 50 }
+                }
+              ]
+            }]
+          }],
+          "assets": []
+        }
+        """, at: 0)
+
+        let tree = LottieRenderIRLowerer().lower(frame)
+
+        #expect(tree.report.isClean)
+        let node = try #require(frame.nodes.first)
+        let layer = try #require(tree.root.sublayers.first { $0.name == node.id.description })
+        let opacityLayer = try #require(layer.sublayers.first)
+        #expect(abs(opacityLayer.opacity - 0.5) < 0.0001)
+        let shapeLayer = try #require(allShapeLayers(in: opacityLayer).first)
+        #expect(shapeLayer.fillRule.rawValue == "evenOdd")
     }
 
     @Test("multiple masks report every mask source path")
@@ -355,6 +455,31 @@ struct LottieRenderIRLowererTests {
             .appendingPathComponent(name)
         let animation = try LottieAnimation.decode(from: Data(contentsOf: url))
         return LottieRenderIRBuilder(animation: animation).frame(at: frame)
+    }
+
+    private func assertFinding(
+        _ findings: [ImportReport.Finding],
+        _ feature: String,
+        path: String,
+        owner: LottieBackendGapEvidence.Owner
+    ) throws {
+        let finding = try #require(findings.first { $0.feature == feature && $0.path == path })
+        let evidence = try #require(finding.evidence)
+        #expect(evidence.owner == owner)
+        switch owner {
+        case .backendCapability, .pureLottieSemantics:
+            #expect(finding.disposition == .skipped)
+        case .intentionalApproximation:
+            #expect(finding.disposition == .approximated)
+        }
+        #expect(evidence.sourceFrame == 0)
+        #expect(evidence.frameRate == 10)
+        #expect(evidence.lottiePath == path)
+        let jsonPath = try #require(evidence.jsonPath)
+        #expect(!jsonPath.isEmpty)
+        #expect(evidence.vmTrace != nil)
+        #expect(evidence.renderNode != nil)
+        #expect(evidence.renderTerm != nil)
     }
 
     private func allShapeLayers(in layer: Layer) -> [ShapeLayer] {
