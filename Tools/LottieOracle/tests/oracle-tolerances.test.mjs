@@ -48,4 +48,10 @@ test('oracle tolerance ledger records required numeric comparison families', () 
   assert.equal(frame.comparison, 'absolute-difference');
   assert.equal(frame.threshold, 0.000001);
   assert.match(frame.reason, /Lottie source-frame coordinates/);
+
+  for (const tolerance of ledger.tolerances) {
+    assert.equal(tolerance.witness.status, 'asserted', tolerance.id);
+    assert.ok(tolerance.witness.evidence.includes('Tools/LottieOracle/oracle-tolerances.json'), tolerance.id);
+    assert.match(tolerance.witness.reason, /#104/, tolerance.id);
+  }
 });

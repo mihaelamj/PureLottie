@@ -380,6 +380,44 @@
       }
     },
     {
+      "id": "wider-lottie-web-witness-corpus",
+      "kind": "numeric-trace-corpus",
+      "path": "Tools/LottieOracle/witness-corpus.json",
+      "source": {
+        "type": "local",
+        "value": "Witness manifest generated from raw corpus fixtures with pinned lottie-web"
+      },
+      "revision": {
+        "status": "known",
+        "value": "repository history plus lottie-web@5.13.0"
+      },
+      "license": {
+        "status": "known",
+        "value": "Raw source fixture licenses remain under Tests/Fixtures/LottieCorpus/_licenses; generated numeric traces are PureLottie lottie-web measurements"
+      },
+      "purpose": "Browser-measured witness-only numeric facts from raw corpus files, separate from curated conformance claims and tolerance policy.",
+      "classifications": [
+        "numeric-intent",
+        "raw-corpus"
+      ],
+      "validation": {
+        "status": "usable",
+        "evidence": [
+          "LottieWitnessCorpusManifestTests",
+          "Tools/LottieOracle/tests/witness-corpus.test.mjs",
+          "npm --prefix Tools/LottieOracle run build-witness-corpus"
+        ]
+      },
+      "measurements": {
+        "traceFiles": 5,
+        "sampledFrames": 25,
+        "layerRows": 460,
+        "pathRows": 1430,
+        "maskRows": 55,
+        "precompositionRows": 25
+      }
+    },
+    {
       "id": "lottie-format-docs",
       "kind": "documentation-set",
       "path": "docs/lottie-format",
@@ -395,7 +433,7 @@
         "status": "known",
         "value": "PureLottie documentation"
       },
-      "purpose": "Human-readable source-intent, reversibility compiler, rendered artifact, loss taxonomy, conformance, corpus, role, and provenance contracts.",
+      "purpose": "Human-readable source-intent, reversibility compiler, rendered artifact, loss taxonomy, conformance, corpus, numeric reliability, role, and provenance contracts.",
       "classifications": [
         "documentation",
         "source-intent"

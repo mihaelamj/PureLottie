@@ -36,6 +36,12 @@ Run the numeric source-intent diff for the curated corpus:
 npm --prefix Tools/LottieOracle run diff-intent -- --all
 ```
 
+Regenerate the wider witness-only corpus traces:
+
+```sh
+npm --prefix Tools/LottieOracle run build-witness-corpus
+```
+
 Run one fixture and write reports to an explicit directory:
 
 ```sh
@@ -53,12 +59,20 @@ entry that names the feature, unit, comparison, threshold, and reason.
 
 | Path | Contents |
 | --- | --- |
-| `numeric-oracle-diff.json` | Per-field lottie-web expected value, PureLottie actual value, compared paths, tolerance id, tolerance, delta, and pass/fail result. |
-| `numeric-oracle-diff.md` | Markdown table over the same comparisons for review. |
+| `numeric-oracle-diff.json` | Per-field lottie-web expected value, PureLottie actual value, compared paths, tolerance id, tolerance, delta, witness classification, and pass/fail result. |
+| `numeric-oracle-diff.md` | Markdown table over the same comparisons for review, including whether the expected value is witnessed, asserted, or blocked. |
 
+Witness classifications make `numeric-oracle-diff.json` schema version `2`.
 The command exits non-zero when any numeric comparison fails. It is the required
 gate before PNG or APNG inspection: rendered artifacts are only useful after the
 source-intent numbers say what Lottie expected.
+
+Numeric claim reliability is summarized in
+`docs/lottie-format/numeric-claim-reliability.md`. The curated source-intent
+diff currently has 346 witnessed comparison rows and no asserted or blocked
+comparison rows. Tolerance thresholds are intentionally separate: their ledger
+entries are asserted until #104 replaces the policy values with derived
+arithmetic bounds.
 
 Reference-engine divergences are recorded in
 `Tools/LottieOracle/reference-divergences.json`. Any fixture with the
@@ -69,6 +83,13 @@ Regenerate the curated corpus fixtures and committed lottie-web intent snapshots
 
 ```sh
 npm --prefix Tools/LottieOracle run build-corpus
+```
+
+Regenerate the wider witness-only corpus listed in
+`Tools/LottieOracle/witness-corpus.json`:
+
+```sh
+npm --prefix Tools/LottieOracle run build-witness-corpus
 ```
 
 Extract only the numeric lottie-web source-intent trace:
@@ -91,6 +112,12 @@ Artifacts are written to `Tools/LottieOracle/artifacts/<fixture-id>/`:
 | `comparison-report.md` | Human-readable report. |
 | `numeric-diff/numeric-oracle-diff.json` | Curated-corpus numeric source-intent diff report. |
 | `numeric-diff/numeric-oracle-diff.md` | Markdown rendering of the numeric source-intent diff report. |
+
+The wider witness corpus writes committed traces under
+`Tests/Fixtures/LottieOracle/witnessed-corpus/lottie-web-intent/`. These traces
+are browser facts used to broaden witness coverage. They do not by themselves
+declare PureLottie conformance; conformance claims come from the curated
+numeric diff and its witness classifications.
 
 ## Eligibility Gate
 

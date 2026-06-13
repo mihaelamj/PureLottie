@@ -141,8 +141,17 @@ npm ci --prefix Tools/LottieOracle
 npx --prefix Tools/LottieOracle playwright install chromium
 npm --prefix Tools/LottieOracle test
 npm --prefix Tools/LottieOracle run validate-fixtures
+npm --prefix Tools/LottieOracle run build-witness-corpus
 npm --prefix Tools/LottieOracle run oracle -- --fixture eligible-shape-position
 ```
+
+Numeric oracle reliability is tracked in
+`docs/lottie-format/numeric-claim-reliability.md`. The current curated
+source-intent diff reports 31 fixtures and 346 compared fields; all 346
+expected values are witnessed by committed lottie-web traces, with 0 asserted or
+blocked comparison rows. The tolerance ledger remains deliberately asserted
+until #104 derives arithmetic bounds. A separate witness-only wider corpus
+records five lottie-web traces over 25 frames from the raw corpus.
 
 The harness compares pixels only when validation, `ImportReport`, RenderIR
 diagnostics, RenderIR-to-PureLayer backend evidence, `oracle-summary.json`,

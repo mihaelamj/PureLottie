@@ -40,10 +40,11 @@ actionable.
 | Curated source-intent oracle corpus | `Tests/Fixtures/LottieOracle` | 31 source JSON files | Vetted regression corpus with small source fixtures and selected frame rationales. | `LottieOracleCorpusTests` checks manifest size, coverage families, frame lists, validation statuses, and lottie-web intent alignment; `npm --prefix Tools/LottieOracle run validate-fixtures` live-loads every curated fixture through pinned lottie-web. |
 | Committed lottie-web numeric traces | `Tests/Fixtures/LottieOracle/lottie-web-intent` | 31 JSON traces | Browser-side numeric reference facts before PNG comparison. | `LottieOracleCorpusTests.everyCorpusFixtureHasCommittedLottieWebNumericIntentSnapshot` checks schema, renderer, lottie-web version, size, selected frames, and path counts. |
 | Golden source-intent trace | `Tests/Fixtures/SourceIntentTrace` | 1 JSON trace | Stable v1 source-intent schema round-trip fixture. | `LottieSourceIntentTraceTests` checks decode, provenance, vocabularies, and JSON coding round trip. |
-| Machine-readable provenance manifest | `docs/lottie-format/reference-provenance.json` | 17 entries | Typed provenance index for reference sets, tools, docs, dependency oracles, unknown facts, and validation evidence. | `ReferenceProvenanceManifestValidationTests` validates schema, vocabularies, required facts, unknown follow-ups, path-bearing diagnostics, and repository paths. |
+| Machine-readable provenance manifest | `docs/lottie-format/reference-provenance.json` | 18 entries | Typed provenance index for reference sets, tools, docs, dependency oracles, unknown facts, and validation evidence. | `ReferenceProvenanceManifestValidationTests` validates schema, vocabularies, required facts, unknown follow-ups, path-bearing diagnostics, and repository paths. |
 | lottie-web oracle tool | `Tools/LottieOracle` | 1 Node tool package | External browser/reference harness kept outside `Package.swift`. | `npm --prefix Tools/LottieOracle test` checks fixture manifest, eligibility gates, package pins, image comparison helpers, path-bearing validation diagnostics, and package isolation; `npm --prefix Tools/LottieOracle run validate-fixtures` checks live lottie-web fixture usability. |
+| Wider lottie-web witness corpus | `Tools/LottieOracle/witness-corpus.json`; traces under `Tests/Fixtures/LottieOracle/witnessed-corpus/lottie-web-intent` | 5 trace files over 25 sampled frames | Browser-measured witness-only numeric facts from the raw corpus, separate from curated conformance claims. | `LottieWitnessCorpusManifestTests` and `witness-corpus.test.mjs` validate manifest paths, frame lists, lottie-web version, and committed trace identities. |
 | Frame dump tools | `Tools/LottieFrameDump`, `Tools/LottieAPNGDump` | 2 Swift executables | Emit PureLayer frames/APNGs with semantic summaries after source-intent gates. | Built by `swift build`; covered by import/APNG/oracle tests and oracle filename checks. |
-| Lottie format docs | `docs/lottie-format` | 11 checked-in files including this ledger | Human-readable source-intent, reversibility compiler, rendered artifact, loss taxonomy, conformance, matrix, provenance, evidence role, update workflow, and reference schema contracts. | Swift/Node tests pin referenced fixture counts, trace behavior, reversibility contract language, rendered artifact manifest rules, role vocabulary, provenance schema, and referenced workflow commands. |
+| Lottie format docs | `docs/lottie-format` | 12 checked-in files including this ledger | Human-readable source-intent, reversibility compiler, rendered artifact, loss taxonomy, conformance, matrix, provenance, numeric reliability, evidence role, update workflow, and reference schema contracts. | Swift/Node tests pin referenced fixture counts, trace behavior, reversibility contract language, rendered artifact manifest rules, role vocabulary, provenance schema, numeric claim witness counts, and referenced workflow commands. |
 
 ## Raw Corpus Sources
 
@@ -110,6 +111,31 @@ Every manifest entry also records a machine-readable fixture usability record:
 The validator reports failures as positive-rule diagnostics with the manifest
 path and fixture id, for example
 `oracle-fixtures.json[0].validation` for a bad usability record.
+
+## Wider Witness Corpus
+
+The wider witness corpus is not a conformance oracle. It records lottie-web
+browser facts from raw corpus files so numeric claims can say whether an
+expected value is witnessed, asserted, or blocked.
+
+| Field | Value |
+| --- | --- |
+| Manifest | `Tools/LottieOracle/witness-corpus.json` |
+| Trace directory | `Tests/Fixtures/LottieOracle/witnessed-corpus/lottie-web-intent` |
+| Source fixtures | 5 raw-corpus Lottie files |
+| Trace files | 5 JSON traces |
+| Sampled frames | 25 |
+| Layer rows | 460 |
+| Path rows | 1,430 |
+| Mask rows | 55 |
+| Precomposition rows | 25 |
+| Renderer | `svg` |
+| lottie-web package | `lottie-web@5.13.0` |
+| Validation | `LottieWitnessCorpusManifestTests` decodes the manifest and every trace; `witness-corpus.test.mjs` checks manifest shape and trace identity. |
+
+These traces widen witnessed browser coverage. They become conformance evidence
+only when a separate diff maps an expected Lottie fact to a PureLottie fact and
+records the comparison result.
 
 ## Oracle Tool Dependencies
 

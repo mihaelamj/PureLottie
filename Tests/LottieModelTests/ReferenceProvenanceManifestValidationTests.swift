@@ -12,13 +12,14 @@ struct ReferenceProvenanceManifestValidationTests {
 
         #expect(manifest.schema.name == "purelottie.reference-provenance")
         #expect(manifest.schema.version == 1)
-        #expect(manifest.entries.count == 17)
+        #expect(manifest.entries.count == 18)
         #expect(Set(manifest.entries.map(\.id)).count == manifest.entries.count)
         #expect(manifest.entries.contains { $0.id == "curated-oracle-corpus" })
         #expect(manifest.entries.contains { $0.id == "committed-lottie-web-intent-traces" })
+        #expect(manifest.entries.contains { $0.id == "wider-lottie-web-witness-corpus" })
         #expect(manifest.entries.contains { $0.id == "purelayer-dependency" })
         let validationStatuses = Dictionary(grouping: manifest.entries.map(\.validation.status), by: { $0 }).mapValues(\.count)
-        #expect(validationStatuses["usable"] == 14)
+        #expect(validationStatuses["usable"] == 15)
         #expect(validationStatuses["usable-with-unknowns"] == 3)
     }
 

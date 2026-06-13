@@ -61,6 +61,7 @@ try copyFile("Tools/LottieOracle/oracle-tolerances.json", to: packageRoot)
 try copyFile("Tools/LottieOracle/package-lock.json", to: packageRoot)
 try copyFile("Tools/LottieOracle/package.json", to: packageRoot)
 try copyFile("Tools/LottieOracle/reference-divergences.json", to: packageRoot)
+try copyFile("Tools/LottieOracle/witness-corpus.json", to: packageRoot)
 
 let manifest = """
 // swift-tools-version: 6.0

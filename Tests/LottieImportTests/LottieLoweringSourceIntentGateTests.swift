@@ -182,7 +182,7 @@ struct LottieLoweringSourceIntentGateTests {
             #expect(mask.isInverted == webMask.inverted)
             #expect(path.isClosed == webMask.closed)
             #expect(path.vertices.count == webMask.vertexCount)
-            #expect(webMask.pathD.isEmpty == false)
+            #expect(webMask.pathD?.isEmpty == false)
             expectClose(mask.opacity, webMask.opacity, tolerance: opacityTolerance, label: "mask opacity")
         }
     }
@@ -223,8 +223,9 @@ struct LottieLoweringSourceIntentGateTests {
             #expect(precomposition.assetID == webPrecomposition.refId)
             #expect(webPrecomposition.childLayerCount >= 0)
             #expect(webPrecomposition.builtChildElementCount >= 0)
+            let renderedFrame = try #require(webPrecomposition.renderedFrame)
             expectClose(
-                webPrecomposition.renderedFrame,
+                renderedFrame,
                 boundary.localFrame,
                 label: "precomposition renderedFrame"
             )

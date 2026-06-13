@@ -1,0 +1,188 @@
+{
+  "schema": {
+    "name": "purelottie.numeric-claim-witness-corpus",
+    "version": 1
+  },
+  "entries": [
+    {
+      "id": "ripple",
+      "description": "lottie-web reference trace for the airbnb lottie-web ripple demo.",
+      "semanticStatus": "witnessed-reference",
+      "lottie": "../../Tests/Fixtures/LottieCorpus/airbnb-lottie-web/test/animations/ripple.json",
+      "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/witnessed-corpus/lottie-web-intent/ripple.json",
+      "frames": [
+        {
+          "frame": 0,
+          "rationale": "First source frame records the initial browser-engine state."
+        },
+        {
+          "frame": 72,
+          "rationale": "Quarter-window sample catches animated precomposition and path state."
+        },
+        {
+          "frame": 144,
+          "rationale": "Mid-window sample catches transform interpolation and repeated geometry."
+        },
+        {
+          "frame": 217,
+          "rationale": "Late-window sample catches non-boundary animated state."
+        },
+        {
+          "frame": 289,
+          "rationale": "Last sampled source frame before the end checks terminal behavior."
+        }
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "../../Tests/Fixtures/LottieOracle/witnessed-corpus/lottie-web-intent/ripple.json"
+        ],
+        "reason": "Pinned lottie-web in Chromium produced this committed numeric source-intent trace for the wider corpus witness set."
+      }
+    },
+    {
+      "id": "lights",
+      "description": "lottie-web reference trace for the airbnb lottie-web lights animation.",
+      "semanticStatus": "witnessed-reference",
+      "lottie": "../../Tests/Fixtures/LottieCorpus/airbnb-lottie-web/test/animations/lights.json",
+      "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/witnessed-corpus/lottie-web-intent/lights.json",
+      "frames": [
+        {
+          "frame": 0,
+          "rationale": "First source frame records the initial browser-engine state."
+        },
+        {
+          "frame": 60,
+          "rationale": "Quarter-window sample catches animated layer and path state."
+        },
+        {
+          "frame": 120,
+          "rationale": "Mid-window sample catches transform interpolation and repeated geometry."
+        },
+        {
+          "frame": 180,
+          "rationale": "Late-window sample catches non-boundary animated state."
+        },
+        {
+          "frame": 240,
+          "rationale": "Last sampled source frame before the end checks terminal behavior."
+        }
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "../../Tests/Fixtures/LottieOracle/witnessed-corpus/lottie-web-intent/lights.json"
+        ],
+        "reason": "Pinned lottie-web in Chromium produced this committed numeric source-intent trace for the wider corpus witness set."
+      }
+    },
+    {
+      "id": "starfish",
+      "description": "lottie-web reference trace for the airbnb lottie-web starfish animation.",
+      "semanticStatus": "witnessed-reference",
+      "lottie": "../../Tests/Fixtures/LottieCorpus/airbnb-lottie-web/test/animations/starfish.json",
+      "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/witnessed-corpus/lottie-web-intent/starfish.json",
+      "frames": [
+        {
+          "frame": 0,
+          "rationale": "First source frame records the initial browser-engine state."
+        },
+        {
+          "frame": 60,
+          "rationale": "Quarter-window sample catches animated layer and path state."
+        },
+        {
+          "frame": 120,
+          "rationale": "Mid-window sample catches transform interpolation and repeated geometry."
+        },
+        {
+          "frame": 181,
+          "rationale": "Late-window sample catches non-boundary animated state."
+        },
+        {
+          "frame": 241,
+          "rationale": "Last sampled source frame before the end checks terminal behavior."
+        }
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "../../Tests/Fixtures/LottieOracle/witnessed-corpus/lottie-web-intent/starfish.json"
+        ],
+        "reason": "Pinned lottie-web in Chromium produced this committed numeric source-intent trace for the wider corpus witness set."
+      }
+    },
+    {
+      "id": "gatin",
+      "description": "lottie-web reference trace for the airbnb lottie-web gatin demo animation.",
+      "semanticStatus": "witnessed-reference",
+      "lottie": "../../Tests/Fixtures/LottieCorpus/airbnb-lottie-web/demo/gatin/data.json",
+      "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/witnessed-corpus/lottie-web-intent/gatin.json",
+      "frames": [
+        {
+          "frame": 0,
+          "rationale": "First source frame records the initial browser-engine state."
+        },
+        {
+          "frame": 16,
+          "rationale": "Quarter-window sample catches animated layer and path state."
+        },
+        {
+          "frame": 32,
+          "rationale": "Mid-window sample catches transform interpolation and repeated geometry."
+        },
+        {
+          "frame": 48,
+          "rationale": "Late-window sample catches non-boundary animated state."
+        },
+        {
+          "frame": 64,
+          "rationale": "Last sampled source frame before the end checks terminal behavior."
+        }
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "../../Tests/Fixtures/LottieOracle/witnessed-corpus/lottie-web-intent/gatin.json"
+        ],
+        "reason": "Pinned lottie-web in Chromium produced this committed numeric source-intent trace for the wider corpus witness set."
+      }
+    },
+    {
+      "id": "dalek",
+      "description": "lottie-web reference trace for the airbnb lottie-web dalek animation.",
+      "semanticStatus": "witnessed-reference",
+      "lottie": "../../Tests/Fixtures/LottieCorpus/airbnb-lottie-web/test/animations/dalek.json",
+      "lottieWebIntent": "../../Tests/Fixtures/LottieOracle/witnessed-corpus/lottie-web-intent/dalek.json",
+      "frames": [
+        {
+          "frame": 0,
+          "rationale": "First source frame records the initial browser-engine state."
+        },
+        {
+          "frame": 58,
+          "rationale": "Quarter-window sample catches animated layer and path state."
+        },
+        {
+          "frame": 116,
+          "rationale": "Mid-window sample catches transform interpolation and repeated geometry."
+        },
+        {
+          "frame": 174,
+          "rationale": "Late-window sample catches non-boundary animated state."
+        },
+        {
+          "frame": 232,
+          "rationale": "Last sampled source frame before the end checks terminal behavior."
+        }
+      ],
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "../../Tests/Fixtures/LottieOracle/witnessed-corpus/lottie-web-intent/dalek.json"
+        ],
+        "reason": "Pinned lottie-web in Chromium produced this committed numeric source-intent trace for the wider corpus witness set."
+      }
+    }
+  ]
+}

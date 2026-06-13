@@ -18,6 +18,8 @@ struct LottieOracleToleranceLedgerTests {
         #expect(try ledger.threshold(id: "path-length.css-pixel.absolute") == 0.000_001)
         #expect(try ledger.threshold(id: "trim.segment.unit-interval.absolute") == 0.000_001)
         #expect(try ledger.threshold(id: "pixel.max-channel.exact") == 0)
+        #expect(ledger.tolerances.allSatisfy { $0.witness.status == .asserted })
+        #expect(ledger.tolerances.allSatisfy { $0.witness.reason.contains("#104") })
     }
 
     @Test("invalid oracle tolerance ledger reports exact JSON paths")
@@ -27,6 +29,7 @@ struct LottieOracleToleranceLedgerTests {
         ledger.tolerances[0].unit = "screenGuess"
         ledger.tolerances[0].threshold = -1
         ledger.tolerances[0].reason = ""
+        ledger.tolerances[0].witness.reason = ""
 
         let errors = LottieOracleToleranceLedgerValidator().collectErrors(in: ledger)
         let paths = Set(errors.map(\.codingPath.description))
@@ -35,6 +38,7 @@ struct LottieOracleToleranceLedgerTests {
         #expect(paths.contains("$.tolerances[0].unit"))
         #expect(paths.contains("$.tolerances[0].threshold"))
         #expect(paths.contains("$.tolerances[0].reason"))
+        #expect(paths.contains("$.tolerances[0].witness.reason"))
     }
 
     @Test("missing oracle tolerance lookup fails")

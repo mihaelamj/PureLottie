@@ -31,6 +31,7 @@ Copy-Item "Tools/LottieOracle/oracle-tolerances.json" (Join-Path $packageRoot "T
 Copy-Item "Tools/LottieOracle/package-lock.json" (Join-Path $packageRoot "Tools/LottieOracle/package-lock.json")
 Copy-Item "Tools/LottieOracle/package.json" (Join-Path $packageRoot "Tools/LottieOracle/package.json")
 Copy-Item "Tools/LottieOracle/reference-divergences.json" (Join-Path $packageRoot "Tools/LottieOracle/reference-divergences.json")
+Copy-Item "Tools/LottieOracle/witness-corpus.json" (Join-Path $packageRoot "Tools/LottieOracle/witness-corpus.json")
 
 $manifest = @'
 // swift-tools-version: 6.0

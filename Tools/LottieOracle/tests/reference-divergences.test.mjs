@@ -30,6 +30,8 @@ test('reference divergence ledger records measured engine divergence facts', () 
     assert.ok(divergence.observedBehavior.length >= 80, divergence.id);
     assert.ok(divergence.comparisonEvidence.length > 0, divergence.id);
     assert.ok(divergence.sourcePointers.length > 0, divergence.id);
+    assert.equal(divergence.witness.status, 'witnessed', divergence.id);
+    assert.ok(divergence.witness.evidence.length > 0, divergence.id);
   }
 });
 
@@ -73,6 +75,9 @@ test('reference divergence source pointers resolve to repository files', () => {
   for (const divergence of ledger.divergences) {
     for (const evidencePath of divergence.comparisonEvidence) {
       assert.ok(fs.existsSync(path.join(repoRoot, evidencePath)), `${divergence.id} missing evidence ${evidencePath}`);
+    }
+    for (const evidencePath of divergence.witness.evidence) {
+      assert.ok(fs.existsSync(path.join(repoRoot, evidencePath)), `${divergence.id} missing witness ${evidencePath}`);
     }
     for (const pointer of divergence.sourcePointers) {
       assert.ok(pointerKinds.has(pointer.kind), `${divergence.id} unknown pointer kind ${pointer.kind}`);

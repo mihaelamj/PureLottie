@@ -136,7 +136,7 @@ public struct LottieWebIntentTrace: Codable, Equatable, Sendable, Validatable {
         public var closed: Bool
         public var opacity: Double
         public var expansion: Double
-        public var pathD: String
+        public var pathD: String?
         public var localBBox: Bounds
         public var vertexCount: Int
     }
@@ -165,7 +165,7 @@ public struct LottieWebIntentTrace: Codable, Equatable, Sendable, Validatable {
         public var stretch: Double
         public var inPoint: Double
         public var outPoint: Double
-        public var renderedFrame: Double
+        public var renderedFrame: Double?
         public var timeRemapped: Bool
         public var timeRemapValue: Double?
         public var childLayerCount: Int
@@ -718,7 +718,7 @@ public enum LottieWebIntentBuiltinValidation {
                 at: context.codingPath,
                 ruleID: "lottie-web-intent.layer.opacity",
                 description: "Lottie-web intent layer records contain finite opacity and a valid frame window"
-            ) { $0.isFinite && (0 ... 1).contains($0) })
+            ) { $0.isFinite })
             if context.subject.inPoint > context.subject.outPoint {
                 errors.append(error(
                     ruleID: "lottie-web-intent.layer.frame-window",
@@ -798,12 +798,18 @@ public enum LottieWebIntentBuiltinValidation {
                 [
                     ("layerName", context.subject.layerName),
                     ("mode", context.subject.mode),
-                    ("pathD", context.subject.pathD),
                 ],
                 at: context.codingPath,
                 ruleID: "lottie-web-intent.mask.string",
                 description: "Lottie-web intent mask records contain path mode opacity and layer-local geometry facts"
             )
+            if let pathD = context.subject.pathD, pathD.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.mask.string",
+                    description: "Lottie-web intent mask records contain path mode opacity and layer-local geometry facts",
+                    path: context.codingPath.appending(.key("pathD"))
+                ))
+            }
             errors.append(contentsOf: numericErrors(
                 [
                     ("opacity", context.subject.opacity),
@@ -935,12 +941,18 @@ public enum LottieWebIntentBuiltinValidation {
                     ("stretch", context.subject.stretch),
                     ("inPoint", context.subject.inPoint),
                     ("outPoint", context.subject.outPoint),
-                    ("renderedFrame", context.subject.renderedFrame),
                 ],
                 at: context.codingPath,
                 ruleID: "lottie-web-intent.precomposition.number",
                 description: "Lottie-web intent precomposition records contain local rendered frame and child layer facts"
             ) { $0.isFinite })
+            if let renderedFrame = context.subject.renderedFrame, !renderedFrame.isFinite {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.precomposition.number",
+                    description: "Lottie-web intent precomposition records contain local rendered frame and child layer facts",
+                    path: context.codingPath.appending(.key("renderedFrame"))
+                ))
+            }
             if context.subject.renderElementIndex < 0 {
                 errors.append(error(
                     ruleID: "lottie-web-intent.precomposition.render-index",
@@ -1239,17 +1251,21 @@ public enum LottieWebIntentBuiltinValidation {
 private extension LottieWebIntentTrace.Path {
     var hasZeroGeometry: Bool {
         pathLength == 0
-            && localBBox.isZero
-            && clientBounds.isZero
-            && sampledLocalBounds.isZero
-            && sampledCompositionBounds.isZero
-            && sampledOutputBounds.isZero
-            && strokeExpandedCompositionBounds.isZero
-            && strokeExpandedOutputBounds.isZero
+            && localBBox.hasZeroArea
+            && clientBounds.hasZeroArea
+            && sampledLocalBounds.hasZeroArea
+            && sampledCompositionBounds.hasZeroArea
+            && sampledOutputBounds.hasZeroArea
+            && strokeExpandedCompositionBounds.hasZeroArea
+            && strokeExpandedOutputBounds.hasZeroArea
     }
 }
 
 private extension LottieWebIntentTrace.Bounds {
+    var hasZeroArea: Bool {
+        width == 0 && height == 0
+    }
+
     var isZero: Bool {
         minX == 0 && minY == 0 && maxX == 0 && maxY == 0 && width == 0 && height == 0
     }
