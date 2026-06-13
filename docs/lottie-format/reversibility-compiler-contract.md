@@ -79,7 +79,7 @@ unique normal form.
 
 The normalization rewrite system is detailed in [normalization-confluence.md](file:///Volumes/Code/DeveloperExt/public/PureLottie/docs/lottie-format/normalization-confluence.md). It is proven to be:
 - **Strongly Normalizing**: Every rewrite strictly decreases a well-founded weight metric $W(G)$, guaranteeing termination in finitely many steps (`theorem`).
-- **Confluent**: All overlapping rewrite rules (critical pairs) are joinable, ensuring a unique normal form regardless of rewrite order (`theorem`, `witnessed`).
+- **Confluent**: All overlapping rewrite rules (critical pairs) are joinable, ensuring a unique normal form regardless of rewrite order (`theorem`). Confluence is verified across all rewrite orderings by execution tests (`witnessed`).
 
 The evaluation pipeline is also proven to terminate under all inputs (precomposition DAG constraints and non-recursive time remapping) with detailed cost bounds. The termination and cost bounds are detailed in [termination-cost-proofs.md](file:///Volumes/Code/DeveloperExt/public/PureLottie/docs/lottie-format/termination-cost-proofs.md).
 
