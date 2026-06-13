@@ -14,15 +14,22 @@ struct LottieLoweringSourceIntentGateTests {
         var evidenceFindingCount = 0
         var trimTraceCount = 0
         let tolerances = try loadTolerances()
+        let manifest = try loadManifest()
+        var reportFixtures: [CorpusLoweringGateReport.Fixture] = []
 
-        for entry in try loadManifest() {
+        for entry in manifest {
             let animation = try LottieAnimation.decode(from: Data(contentsOf: url(fromOracleRootPath: entry.lottie)))
             let intent = try LottieWebIntentTrace.decodeValidated(
                 from: Data(contentsOf: url(fromOracleRootPath: entry.lottieWebIntent))
             )
+            #expect(intent.frames.map(\.frame) == entry.frames.map(\.frame))
+            let selectedFrameRationales = Dictionary(uniqueKeysWithValues: entry.frames.map { ($0.frame, $0.rationale) })
             let builder = LottieRenderIRBuilder(animation: animation)
+            var reportFrames: [CorpusLoweringGateReport.Frame] = []
 
             for webFrame in intent.frames {
+                let frameRationale = try #require(selectedFrameRationales[webFrame.frame])
+                #expect(!frameRationale.isEmpty, "\(entry.id) frame \(webFrame.frame) has no selection rationale")
                 let renderFrame = builder.frame(at: webFrame.frame)
                 assertMeasuredSourceIntent(renderFrame, entry: entry)
                 try assertReferenceFeatureFacts(
@@ -57,13 +64,53 @@ struct LottieLoweringSourceIntentGateTests {
                 )
                 matchedLayerCount += comparison.layers
                 matchedShapeCount += comparison.shapes
+                if entry.semanticStatus == .diagnosed {
+                    #expect(
+                        !renderFrame.diagnostics.isEmpty || !tree.report.findings.isEmpty,
+                        "\(entry.id) frame \(webFrame.frame) is diagnosed but has no diagnostics or backend findings"
+                    )
+                }
+                reportFrames.append(.init(
+                    frame: webFrame.frame,
+                    rationale: frameRationale,
+                    renderNodeCount: renderFrame.nodes.count,
+                    shapeDrawCount: renderFrame.shapeDrawCount,
+                    matchedLayerCount: comparison.layers,
+                    matchedShapeCount: comparison.shapes,
+                    diagnosticCount: renderFrame.diagnostics.count,
+                    backendFindingCount: tree.report.findings.count,
+                    trimTraceCount: renderFrame.trimTraceCount,
+                    diagnostics: renderFrame.diagnostics.map(CorpusLoweringGateReport.Diagnostic.init(diagnostic:)).sorted(),
+                    backendFindings: tree.report.findings.map(CorpusLoweringGateReport.BackendFinding.init(finding:)).sorted()
+                ))
             }
+
+            reportFixtures.append(.init(
+                id: entry.id,
+                semanticStatus: entry.semanticStatus.rawValue,
+                lottie: entry.lottie,
+                lottieWebIntent: entry.lottieWebIntent,
+                coverage: entry.coverage.sorted(),
+                selectedFrameCount: reportFrames.count,
+                excluded: false,
+                frames: reportFrames
+            ))
         }
 
+        let report = CorpusLoweringGateReport(fixtures: reportFixtures)
+        try assertLoweringGateReport(
+            report,
+            manifestCount: manifest.count,
+            selectedFrameCount: manifest.flatMap(\.frames).count
+        )
         #expect(matchedLayerCount > 30)
         #expect(matchedShapeCount > 30)
         #expect(evidenceFindingCount > 0)
         #expect(trimTraceCount > 0)
+        #expect(report.matchedLayerCount == matchedLayerCount)
+        #expect(report.matchedShapeCount == matchedShapeCount)
+        #expect(report.backendFindingCount == evidenceFindingCount)
+        #expect(report.trimTraceCount == trimTraceCount)
     }
 
     @Test("trim source intent is measurable before PureLayer stroke fractions are asserted")
@@ -563,6 +610,44 @@ struct LottieLoweringSourceIntentGateTests {
         )
     }
 
+    private func assertLoweringGateReport(
+        _ report: CorpusLoweringGateReport,
+        manifestCount: Int,
+        selectedFrameCount: Int
+    ) throws {
+        #expect(report.schema.name == "purelottie.renderir-purelayer-lowering-gate")
+        #expect(report.schema.version == 1)
+        #expect(report.fixtureCount == manifestCount)
+        #expect(report.fixtureCount >= 31)
+        #expect(report.selectedFrameCount == selectedFrameCount)
+        #expect(report.excludedFixtureCount == 0)
+        #expect(report.excludedFixtures.isEmpty)
+        #expect(report.fixtures.allSatisfy { !$0.frames.isEmpty })
+        #expect(report.fixtures.allSatisfy { fixture in
+            fixture.frames.allSatisfy { !$0.rationale.isEmpty }
+        })
+
+        let encoded = try encoded(report)
+        let snapshotURL = repositoryRoot()
+            .appendingPathComponent("Tests/Fixtures/LottieOracle/lowering-gate/report.json")
+        if ProcessInfo.processInfo.environment["PURELOTTIE_UPDATE_LOWERING_GATE_REPORT"] == "1" {
+            try encoded.write(to: snapshotURL, options: .atomic)
+            return
+        }
+
+        let expected = try Data(contentsOf: snapshotURL)
+        #expect(
+            String(data: encoded, encoding: .utf8) == String(data: expected, encoding: .utf8),
+            "Regenerate with PURELOTTIE_UPDATE_LOWERING_GATE_REPORT=1 swift test --filter LottieLoweringSourceIntentGateTests"
+        )
+    }
+
+    private func encoded(_ value: some Encodable) throws -> Data {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        return try encoder.encode(value)
+    }
+
     private func url(fromOracleRootPath path: String) -> URL {
         URL(fileURLWithPath: path, relativeTo: repositoryRoot().appendingPathComponent("Tools/LottieOracle", isDirectory: true))
             .standardizedFileURL
@@ -663,12 +748,135 @@ private struct ColorSnapshot: CustomStringConvertible {
     }
 }
 
+private struct CorpusLoweringGateReport: Codable, Equatable {
+    var schema = Schema()
+    var fixtureCount: Int
+    var selectedFrameCount: Int
+    var excludedFixtureCount: Int
+    var matchedLayerCount: Int
+    var matchedShapeCount: Int
+    var shapeDrawCount: Int
+    var diagnosticCount: Int
+    var backendFindingCount: Int
+    var trimTraceCount: Int
+    var excludedFixtures: [Exclusion]
+    var fixtures: [Fixture]
+
+    init(fixtures: [Fixture], excludedFixtures: [Exclusion] = []) {
+        self.fixtures = fixtures.sorted { $0.id < $1.id }
+        self.excludedFixtures = excludedFixtures.sorted()
+        fixtureCount = self.fixtures.count
+        selectedFrameCount = self.fixtures.flatMap(\.frames).count
+        excludedFixtureCount = self.excludedFixtures.count
+        matchedLayerCount = self.fixtures.flatMap(\.frames).map(\.matchedLayerCount).reduce(0, +)
+        matchedShapeCount = self.fixtures.flatMap(\.frames).map(\.matchedShapeCount).reduce(0, +)
+        shapeDrawCount = self.fixtures.flatMap(\.frames).map(\.shapeDrawCount).reduce(0, +)
+        diagnosticCount = self.fixtures.flatMap(\.frames).map(\.diagnosticCount).reduce(0, +)
+        backendFindingCount = self.fixtures.flatMap(\.frames).map(\.backendFindingCount).reduce(0, +)
+        trimTraceCount = self.fixtures.flatMap(\.frames).map(\.trimTraceCount).reduce(0, +)
+    }
+
+    struct Schema: Codable, Equatable {
+        var name = "purelottie.renderir-purelayer-lowering-gate"
+        var version = 1
+    }
+
+    struct Exclusion: Codable, Equatable, Comparable {
+        var id: String
+        var lottie: String
+        var reason: String
+
+        static func < (lhs: Exclusion, rhs: Exclusion) -> Bool {
+            (lhs.id, lhs.lottie, lhs.reason) < (rhs.id, rhs.lottie, rhs.reason)
+        }
+    }
+
+    struct Fixture: Codable, Equatable {
+        var id: String
+        var semanticStatus: String
+        var lottie: String
+        var lottieWebIntent: String
+        var coverage: [String]
+        var selectedFrameCount: Int
+        var excluded: Bool
+        var frames: [Frame]
+    }
+
+    struct Frame: Codable, Equatable {
+        var frame: Double
+        var rationale: String
+        var renderNodeCount: Int
+        var shapeDrawCount: Int
+        var matchedLayerCount: Int
+        var matchedShapeCount: Int
+        var diagnosticCount: Int
+        var backendFindingCount: Int
+        var trimTraceCount: Int
+        var diagnostics: [Diagnostic]
+        var backendFindings: [BackendFinding]
+    }
+
+    struct Diagnostic: Codable, Equatable, Comparable {
+        var ruleID: String
+        var severity: String
+        var classification: String
+        var phase: String
+        var path: String
+        var reason: String
+
+        init(diagnostic: ValidationError) {
+            ruleID = diagnostic.ruleID
+            severity = diagnostic.severity.rawValue
+            classification = diagnostic.classification.rawValue
+            phase = diagnostic.phase.rawValue
+            path = diagnostic.codingPath.description
+            reason = diagnostic.reason
+        }
+
+        static func < (lhs: Diagnostic, rhs: Diagnostic) -> Bool {
+            (lhs.path, lhs.ruleID, lhs.reason) < (rhs.path, rhs.ruleID, rhs.reason)
+        }
+    }
+
+    struct BackendFinding: Codable, Equatable, Comparable {
+        var feature: String
+        var disposition: String
+        var path: String
+        var sourcePath: String
+        var owner: String
+        var evidenceJSONPath: String
+        var renderTermKind: String
+        var renderTermJSONPath: String
+
+        init(finding: ImportReport.Finding) {
+            feature = finding.feature
+            disposition = finding.disposition.rawValue
+            path = finding.path
+            sourcePath = finding.sourcePath ?? ""
+            owner = finding.evidence?.owner.rawValue ?? ""
+            evidenceJSONPath = finding.evidence?.jsonPath ?? ""
+            renderTermKind = finding.evidence?.renderTerm?.kind ?? ""
+            renderTermJSONPath = finding.evidence?.renderTerm?.jsonPath ?? ""
+        }
+
+        static func < (lhs: BackendFinding, rhs: BackendFinding) -> Bool {
+            (lhs.path, lhs.feature, lhs.sourcePath) < (rhs.path, rhs.feature, rhs.sourcePath)
+        }
+    }
+}
+
 private struct CorpusFixtureManifestEntry: Decodable {
     var id: String
     var coverage: [String]
     var semanticStatus: SemanticStatus
     var lottie: String
     var lottieWebIntent: String
+    var frames: [Frame]
+
+    struct Frame: Decodable {
+        var frame: Double
+        var rationale: String
+    }
 
     enum SemanticStatus: String, Decodable {
         case modeled
@@ -701,6 +909,13 @@ private extension LottieRenderFrame {
 
     var trimTraceCount: Int {
         trimTraces.count
+    }
+
+    var shapeDrawCount: Int {
+        nodes.reduce(0) { count, node in
+            guard case let .shape(shape) = node.kind else { return count }
+            return count + shape.draws.count
+        }
     }
 }
 
