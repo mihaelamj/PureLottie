@@ -1,5 +1,5 @@
 {
-  "backendFindingCount" : 45,
+  "backendFindingCount" : 6,
   "diagnosticCount" : 0,
   "excludedFixtureCount" : 0,
   "excludedFixtures" : [
@@ -283,18 +283,9 @@
       "excluded" : false,
       "frames" : [
         {
-          "backendFindingCount" : 1,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Growing Stroke' > group 'Stroke Group' > stroke 'Animated Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -309,18 +300,9 @@
           "trimTraceCount" : 0
         },
         {
-          "backendFindingCount" : 1,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Growing Stroke' > group 'Stroke Group' > stroke 'Animated Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -335,18 +317,9 @@
           "trimTraceCount" : 0
         },
         {
-          "backendFindingCount" : 1,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Growing Stroke' > group 'Stroke Group' > stroke 'Animated Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -377,18 +350,9 @@
       "excluded" : false,
       "frames" : [
         {
-          "backendFindingCount" : 1,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[2]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Animated Trim' > group 'Trim Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[2]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[2]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -403,18 +367,9 @@
           "trimTraceCount" : 1
         },
         {
-          "backendFindingCount" : 1,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[2]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Animated Trim' > group 'Trim Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[2]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[2]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -429,18 +384,9 @@
           "trimTraceCount" : 1
         },
         {
-          "backendFindingCount" : 1,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[2]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Animated Trim' > group 'Trim Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[2]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[2]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -1309,38 +1255,9 @@
       "excluded" : false,
       "frames" : [
         {
-          "backendFindingCount" : 3,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke line cap",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Cubic Stroke' > group 'Cubic Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            },
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke line join",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Cubic Stroke' > group 'Cubic Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            },
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Cubic Stroke' > group 'Cubic Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -1355,38 +1272,9 @@
           "trimTraceCount" : 0
         },
         {
-          "backendFindingCount" : 3,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke line cap",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Cubic Stroke' > group 'Cubic Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            },
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke line join",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Cubic Stroke' > group 'Cubic Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            },
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Cubic Stroke' > group 'Cubic Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -1401,38 +1289,9 @@
           "trimTraceCount" : 0
         },
         {
-          "backendFindingCount" : 3,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke line cap",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Cubic Stroke' > group 'Cubic Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            },
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke line join",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Cubic Stroke' > group 'Cubic Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            },
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Cubic Stroke' > group 'Cubic Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -1858,18 +1717,9 @@
       "excluded" : false,
       "frames" : [
         {
-          "backendFindingCount" : 1,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Line' > group 'Line Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -1884,18 +1734,9 @@
           "trimTraceCount" : 0
         },
         {
-          "backendFindingCount" : 1,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Line' > group 'Line Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -1910,18 +1751,9 @@
           "trimTraceCount" : 0
         },
         {
-          "backendFindingCount" : 1,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Line' > group 'Line Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -1952,38 +1784,9 @@
       "excluded" : false,
       "frames" : [
         {
-          "backendFindingCount" : 3,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke line cap",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Round Stroke' > group 'Angled Group' > stroke 'Round Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            },
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke line join",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Round Stroke' > group 'Angled Group' > stroke 'Round Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            },
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Round Stroke' > group 'Angled Group' > stroke 'Round Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -1998,38 +1801,9 @@
           "trimTraceCount" : 0
         },
         {
-          "backendFindingCount" : 3,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke line cap",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Round Stroke' > group 'Angled Group' > stroke 'Round Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            },
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke line join",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Round Stroke' > group 'Angled Group' > stroke 'Round Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            },
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Round Stroke' > group 'Angled Group' > stroke 'Round Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -2044,38 +1818,9 @@
           "trimTraceCount" : 0
         },
         {
-          "backendFindingCount" : 3,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke line cap",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Round Stroke' > group 'Angled Group' > stroke 'Round Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            },
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke line join",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Round Stroke' > group 'Angled Group' > stroke 'Round Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            },
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Round Stroke' > group 'Angled Group' > stroke 'Round Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -2105,28 +1850,9 @@
       "excluded" : false,
       "frames" : [
         {
-          "backendFindingCount" : 2,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke dash pattern",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Dashed Line' > group 'Dash Group' > stroke 'Dashed Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            },
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Dashed Line' > group 'Dash Group' > stroke 'Dashed Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -2141,28 +1867,9 @@
           "trimTraceCount" : 0
         },
         {
-          "backendFindingCount" : 2,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke dash pattern",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Dashed Line' > group 'Dash Group' > stroke 'Dashed Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            },
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Dashed Line' > group 'Dash Group' > stroke 'Dashed Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -2177,28 +1884,9 @@
           "trimTraceCount" : 0
         },
         {
-          "backendFindingCount" : 2,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke dash pattern",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Dashed Line' > group 'Dash Group' > stroke 'Dashed Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            },
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Dashed Line' > group 'Dash Group' > stroke 'Dashed Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[1]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -2322,18 +2010,9 @@
       "excluded" : false,
       "frames" : [
         {
-          "backendFindingCount" : 1,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[2]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Trimmed Ellipse' > group 'Trim Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[2]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[2]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -2348,18 +2027,9 @@
           "trimTraceCount" : 1
         },
         {
-          "backendFindingCount" : 1,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[2]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Trimmed Ellipse' > group 'Trim Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[2]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[2]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -2374,18 +2044,9 @@
           "trimTraceCount" : 1
         },
         {
-          "backendFindingCount" : 1,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[2]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Trimmed Ellipse' > group 'Trim Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[2]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[2]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -2415,18 +2076,9 @@
       "excluded" : false,
       "frames" : [
         {
-          "backendFindingCount" : 1,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[2]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Trimmed Rectangle' > group 'Trim Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[2]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[2]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -2441,18 +2093,9 @@
           "trimTraceCount" : 1
         },
         {
-          "backendFindingCount" : 1,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[2]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Trimmed Rectangle' > group 'Trim Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[2]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[2]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [
@@ -2467,18 +2110,9 @@
           "trimTraceCount" : 1
         },
         {
-          "backendFindingCount" : 1,
+          "backendFindingCount" : 0,
           "backendFindings" : [
-            {
-              "disposition" : "skipped",
-              "evidenceJSONPath" : "$.layers[0].shapes[0].it[2]",
-              "feature" : "stroke miter limit",
-              "owner" : "backendCapability",
-              "path" : "root > layer 'Trimmed Rectangle' > group 'Trim Group' > stroke 'Stroke'",
-              "renderTermJSONPath" : "$.layers[0].shapes[0].it[2]",
-              "renderTermKind" : "strokeStyle",
-              "sourcePath" : "$.layers[0].shapes[0].it[2]"
-            }
+
           ],
           "diagnosticCount" : 0,
           "diagnostics" : [

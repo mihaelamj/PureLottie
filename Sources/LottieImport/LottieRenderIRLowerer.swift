@@ -488,48 +488,45 @@ private final class RenderIRLoweringContext {
                 term: evidenceTerm("strokeStyle", source: source, values: strokeEvidenceValues(stroke))
             )
         }
-        if let lineCap = stroke.lineCap, lineCap != 1 {
-            skipBackend(
-                "stroke line cap",
-                at: source,
-                node: node,
-                term: evidenceTerm("strokeStyle", source: source, values: strokeEvidenceValues(stroke))
-            )
-        }
-        if let lineJoin = stroke.lineJoin, lineJoin != 1 {
-            skipBackend(
-                "stroke line join",
-                at: source,
-                node: node,
-                term: evidenceTerm("strokeStyle", source: source, values: strokeEvidenceValues(stroke))
-            )
-        }
-        if let miterLimit = stroke.miterLimit, abs(miterLimit - 10) > 0.0001 {
-            skipBackend(
-                "stroke miter limit",
-                at: source,
-                node: node,
-                term: evidenceTerm("strokeStyle", source: source, values: strokeEvidenceValues(stroke))
-            )
-        }
-        if stroke.secondaryMiterLimit != nil {
-            skipBackend(
-                "secondary stroke miter limit",
-                at: source,
-                node: node,
-                term: evidenceTerm("strokeStyle", source: source, values: strokeEvidenceValues(stroke))
-            )
-        }
-        if hasDashPattern(stroke.dashPattern) {
-            skipBackend(
-                "stroke dash pattern",
-                at: source,
-                node: node,
-                term: evidenceTerm("strokeStyle", source: source, values: strokeEvidenceValues(stroke))
-            )
-        }
         layer.strokeColor = color(from: stroke.color, opacity: stroke.opacity)
         layer.lineWidth = stroke.width
+        // Lottie lc: 1=butt, 2=round, 3=square (projecting). Absent maps to the
+        // renderer default (butt), matching lottie-web.
+        switch stroke.lineCap {
+        case 2: layer.lineCap = .round
+        case 3: layer.lineCap = .square
+        default: layer.lineCap = .butt
+        }
+        // Lottie lj: 1=miter, 2=round, 3=bevel.
+        switch stroke.lineJoin {
+        case 2: layer.lineJoin = .round
+        case 3: layer.lineJoin = .bevel
+        default: layer.lineJoin = .miter
+        }
+        // ml2 (animatable, evaluated) takes precedence over ml when authored; the
+        // renderer default is 10 when neither is present.
+        layer.miterLimit = stroke.secondaryMiterLimit ?? stroke.miterLimit ?? 10
+        // Lottie d: alternating dash/gap lengths (types "d"/"g") plus an optional
+        // offset (type "o") that maps to the dash phase. Empty leaves a solid line.
+        let dash = dashStyle(stroke.dashPattern)
+        layer.lineDashPattern = dash.lengths
+        layer.lineDashPhase = dash.phase
+    }
+
+    /// Split an evaluated Lottie dash pattern into PureLayer's alternating
+    /// length array and dash phase. Entries of type "o" are the phase; every
+    /// other entry ("d"/"g") is an alternating on/off length, in order.
+    private func dashStyle(_ dashPattern: [LottieRenderStrokeDash]) -> (lengths: [Double], phase: Double) {
+        var lengths: [Double] = []
+        var phase = 0.0
+        for dash in dashPattern {
+            if dash.type == "o" {
+                phase = dash.value ?? 0
+            } else {
+                lengths.append(dash.value ?? 0)
+            }
+        }
+        return (lengths, phase)
     }
 
     private func apply(_ trim: LottieRenderTrim, to layer: ShapeLayer, node: LottieRenderNode) {
@@ -564,12 +561,6 @@ private final class RenderIRLoweringContext {
         abs(trim.start) <= 0.0001
             && abs(trim.end - 100) <= 0.0001
             && abs(trim.offset) <= 0.0001
-    }
-
-    private func hasDashPattern(_ dashPattern: [LottieRenderStrokeDash]) -> Bool {
-        dashPattern.contains { dash in
-            dash.isAnimated || abs(dash.value ?? 0) > 0.0001
-        }
     }
 
     private func skipBackend(

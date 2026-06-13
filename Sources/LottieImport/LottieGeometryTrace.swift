@@ -445,14 +445,15 @@ private struct DrawListGeometryCollector {
                 append(kind: "image", bounds: destination.applying(currentTransform), opacity: opacity)
             case let .fillPath(path, color: _, opacity: opacity, rule: _):
                 append(kind: "fillPath", bounds: path.applying(currentTransform).boundingBox, opacity: opacity)
-            case let .strokePath(path, color: _, lineWidth: lineWidth, opacity: opacity):
-                append(kind: "strokePath", bounds: path.applying(currentTransform).boundingBox, opacity: opacity, lineWidth: lineWidth)
+            case let .strokePath(path, color: _, style: style, opacity: opacity):
+                append(kind: "strokePath", bounds: path.applying(currentTransform).boundingBox, opacity: opacity, lineWidth: style.lineWidth)
             case let .gradient(frame: frame, cornerRadius: _, continuous: _, _):
                 append(kind: "gradient", bounds: frame.applying(currentTransform), opacity: nil)
             case let .text(_, font: _, fontSize: _, color: _, position: position, opacity: opacity):
                 append(kind: "text", bounds: Rect(x: position.x, y: position.y, width: 0, height: 0).applying(currentTransform), opacity: opacity)
             case .pushClip,
                  .pushRoundedClip,
+                 .pushClipPath,
                  .popClip,
                  .beginTransparencyLayer,
                  .endTransparencyLayer,
@@ -460,7 +461,9 @@ private struct DrawListGeometryCollector {
                  .dropShadow,
                  .popShadow,
                  .pushMask,
-                 .popMask:
+                 .popMask,
+                 .pushBlendMode,
+                 .popBlendMode:
                 continue
             case let .pushTransform(transform):
                 transformStack.append(currentTransform)
