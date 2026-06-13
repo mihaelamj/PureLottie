@@ -291,12 +291,74 @@ PureLottie keeps `LottieModel` as the faithful, backend-free parse and the
 bodymovin/AE semantic authority; the translation layer is a new front-end that
 lowers that parse into PureComposition's IR instead of into PureLayer directly.
 
+## Encoder: AfterEffects to bodymovin to Lottie JSON, and what is lost
+
+Read from the actual exporter source (`bodymovin-extension/bundle/jsx/`), not the
+player. The exporter walks the AE DOM via ExtendScript (`renderManager` ->
+`elements/layerElement` -> `utils/keyframeHelper`, `utils/transformHelper`,
+shape helpers -> `dataManager`) and emits JSON.
+
+### Keyframe easing is reparameterized, and that is the main loss
+
+AE stores each keyframe's ease as a `(influence%, speed)` pair, per in/out and
+per dimension (`keyInTemporalEase`/`keyOutTemporalEase`). Lottie stores a
+normalized cubic-Bezier timing handle per segment, `o:{x,y}` (out) and `i:{x,y}`
+(in). `utils/keyframeHelper.jsx` converts, per dimension, over a segment of
+`duration = (key.time - lastKey.time) / stretch`:
+
+- `o.x = easeOut.influence / 100`, `i.x = 1 - easeIn.influence / 100`
+- `delta = key.value - lastKey.value` (times 255 for color); **if `|delta| < 1e-7`, `delta` is forced to 1**
+- `o.y = (easeOut.speed * easeOut.influence/100 * duration) / delta`
+- `i.y = 1 - (easeIn.speed * easeIn.influence/100 * duration) / delta`
+
+For spatial position, `delta` is replaced by the arc length of the spatial
+Bezier **sampled at 200 segments** (`getCurveLength`), and the handles use
+`speed / averageSpeed`. Hold keyframes export as `h:1`. A fully linear segment
+exports with `i`/`o` on the diagonal (`y = x`).
+
+Losses, grounded in the source:
+
+1. **Easing reparameterization.** The y-handle encodes velocity relative to the
+   value delta and duration. A player that treats `i`/`o` as pure timing curves
+   (lottie-web does) reproduces AE motion only if it re-derives the same average
+   speed. This is the documented "easing discrepancy."
+2. **The delta=1 degeneracy.** For a near-constant channel (`|delta| < 1e-7`) the
+   exporter fabricates the y-handle, so an almost-flat channel's eased timing is
+   arbitrary.
+3. **Spatial sampling mismatch.** The exporter measures arc length at **200**
+   segments; lottie-web re-derives motion at playback with **150** (see
+   `numeric-claim-reliability.md`). Two discretizations of the same curve ->
+   spatial-timing drift. Structural, not a bug.
+4. **Rounding.** Geometry, tangents, and time to 3 decimals; color to 12.
+
+### Shapes export parametrically, so geometry is lossless at encode
+
+Native shapes export as parametric `ty:rc`/`el`/`sr` with their AE parameters;
+Bezier paths export as `{i, o, v, c}` with **relative** tangents
+(`getPropertyValue` SHAPE), rounded to 3 decimals. The `0.5519` ellipse
+approximation is introduced only at **decode** (the player), not at encode, which
+is why the encoder and decoder sections here stay consistent.
+
+### bodymovin reports what it cannot translate (model-or-report at the source)
+
+The exporter ships a `reports/` subsystem (`effectsReport`, `layerStylesReport`,
+`failedLayerReport`, per-layer and per-shape reports). Per the canonical support
+matrix (`airbnb/lottie/after-effects.md`) it does not export expressions (unless
+baked through `keyframeBakerHelper`), any effects-menu effect, blend modes, luma
+mattes, or layer styles; alpha mattes and path-keyframe animation are supported
+but flagged for performance. It detects and reports these rather than dropping
+them silently. That is the same model-or-report discipline the translation layer
+must adopt; the loss is disclosed at the source and only becomes dangerous if a
+downstream importer ignores the report.
+
 ## Provenance
 
-All math above was read from `Tools/LottieOracle/node_modules/lottie-web@5.13.0`:
+The decode-side math was read from `Tools/LottieOracle/node_modules/lottie-web@5.13.0`:
 `utils/common.js`, `utils/TransformProperty.js`, `utils/shapes/ShapeProperty.js`,
 `utils/shapes/DashProperty.js`, `utils/shapes/TrimModifier.js`, and
-`player/js/mask.js`. The encoder side (the bodymovin AE extension) writes exactly
-the fields these decoders read; where the AE extraction adds quirks (feathered
-masks unsupported, plugin layers flattened to images), those are exporter limits
-to model-or-report, not decoder behavior.
+`player/js/mask.js`. The encode-side facts were read from the
+`bodymovin/bodymovin-extension` repo at `bundle/jsx/`: `renderManager.jsx`,
+`elements/layerElement.jsx`, `utils/keyframeHelper.jsx`, `utils/transformHelper.jsx`,
+`utils/PropertyFactory.jsx`, the `enums/` and `reports/` subsystems, plus the
+canonical support matrix `airbnb/lottie/after-effects.md`. The two sides agree on
+the field set by construction: bodymovin writes exactly what these players read.
