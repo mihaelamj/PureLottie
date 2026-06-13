@@ -183,6 +183,58 @@ struct LottieCompositionVMTests {
         #expect(render.watchValues.contains { $0.watch == .renderNodeEmission && $0.values["id"] == "render#1" })
     }
 
+    @Test("debugger trace model round trips through JSON coding")
+    func debuggerTraceModelRoundTripsThroughJSONCoding() throws {
+        let animation = try decode(shapeFixture)
+        let result = LottieCompositionVM(animation: animation, checkpointInterval: 2)
+            .run(at: 0, mode: .debug)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let decoder = JSONDecoder()
+
+        let resultData = try encoder.encode(result)
+        let decodedResult = try decoder.decode(LottieVMResult.self, from: resultData)
+        #expect(decodedResult == result)
+
+        let resultJSON = String(decoding: resultData, as: UTF8.self)
+        #expect(resultJSON.contains("\"kind\":\"enterComposition\""))
+        #expect(resultJSON.contains("\"kind\":\"key\""))
+        #expect(resultJSON.contains("\"value\":\"layers\""))
+
+        var debugger = LottieVMDebugger(
+            result: result,
+            breakpoints: [
+                .instruction(.emitRenderNode),
+                .jsonPath(JSONPath([.key("layers"), .index(0), .key("shapes"), .index(2)])),
+            ],
+            watches: [.styleState, .renderNodeEmission],
+            startAt: 0
+        )
+        let maybeRenderStep = debugger.continueToBreakpoint()
+        let renderStep = try #require(maybeRenderStep)
+        let stepData = try encoder.encode(renderStep)
+        let decodedStep = try decoder.decode(LottieVMDebugStep.self, from: stepData)
+        #expect(decodedStep == renderStep)
+
+        let debuggerData = try encoder.encode(debugger)
+        let decodedDebugger = try decoder.decode(LottieVMDebugger.self, from: debuggerData)
+        #expect(decodedDebugger.result == debugger.result)
+        #expect(decodedDebugger.breakpoints == debugger.breakpoints)
+        #expect(decodedDebugger.watches == debugger.watches)
+        #expect(decodedDebugger.currentIndex == debugger.currentIndex)
+
+        var payload = try #require(JSONSerialization.jsonObject(with: debuggerData) as? [String: Any])
+        payload["currentIndex"] = 999
+        let highIndexData = try JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])
+        let highIndexDebugger = try decoder.decode(LottieVMDebugger.self, from: highIndexData)
+        #expect(highIndexDebugger.currentIndex == result.trace.count - 1)
+
+        payload["currentIndex"] = -999
+        let lowIndexData = try JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])
+        let lowIndexDebugger = try decoder.decode(LottieVMDebugger.self, from: lowIndexData)
+        #expect(lowIndexDebugger.currentIndex == 0)
+    }
+
     @Test("precompositions and skipped layers are explicit")
     func precompositionsAndSkippedLayersAreExplicit() throws {
         let animation = try decode("""

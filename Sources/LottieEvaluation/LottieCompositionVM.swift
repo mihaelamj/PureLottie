@@ -10,7 +10,7 @@ import LottieModel
 ///
 /// The id is deterministic within a single `run(at:mode:)` call and names the
 /// render-intent placeholder that future RenderIR/PureLayer lowering can map.
-public struct LottieRenderNodeID: Sendable, Hashable, Comparable, CustomStringConvertible {
+public struct LottieRenderNodeID: Codable, Sendable, Hashable, Comparable, CustomStringConvertible {
     /// The 1-based render-node sequence number.
     public var rawValue: Int
 
@@ -28,7 +28,7 @@ public struct LottieRenderNodeID: Sendable, Hashable, Comparable, CustomStringCo
 }
 
 /// Controls how much trace data the composition VM records.
-public enum LottieVMTraceMode: String, Sendable {
+public enum LottieVMTraceMode: String, Codable, Sendable {
     /// Records structural execution plus debug-only value evaluation records.
     case debug
     /// Records structural execution and render-node decisions only.
@@ -40,9 +40,9 @@ public enum LottieVMTraceMode: String, Sendable {
 /// Instructions are semantic operations, not bytecode for a general runtime.
 /// They are intentionally named after Lottie traversal concepts so an IDE can
 /// expose step-in/step-over behavior without inspecting recursive Swift calls.
-public struct LottieVMInstruction: Sendable, Equatable {
+public struct LottieVMInstruction: Codable, Sendable, Equatable {
     /// The operation category for one VM trace step.
-    public enum Kind: String, Sendable {
+    public enum Kind: String, Codable, Sendable {
         case enterComposition
         case leaveComposition
         case enterLayer
@@ -79,7 +79,7 @@ public struct LottieVMInstruction: Sendable, Equatable {
 /// This is the state an IDE debugger needs for step-back and inspection:
 /// source frame, composition/layer ancestry, shape transform/style context,
 /// opacity/matte context, and the current source path.
-public struct LottieVMState: Sendable, Equatable {
+public struct LottieVMState: Codable, Sendable, Equatable {
     /// Selected Lottie source frame, not seconds.
     public var frameClock: Double
     /// Active root/precomposition stack.
@@ -119,7 +119,7 @@ public struct LottieVMState: Sendable, Equatable {
 }
 
 /// One recorded VM step, including source identity and evaluated values.
-public struct LottieVMTraceRecord: Sendable, Equatable, CustomStringConvertible {
+public struct LottieVMTraceRecord: Codable, Sendable, Equatable, CustomStringConvertible {
     /// Zero-based trace step.
     public var step: Int
     /// VM operation executed at this step.
@@ -181,7 +181,7 @@ public struct LottieVMTraceRecord: Sendable, Equatable, CustomStringConvertible 
 }
 
 /// Snapshot of VM stack state retained for practical step-back.
-public struct LottieVMCheckpoint: Sendable, Equatable {
+public struct LottieVMCheckpoint: Codable, Sendable, Equatable {
     /// Trace step at which the checkpoint was captured.
     public var step: Int
     /// VM stack state after `step`.
@@ -194,7 +194,7 @@ public struct LottieVMCheckpoint: Sendable, Equatable {
 }
 
 /// Result of executing the composition VM for one selected source frame.
-public struct LottieVMResult: Sendable, Equatable {
+public struct LottieVMResult: Codable, Sendable, Equatable {
     /// Trace mode used for this run.
     public var mode: LottieVMTraceMode
     /// Ordered trace records produced by the run.

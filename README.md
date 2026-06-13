@@ -34,8 +34,10 @@ macOS, Linux, and Wasm model jobs intentionally run through `scripts/ci-model-on
 `LottieCompositionVM` emits backend-independent trace records in source-frame
 units. `LottieVMDebugger` consumes those records and provides deterministic
 step into, step over, step out, step back, breakpoint, and watch semantics for
-tests and a future IDE. Debugging stays inside `LottieEvaluation`; it does not
-import PureLayer or PureDraw.
+tests and a future IDE. VM results, trace records, debugger steps, breakpoints,
+watches, checkpoints, source ranges, and JSON paths round trip through JSON
+coding so a web or native debugger can consume the same evidence. Debugging
+stays inside `LottieEvaluation`; it does not import PureLayer or PureDraw.
 
 ## Source-Intent Evaluation
 
