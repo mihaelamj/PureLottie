@@ -325,32 +325,39 @@ struct LottieBoundedExhaustiveTests {
             do {
                 let document = try LottieSourceDocument.parse(jsonString)
                 let validator = LottieValidator()
-
+                
+                var passedValidation = false
                 do {
                     try document.validate(using: validator)
-
-                    // If it passes validation, import and round-trip must succeed without throwing or crashing
-                    let animation = try document.decodeAnimation()
-
-                    // We run round-trip on frame 0 and 5
-                    let roundTripGate = LottieSourceIntentTransformTimingRoundTripGate()
-                    let report = roundTripGate.report(
-                        animation: animation,
-                        source: LottieDecompiledSourceIntentSource(identity: "exhaustive-\(index)", frameCount: 0),
-                        selectedFrames: [
-                            LottieSourceIntentRoundTripSelection(frame: 0.0, rationale: "Exhaustive testing frame 0.0"),
-                            LottieSourceIntentRoundTripSelection(frame: 5.0, rationale: "Exhaustive testing frame 5.0"),
-                        ]
-                    )
-
-                    try report.validate()
-                    passedCount += 1
+                    passedValidation = true
                 } catch {
-                    // Failing validation collection is expected/success under "rejected or reported"
                     rejectedCount += 1
                 }
+                
+                if passedValidation {
+                    do {
+                        // If it passes validation, import and round-trip must succeed without throwing or crashing
+                        let animation = try document.decodeAnimation()
+                        
+                        // We run round-trip on frame 0 and 5
+                        let roundTripGate = LottieSourceIntentTransformTimingRoundTripGate()
+                        let report = roundTripGate.report(
+                            animation: animation,
+                            source: LottieDecompiledSourceIntentSource(identity: "exhaustive-\(index)", frameCount: 0),
+                            selectedFrames: [
+                                LottieSourceIntentRoundTripSelection(frame: 0.0, rationale: "Exhaustive testing frame 0.0"),
+                                LottieSourceIntentRoundTripSelection(frame: 5.0, rationale: "Exhaustive testing frame 5.0"),
+                            ]
+                        )
+                        
+                        try report.validate()
+                        passedCount += 1
+                    } catch {
+                        Issue.record("Document passed validation but failed compilation/round-trip: \(error). Document: \(jsonString)")
+                    }
+                }
             } catch {
-                // Parsing error or validation error is expected/success under "rejected or reported"
+                // Parsing error is expected/success under "rejected or reported"
                 rejectedCount += 1
             }
         }
