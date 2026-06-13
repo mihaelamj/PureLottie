@@ -13,8 +13,8 @@ permissions:
   contents: read
 
 jobs:
-  model-only:
-    name: LottieModel tests
+  semantic-only:
+    name: Semantic tests
     runs-on: windows-latest
     steps:
       - name: Check out repository
@@ -28,8 +28,8 @@ jobs:
       - name: Show Swift version
         run: swift --version
 
-      - name: Generate model-only package
-        run: ./scripts/ci-model-only.ps1
+      - name: Generate semantic-only package
+        run: ./scripts/ci-semantic-only.ps1
 
-      - name: Test LottieModel
-        run: swift test --package-path .build/ci/model-only
+      - name: Test Lottie semantics
+        run: swift test --package-path .build/ci/semantic-only

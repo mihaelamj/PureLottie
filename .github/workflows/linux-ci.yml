@@ -13,8 +13,8 @@ permissions:
   contents: read
 
 jobs:
-  model-only:
-    name: LottieModel tests
+  semantic-only:
+    name: Semantic tests
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -28,8 +28,8 @@ jobs:
       - name: Show Swift version
         run: swift --version
 
-      - name: Generate model-only package
-        run: swift scripts/ci-model-only.swift
+      - name: Generate semantic-only package
+        run: swift scripts/ci-semantic-only.swift
 
-      - name: Test LottieModel
-        run: swift test --package-path .build/ci/model-only
+      - name: Test Lottie semantics
+        run: swift test --package-path .build/ci/semantic-only

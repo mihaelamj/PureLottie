@@ -13,8 +13,8 @@ permissions:
   contents: read
 
 jobs:
-  model-only:
-    name: LottieModel tests
+  semantic-only:
+    name: Semantic tests
     runs-on: macos-latest
     steps:
       - name: Check out repository
@@ -23,11 +23,11 @@ jobs:
       - name: Show Swift version
         run: swift --version
 
-      - name: Generate model-only package
-        run: swift scripts/ci-model-only.swift
+      - name: Generate semantic-only package
+        run: swift scripts/ci-semantic-only.swift
 
-      - name: Test LottieModel
-        run: swift test --package-path .build/ci/model-only
+      - name: Test Lottie semantics
+        run: swift test --package-path .build/ci/semantic-only
 
   full-gate:
     name: Full Swift gate
@@ -74,7 +74,7 @@ jobs:
             echo "### Full Swift gate skipped"
             echo
             echo "Set PURELAYER_TOKEN or PURELAYER_DEPLOY_KEY to let SwiftPM resolve the private PureLayer dependency."
-            echo "The macOS model-only job still verifies LottieModel on this platform."
+            echo "The macOS semantic-only job still verifies LottieModel, LottieEvaluation, and LottieOracleDiff on this platform."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Install formatting and linting tools
