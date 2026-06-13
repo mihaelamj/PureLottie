@@ -113,6 +113,7 @@ public enum BuiltinValidation {
             AnyValidation(layerIndicesAreUnique),
             AnyValidation(layerParentReferencesResolve),
             AnyValidation(layerParentReferencesDoNotCycle),
+            AnyValidation(precompositionReferencesDoNotCycle),
             AnyValidation(layerAssetReferencesResolve),
             AnyValidation(layerMatteReferencesResolve),
             AnyValidation(layerTypesAreModeledOrReported),
@@ -416,6 +417,87 @@ public enum BuiltinValidation {
                     cursor = byIndex[parentIndex]?.member("parent")?.numberValue.map(Int.init)
                 }
                 return []
+            }
+        )
+    }
+
+    public static var precompositionReferencesDoNotCycle: Validation<LottieSourceDocument, LottieSourceDocument> {
+        Validation(
+            ruleID: "lottie.asset.precomposition.cycle",
+            description: "Precomposition asset references are acyclic",
+            phase: .semantic,
+            check: { context in
+                var deps: [String: [(refId: String, path: JSONPath, range: SourceRange?)]] = [:]
+
+                if let rootLayers = context.subject.source.member("layers")?.arrayValues {
+                    var rootDeps: [(refId: String, path: JSONPath, range: SourceRange?)] = []
+                    for (i, layer) in rootLayers.enumerated() {
+                        if let ty = layer.member("ty")?.numberValue, Int(ty) == 0,
+                           let refIdVal = layer.member("refId"),
+                           let refId = refIdVal.stringValue
+                        {
+                            rootDeps.append((
+                                refId: refId,
+                                path: JSONPath([.key("layers"), .index(i), .key("refId")]),
+                                range: refIdVal.range
+                            ))
+                        }
+                    }
+                    deps["root"] = rootDeps
+                }
+
+                if let assets = context.subject.source.member("assets")?.arrayValues {
+                    for (offset, asset) in assets.enumerated() {
+                        guard let id = asset.member("id")?.stringValue else { continue }
+                        guard let layers = asset.member("layers")?.arrayValues else { continue }
+                        var assetDeps: [(refId: String, path: JSONPath, range: SourceRange?)] = []
+                        for (i, layer) in layers.enumerated() {
+                            if let ty = layer.member("ty")?.numberValue, Int(ty) == 0,
+                               let refIdVal = layer.member("refId"),
+                               let refId = refIdVal.stringValue
+                            {
+                                assetDeps.append((
+                                    refId: refId,
+                                    path: JSONPath([.key("assets"), .index(offset), .key("layers"), .index(i), .key("refId")]),
+                                    range: refIdVal.range
+                                ))
+                            }
+                        }
+                        deps[id] = assetDeps
+                    }
+                }
+
+                var errors: [ValidationError] = []
+
+                func canReach(from: String, target: String, visited: inout Set<String>) -> Bool {
+                    if from == target { return true }
+                    guard visited.insert(from).inserted else { return false }
+                    guard let edges = deps[from] else { return false }
+                    for edge in edges {
+                        if canReach(from: edge.refId, target: target, visited: &visited) {
+                            return true
+                        }
+                    }
+                    return false
+                }
+
+                for (source, edges) in deps {
+                    for edge in edges {
+                        var visited: Set<String> = []
+                        if canReach(from: edge.refId, target: source, visited: &visited) {
+                            errors.append(ValidationError(
+                                ruleID: "lottie.asset.precomposition.cycle",
+                                reason: "Precomposition reference `\(edge.refId)` creates a cycle back to `\(source)`.",
+                                at: edge.path,
+                                range: edge.range,
+                                phase: .semantic,
+                                classification: .gap
+                            ))
+                        }
+                    }
+                }
+
+                return errors
             }
         )
     }

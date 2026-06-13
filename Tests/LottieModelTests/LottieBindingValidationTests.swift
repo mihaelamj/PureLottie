@@ -144,6 +144,50 @@ struct LottieBindingValidationTests {
         #expect(errors.allSatisfy { $0.range != nil })
     }
 
+    @Test("Precomposition cycles are semantic validation errors")
+    func precompositionCyclesAreValidationErrors() throws {
+        let document = try LottieSourceDocument.parse("""
+        {
+          "v": "5.7.4",
+          "fr": 30,
+          "ip": 0,
+          "op": 30,
+          "w": 64,
+          "h": 64,
+          "layers": [
+            { "ty": 0, "refId": "comp_A", "ip": 0, "op": 30, "ks": {} }
+          ],
+          "assets": [
+            {
+              "id": "comp_A",
+              "layers": [
+                { "ty": 0, "refId": "comp_B", "ip": 0, "op": 30, "ks": {} }
+              ]
+            },
+            {
+              "id": "comp_B",
+              "layers": [
+                { "ty": 0, "refId": "comp_A", "ip": 0, "op": 30, "ks": {} }
+              ]
+            }
+          ]
+        }
+        """)
+
+        let errors = validationErrors(
+            for: document,
+            using: LottieValidator.blank.validating(\.precompositionReferencesDoNotCycle)
+        )
+
+        #expect(errors.count == 2)
+        #expect(errors.allSatisfy { $0.ruleID == "lottie.asset.precomposition.cycle" })
+        #expect(errors.map(\.codingPath.description).sorted() == [
+            "$.assets[0].layers[0].refId",
+            "$.assets[1].layers[0].refId",
+        ])
+        #expect(errors.allSatisfy { $0.range != nil })
+    }
+
     private func validationErrors(for document: LottieSourceDocument, using validator: LottieValidator) -> [ValidationError] {
         do {
             try document.validate(using: validator)
