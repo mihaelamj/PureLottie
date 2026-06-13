@@ -35,6 +35,33 @@ const engineDivergenceCoverage = new Set([
   'time-remap'
 ]);
 
+const divergenceIDsByFixtureID = new Map([
+  ['eligible-shape-position', ['transform.layer-position-sampled-matrix']],
+  ['animated-position-linear', ['transform.layer-position-sampled-matrix']],
+  ['split-position-ellipse', ['transform.split-position-rejoins-vector']],
+  ['anchor-rotation-rectangle', ['transform.anchor-scale-rotation-order']],
+  ['scale-rotation-anchor', ['transform.anchor-scale-rotation-order']],
+  ['group-transform-rectangle', ['transform.shape-group-scope']],
+  ['group-opacity-two-shapes', ['opacity.shape-group-atomic']],
+  ['parent-null-transform-child', ['transform.parent-world-matrix']],
+  ['parent-animated-transform-child', ['transform.parent-world-matrix']],
+  ['ellipse-reversed-direction', ['geometry.ellipse-direction-noon-order']],
+  ['rounded-rectangle', ['geometry.rounded-rectangle-clamp']],
+  ['polygon-five', ['geometry.polystar-point-flooring']],
+  ['star-five', ['geometry.polystar-point-flooring']],
+  ['fill-rule-evenodd', ['style.fill-rule-evenodd']],
+  ['stroke-dash', ['stroke.dash-and-width-source-facts']],
+  ['animated-stroke-width', ['stroke.dash-and-width-source-facts']],
+  ['trim-rectangle-half', ['trim.length-normalized-segments']],
+  ['trim-ellipse-quadrant', ['trim.length-normalized-segments']],
+  ['animated-trim-path', ['trim.length-normalized-segments']],
+  ['layer-window-in-out', ['timing.layer-frame-window-half-open']],
+  ['mask-add-rectangle', ['mask.source-graph-before-backend']],
+  ['alpha-matte-rectangle', ['matte.source-target-layer-binding']],
+  ['precomp-static-child', ['precomp.local-source-frame']],
+  ['time-remap-precomp-diagnosed', ['precomp.time-remap-diagnosed-boundary']]
+]);
+
 const colors = {
   blue: [0.1, 0.4, 1, 1],
   red: [0.95, 0.15, 0.2, 1],
@@ -355,11 +382,18 @@ function defaultPurpose(coverage, bugClass) {
 
 function fixture(id, description, bugClass, coverage, document, options = {}) {
   const semanticStatus = options.semanticStatus ?? 'modeled';
+  const evidenceRoles = options.evidenceRoles ?? defaultEvidenceRoles(coverage, semanticStatus);
+  const divergenceIDs = evidenceRoles.includes('engine-divergence')
+    ? divergenceIDsByFixtureID.get(id)
+    : null;
+  if (evidenceRoles.includes('engine-divergence') && !divergenceIDs) {
+    throw new Error(`Missing divergenceIDs for engine-divergence fixture ${id}`);
+  }
   return {
     id,
     description,
     bugClass,
-    evidenceRoles: options.evidenceRoles ?? defaultEvidenceRoles(coverage, semanticStatus),
+    evidenceRoles,
     purpose: options.purpose ?? defaultPurpose(coverage, bugClass),
     coverage,
     semanticStatus,
@@ -378,6 +412,7 @@ function fixture(id, description, bugClass, coverage, document, options = {}) {
       referenceNonEmpty: 'passed',
       failureReasons: []
     },
+    ...(divergenceIDs ? { divergenceIDs } : {}),
     document
   };
 }
