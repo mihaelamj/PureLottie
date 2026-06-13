@@ -89,14 +89,80 @@ final class ReferenceProvenanceLedgerTests: XCTestCase {
         XCTAssertTrue(ledger.contains("## Known Unknowns"))
         XCTAssertTrue(ledger.contains("`UNKNOWN`"))
         XCTAssertTrue(ledger.contains("Package.resolved` is not committed"))
-        XCTAssertTrue(ledger.contains("#56"))
         XCTAssertTrue(ledger.contains("#58"))
-        XCTAssertTrue(ledger.contains("3 checked-in files before this ledger"))
+        XCTAssertTrue(ledger.contains("Reference Update and Audit Workflow"))
+        XCTAssertTrue(ledger.contains("5 checked-in files including this ledger"))
+    }
+
+    func testReferenceUpdateWorkflowIsLinkedAndExecutable() throws {
+        let ledger = try ledgerContents()
+        let workflow = try workflowContents()
+
+        XCTAssertTrue(ledger.contains("[Reference Update and Audit Workflow](reference-update-audit-workflow.md)"))
+        XCTAssertTrue(workflow.contains("## Reversibility Contract"))
+        XCTAssertTrue(workflow.contains("source fixture -> manifest entry -> generated trace -> validation -> review evidence"))
+        XCTAssertTrue(workflow.contains("The manifest entry"))
+        XCTAssertTrue(workflow.contains("must link the fixture id to that trace"))
+        XCTAssertTrue(workflow.contains("workflow review evidence must"))
+        XCTAssertTrue(workflow.contains("record the command that generated or refreshed the trace"))
+        XCTAssertTrue(workflow.contains("Do not modify PureLayer or PureDraw"))
+
+        for command in [
+            "npm --prefix Tools/LottieOracle ci",
+            "npm --prefix Tools/LottieOracle test",
+            "npm --prefix Tools/LottieOracle run validate-fixtures",
+            "swift scripts/ci-model-only.swift",
+            "swift test --package-path .build/ci/model-only",
+            "swiftformat . --config .swiftformat",
+            "swiftlint --config .swiftlint.yml --strict",
+            "swift build",
+            "swift test",
+        ] {
+            XCTAssertTrue(workflow.contains(command), command)
+        }
+
+        for script in [
+            "Tools/LottieOracle/package.json",
+            "Tools/LottieOracle/scripts/build-curated-corpus.mjs",
+            "Tools/LottieOracle/scripts/extract-intent.mjs",
+            "Tools/LottieOracle/scripts/render-reference.mjs",
+            "Tools/LottieOracle/scripts/run-oracle.mjs",
+            "Tools/LottieOracle/scripts/validate-fixtures.mjs",
+        ] {
+            XCTAssertTrue(
+                FileManager.default.fileExists(atPath: repositoryRoot().appendingPathComponent(script).path),
+                script
+            )
+        }
+
+        let packageJSON = try JSONSerialization.jsonObject(
+            with: Data(contentsOf: repositoryRoot().appendingPathComponent("Tools/LottieOracle/package.json"))
+        )
+        guard let package = packageJSON as? [String: Any],
+              let scripts = package["scripts"] as? [String: String]
+        else {
+            XCTFail("Unable to decode Tools/LottieOracle/package.json scripts.")
+            return
+        }
+
+        XCTAssertEqual(scripts["build-corpus"], "node scripts/build-curated-corpus.mjs")
+        XCTAssertEqual(scripts["extract-intent"], "node scripts/extract-intent.mjs")
+        XCTAssertEqual(scripts["oracle"], "node scripts/run-oracle.mjs")
+        XCTAssertEqual(scripts["render-reference"], "node scripts/render-reference.mjs")
+        XCTAssertEqual(scripts["validate-fixtures"], "node scripts/validate-fixtures.mjs --check-lottie-web")
+        XCTAssertEqual(scripts["test"], "node --test tests/*.test.mjs")
     }
 
     private func ledgerContents() throws -> String {
         try String(
             contentsOf: repositoryRoot().appendingPathComponent("docs/lottie-format/reference-provenance-ledger.md"),
+            encoding: .utf8
+        )
+    }
+
+    private func workflowContents() throws -> String {
+        try String(
+            contentsOf: repositoryRoot().appendingPathComponent("docs/lottie-format/reference-update-audit-workflow.md"),
             encoding: .utf8
         )
     }

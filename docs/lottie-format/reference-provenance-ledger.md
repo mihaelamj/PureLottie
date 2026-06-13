@@ -1,7 +1,7 @@
 # Reference Provenance Ledger
 
-Status: issue #54 inventory ledger for the references and fixtures that support
-PureLottie tests and Lottie-format documentation.
+Status: issue #54-#56 inventory ledger and update workflow for the references
+and fixtures that support PureLottie tests and Lottie-format documentation.
 
 This ledger is not a conformance claim. It is the audit map that says where each
 reference came from, why it exists, how it is validated today, and which facts
@@ -12,6 +12,8 @@ actionable.
 
 - Every fixture or reference used by tests must have a source, revision or
   version when known, purpose, license/provenance note, and validation status.
+- Additions, updates, and removals follow
+  [Reference Update and Audit Workflow](reference-update-audit-workflow.md).
 - Unknown source facts are recorded as `UNKNOWN` with a follow-up action; they
   are never implied to be safe.
 - Raw fixture files are discovery material. Curated oracle fixtures are the
@@ -32,7 +34,7 @@ actionable.
 | Golden source-intent trace | `Tests/Fixtures/SourceIntentTrace` | 1 JSON trace | Stable v1 source-intent schema round-trip fixture. | `LottieSourceIntentTraceTests` checks decode, provenance, vocabularies, and JSON coding round trip. |
 | lottie-web oracle tool | `Tools/LottieOracle` | 1 Node tool package | External browser/reference harness kept outside `Package.swift`. | `npm --prefix Tools/LottieOracle test` checks fixture manifest, eligibility gates, package pins, image comparison helpers, path-bearing validation diagnostics, and package isolation; `npm --prefix Tools/LottieOracle run validate-fixtures` checks live lottie-web fixture usability. |
 | Frame dump tools | `Tools/LottieFrameDump`, `Tools/LottieAPNGDump` | 2 Swift executables | Emit PureLayer frames/APNGs with semantic summaries after source-intent gates. | Built by `swift build`; covered by import/APNG/oracle tests and oracle filename checks. |
-| Lottie format docs | `docs/lottie-format` | 3 checked-in files before this ledger | Human-readable source-intent, conformance, and matrix contracts. | Swift/Node tests pin referenced fixture counts and trace behavior; this ledger records remaining documentation provenance gaps. |
+| Lottie format docs | `docs/lottie-format` | 5 checked-in files including this ledger | Human-readable source-intent, conformance, matrix, provenance, and update workflow contracts. | Swift/Node tests pin referenced fixture counts, trace behavior, and referenced workflow commands. |
 
 ## Raw Corpus Sources
 
@@ -123,21 +125,23 @@ The conformance and source-intent docs cite these research references:
 
 | Reference | Source | Revision | Used by | Purpose | Validation status |
 | --- | --- | --- | --- | --- | --- |
-| Lottie specification snapshot | `docs/lottie-format/conformance-matrix.md` cites `/tmp/lottie-spec-source` and specific spec/schema paths | `UNKNOWN` in checked-in ledger | Conformance matrix and source-format rules | Original source-format contract. | Documentation citation only; needs a durable revision record in #56/#58. |
-| lottie-web source snapshot | `docs/lottie-format/conformance-matrix.md` cites `/tmp/lottie-web-source` and specific player files | `UNKNOWN` in checked-in ledger | Transform, property, shape, trim, and renderer behavior notes | Reference implementation semantics before browser extraction. | Numeric behavior is checked through pinned `npm:lottie-web@5.13.0`; source checkout revision still needs durable recording in #56/#58. |
+| Lottie specification snapshot | `docs/lottie-format/conformance-matrix.md` cites `/tmp/lottie-spec-source` and specific spec/schema paths | `UNKNOWN` in checked-in ledger | Conformance matrix and source-format rules | Original source-format contract. | Documentation citation only; the update workflow requires a durable revision or `UNKNOWN` plus follow-up, and #58 should make that machine-checkable. |
+| lottie-web source snapshot | `docs/lottie-format/conformance-matrix.md` cites `/tmp/lottie-web-source` and specific player files | `UNKNOWN` in checked-in ledger | Transform, property, shape, trim, and renderer behavior notes | Reference implementation semantics before browser extraction. | Numeric behavior is checked through pinned `npm:lottie-web@5.13.0`; source checkout revision still needs durable recording, and #58 should make that machine-checkable. |
 | OpenAPIKit validation idiom | Canonical mihaela-agents validation rule references `https://github.com/mattpolzin/OpenAPIKit` | Rule text records upstream `1d42ea6477` as last analysed | Validation architecture for LottieModel | Validation style and error-path discipline. | Enforced by existing validation tests and rule loading; not vendored in this repo. |
 
 ## Known Unknowns
 
 | Unknown | Why it matters | Follow-up |
 | --- | --- | --- |
-| Durable checked-in revision for the lottie-spec source snapshot | Docs cite local `/tmp` paths, which cannot be re-resolved by a fresh checkout. | #56 documents the update/audit workflow; #58 should make this machine-checkable. |
-| Durable checked-in revision for the lottie-web source snapshot used by prose research | Browser behavior is pinned by npm package version, but prose citations to source files need a source checkout revision. | #56/#58. |
+| Durable checked-in revision for the lottie-spec source snapshot | Docs cite local `/tmp` paths, which cannot be re-resolved by a fresh checkout. | Reference Update and Audit Workflow defines the manual record; #58 should make this machine-checkable. |
+| Durable checked-in revision for the lottie-web source snapshot used by prose research | Browser behavior is pinned by npm package version, but prose citations to source files need a source checkout revision. | Reference Update and Audit Workflow defines the manual record; #58 should make this machine-checkable. |
 | Checked-in resolved PureLayer/PureDraw dependency revision | `Package.swift` tracks PureLayer `main`; build logs resolve a commit but the repo does not pin it. | #58 should decide how provenance validation records target-oracle revisions without changing dependency policy. |
 
-## Issue #54 Completion Criteria
+## Issue #54-#56 Completion Criteria
 
 This ledger covers the current references and fixtures used by tests and docs,
 records known source/revision/purpose/validation facts, and makes unknowns
-explicit. Later #37 child issues turn this inventory into stricter validation,
-fixture usability checks, role classification, and an update workflow.
+explicit. The linked update workflow defines reversible add/update/remove rules,
+required validation commands, stale-reference cleanup, and review evidence.
+Later #37 child issues turn this inventory into stricter machine validation and
+role classification.

@@ -46,8 +46,10 @@ try copyDirectory("Sources/LottieModel", to: packageRoot)
 try copyDirectory("Tests/LottieModelTests", to: packageRoot)
 try copyDirectory("Tests/Fixtures", to: packageRoot)
 try copyDirectory("docs/lottie-format", to: packageRoot)
+try copyDirectory("Tools/LottieOracle/scripts", to: packageRoot)
 try copyFile("Tools/LottieOracle/oracle-fixtures.json", to: packageRoot)
 try copyFile("Tools/LottieOracle/package-lock.json", to: packageRoot)
+try copyFile("Tools/LottieOracle/package.json", to: packageRoot)
 
 let manifest = """
 // swift-tools-version: 6.0
