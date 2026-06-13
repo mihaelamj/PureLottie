@@ -55,7 +55,27 @@ struct LottieRenderedArtifactManifestTests {
                     path: "frames/frame_0000000.00.png",
                     frameIndex: 0,
                     sourceFrame: 0,
-                    timeSeconds: 0
+                    timeSeconds: 0,
+                    evidenceLinks: [
+                        .init(
+                            kind: "lottie-web-intent",
+                            path: "Tests/Fixtures/LottieOracle/lottie-web-intent/eligible-shape-position.json",
+                            frameIndex: 0,
+                            sourceFrame: 0,
+                            timeSeconds: 0,
+                            rowAddress: "$.frames[0]",
+                            note: "Browser source-intent row for the rendered source frame."
+                        ),
+                        .init(
+                            kind: "geometry-json",
+                            path: "frames/purelayer-geometry.json",
+                            frameIndex: 0,
+                            sourceFrame: 0,
+                            timeSeconds: 0,
+                            rowAddress: "$.frames[0]",
+                            note: "PureLayer geometry trace row for the rendered source frame."
+                        ),
+                    ]
                 ),
             ],
             evidence: .init(references: [
@@ -95,6 +115,10 @@ struct LottieRenderedArtifactManifestTests {
         manifest.export.generatedFrameCount = 0
         manifest.artifacts[0].path = ""
         manifest.artifacts[0].sourceFrame = nil
+        manifest.artifacts[0].evidenceLinks?[0].path = ""
+        manifest.artifacts[0].evidenceLinks?[0].rowAddress = "frames[0]"
+        manifest.artifacts[0].evidenceLinks?[0].sourceFrame = 9
+        manifest.artifacts[1].evidenceLinks = []
         manifest.evidence.references[0].path = ""
         manifest.evidence.references[0].note = "short"
         manifest.evidence.references.removeLast()
@@ -114,6 +138,10 @@ struct LottieRenderedArtifactManifestTests {
         #expect(paths.contains("$.export.generatedFrameCount"))
         #expect(paths.contains("$.artifacts[0].path"))
         #expect(paths.contains("$.artifacts[0].sourceFrame"))
+        #expect(paths.contains("$.artifacts[0].evidenceLinks[0].path"))
+        #expect(paths.contains("$.artifacts[0].evidenceLinks[0].rowAddress"))
+        #expect(paths.contains("$.artifacts[0].evidenceLinks[0].sourceFrame"))
+        #expect(paths.contains("$.artifacts[1].evidenceLinks"))
         #expect(paths.contains("$.evidence.references[0].path"))
         #expect(paths.contains("$.evidence.references[0].note"))
         #expect(paths.contains("$.evidence.references"))
@@ -148,6 +176,69 @@ struct LottieRenderedArtifactManifestTests {
         } catch {
             Issue.record("Expected ValidationErrorCollection, got \(error).")
         }
+    }
+
+    @Test("rendered artifact manifest links each frame to source intent and geometry")
+    func renderedArtifactManifestLinksEachFrameToSourceIntentAndGeometry() throws {
+        let manifest = try validManifest()
+
+        let firstFrameLinks = try #require(manifest.artifacts[0].evidenceLinks)
+
+        #expect(firstFrameLinks.map(\.kind) == ["lottie-web-intent", "geometry-json"])
+        #expect(firstFrameLinks.allSatisfy { $0.sourceFrame == manifest.artifacts[0].sourceFrame })
+        #expect(firstFrameLinks.allSatisfy { $0.timeSeconds == manifest.artifacts[0].timeSeconds })
+        #expect(firstFrameLinks.allSatisfy { $0.rowAddress?.hasPrefix("$.frames") == true })
+    }
+
+    @Test("rendered artifact manifest rejects missing frame evidence chain")
+    func renderedArtifactManifestRejectsMissingFrameEvidenceChain() throws {
+        var manifest = try validManifest()
+        manifest.artifacts[0].evidenceLinks = [
+            .init(
+                kind: "import-report",
+                path: "reports/import.tsv",
+                frameIndex: 0,
+                sourceFrame: 0,
+                timeSeconds: 0,
+                rowAddress: nil,
+                note: "Import report alone is not enough evidence for a rendered frame."
+            ),
+        ]
+
+        let paths = Set(LottieRenderedArtifactManifestValidator()
+            .collectErrors(in: manifest)
+            .map(\.codingPath.description))
+
+        #expect(paths.contains("$.artifacts[0].evidenceLinks"))
+        #expect(paths.contains("$.artifacts[0].evidenceLinks[0].path"))
+    }
+
+    @Test("rendered artifact manifest rejects wrong-kind evidence reference for linked path")
+    func renderedArtifactManifestRejectsWrongKindEvidenceReferenceForLinkedPath() throws {
+        var manifest = try validManifest()
+        manifest.evidence.references[0].kind = "oracle-summary"
+
+        let errors = LottieRenderedArtifactManifestValidator()
+            .collectErrors(in: manifest)
+
+        #expect(errors.contains {
+            $0.ruleID == "rendered-artifact-manifest.artifact-evidence.reference" &&
+                $0.codingPath.description == "$.artifacts[0].evidenceLinks[0].path"
+        })
+    }
+
+    @Test("rendered artifact manifest rejects malformed evidence row address")
+    func renderedArtifactManifestRejectsMalformedEvidenceRowAddress() throws {
+        var manifest = try validManifest()
+        manifest.artifacts[0].evidenceLinks?[0].rowAddress = "$.frames[x]"
+
+        let errors = LottieRenderedArtifactManifestValidator()
+            .collectErrors(in: manifest)
+
+        #expect(errors.contains {
+            $0.ruleID == "rendered-artifact-manifest.artifact-evidence.path-bearing" &&
+                $0.codingPath.description == "$.artifacts[0].evidenceLinks[0].rowAddress"
+        })
     }
 
     @Test("default rendered artifact manifest validation set is composable and removable")
@@ -225,14 +316,54 @@ struct LottieRenderedArtifactManifestTests {
               "path": "frames/frame_0000000.00.png",
               "frameIndex": 0,
               "sourceFrame": 0,
-              "timeSeconds": 0
+              "timeSeconds": 0,
+              "evidenceLinks": [
+                {
+                  "kind": "lottie-web-intent",
+                  "path": "Tests/Fixtures/LottieOracle/lottie-web-intent/eligible-shape-position.json",
+                  "frameIndex": 0,
+                  "sourceFrame": 0,
+                  "timeSeconds": 0,
+                  "rowAddress": "$.frames[0]",
+                  "note": "Browser source-intent row for the rendered source frame."
+                },
+                {
+                  "kind": "geometry-json",
+                  "path": "frames/purelayer-geometry.json",
+                  "frameIndex": 0,
+                  "sourceFrame": 0,
+                  "timeSeconds": 0,
+                  "rowAddress": "$.frames[0]",
+                  "note": "PureLayer geometry trace row for the rendered source frame."
+                }
+              ]
             },
             {
               "kind": "png-frame",
               "path": "frames/frame_0000005.00.png",
               "frameIndex": 1,
               "sourceFrame": 5,
-              "timeSeconds": 0.5
+              "timeSeconds": 0.5,
+              "evidenceLinks": [
+                {
+                  "kind": "lottie-web-intent",
+                  "path": "Tests/Fixtures/LottieOracle/lottie-web-intent/eligible-shape-position.json",
+                  "frameIndex": 1,
+                  "sourceFrame": 5,
+                  "timeSeconds": 0.5,
+                  "rowAddress": "$.frames[1]",
+                  "note": "Browser source-intent row for the rendered source frame."
+                },
+                {
+                  "kind": "geometry-json",
+                  "path": "frames/purelayer-geometry.json",
+                  "frameIndex": 1,
+                  "sourceFrame": 5,
+                  "timeSeconds": 0.5,
+                  "rowAddress": "$.frames[1]",
+                  "note": "PureLayer geometry trace row for the rendered source frame."
+                }
+              ]
             }
           ],
           "evidence": {

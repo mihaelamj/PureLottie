@@ -75,9 +75,10 @@ source-intent gates pass.
 Rendered PNG and APNG evidence must be accompanied by the manifest contract in
 `docs/lottie-format/rendered-artifact-manifest.md`. The manifest records source
 fixture identity, renderer identity, export policy, generated artifact paths,
-source-intent evidence, geometry evidence, and any validation/import/backend
-findings. It lives in `LottieEvaluation`, imports no PureLayer or PureDraw
-symbols, and validates with path-bearing OpenAPIKit-style rules.
+per-frame source-intent evidence links, geometry evidence links, and any
+validation/import/backend findings. It lives in `LottieEvaluation`, imports no
+PureLayer or PureDraw symbols, and validates with path-bearing OpenAPIKit-style
+rules.
 
 ## Backend Gap Evidence
 
@@ -190,5 +191,6 @@ swift run LottieFrameDump \
   --input Tests/Fixtures/LottieOracle/eligible-shape-position.json \
   --output .build/exports/lottie-frames/eligible-shape-position \
   --frames 0,5,9 \
-  --scale 2
+  --scale 1 \
+  --lottie-web-intent Tests/Fixtures/LottieOracle/lottie-web-intent/eligible-shape-position.json
 ```

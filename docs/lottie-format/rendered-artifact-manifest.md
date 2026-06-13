@@ -39,7 +39,7 @@ The root object is a `LottieRenderedArtifactManifest`.
     "name": "LottieFrameDump",
     "backend": "PureLayer",
     "version": "local",
-    "command": "swift run LottieFrameDump --input fixture --output frames --frames 0,5"
+    "command": "swift run LottieFrameDump --input fixture --output frames --frames 0,5 --lottie-web-intent intent.json"
   },
   "export": {
     "kind": "png-sequence",
@@ -54,7 +54,27 @@ The root object is a `LottieRenderedArtifactManifest`.
       "path": "frames/frame_0000000.00.png",
       "frameIndex": 0,
       "sourceFrame": 0,
-      "timeSeconds": 0
+      "timeSeconds": 0,
+      "evidenceLinks": [
+        {
+          "kind": "lottie-web-intent",
+          "path": "Tests/Fixtures/LottieOracle/lottie-web-intent/eligible-shape-position.json",
+          "frameIndex": 0,
+          "sourceFrame": 0,
+          "timeSeconds": 0,
+          "rowAddress": "$.frames[0]",
+          "note": "Browser source-intent row for the rendered source frame."
+        },
+        {
+          "kind": "geometry-json",
+          "path": "frames/purelayer-geometry.json",
+          "frameIndex": 0,
+          "sourceFrame": 0,
+          "timeSeconds": 0,
+          "rowAddress": "$.frames[0]",
+          "note": "PureLayer geometry trace row for the rendered source frame."
+        }
+      ]
     }
   ],
   "evidence": {
@@ -112,6 +132,25 @@ count exists.
 with `frameIndex`, `sourceFrame`, and `timeSeconds`. APNG artifacts record the
 movie path once; the sibling APNG report supplies per-frame timing evidence in
 `frameTiming.samples`.
+
+Each `png-frame` artifact also carries `evidenceLinks`. These are the direct
+debugging chain for the rendered frame. A reviewer starts at the PNG artifact,
+reads `sourceFrame` and `timeSeconds`, then follows:
+
+1. a `lottie-web-intent` link to the numeric browser source-intent row for the
+   same frame;
+2. a geometry link (`geometry-json` or `geometry-csv`) to the PureLayer geometry
+   row for the same frame;
+3. optional `import-report`, `render-ir`, `backend-evidence`, or
+   `validation-report` links when a finding explains why an artifact is
+   ineligible or approximate.
+
+Every evidence link repeats `frameIndex`, `sourceFrame`, and `timeSeconds` so a
+manifest cannot silently point a rendered frame at a different source-intent
+row. Source-intent and geometry links also carry `rowAddress`: a JSONPath for
+JSON evidence, or a stable row selector for CSV evidence. The link `kind` and
+`path` pair must also appear in `evidence.references`, which keeps the global
+evidence inventory and the per-frame chain from drifting.
 
 ## Frame Timing Rationale
 
@@ -188,12 +227,14 @@ Artifact kinds:
 Evidence kinds:
 
 - `apng-report`
+- `backend-evidence`
 - `geometry-csv`
 - `geometry-json`
 - `import-report`
 - `lottie-web-intent`
 - `oracle-summary`
 - `render-ir`
+- `validation-report`
 
 Finding phases:
 
@@ -219,6 +260,8 @@ carry JSON paths.
 - Rendered artifact renderer identity backend and command are present
 - Rendered artifact export policy declares kind scale fps and generated frame count
 - Rendered artifact records are path-bearing unique and frame-addressed when needed
+- Rendered artifact evidence links use stable kinds paths frame addresses and notes
+- Rendered frame artifacts link to source-intent and geometry evidence for the same frame
 - Rendered artifact evidence references use stable kinds non-empty paths and notes
 - Rendered artifact evidence includes source-intent and geometry references
 - Rendered artifact findings contain stable phase severity rule id path and reason
