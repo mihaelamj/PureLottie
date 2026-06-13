@@ -240,6 +240,9 @@ public struct LottieSourceIntentDecompiler: Sendable {
                 losses.append(loss)
             }
         }
+        for record in frame.layerGraph.records where record.timing.mode == .timeRemapSeconds {
+            losses.append(timeRemapLoss(record, frameOffset: frameOffset))
+        }
         return losses
     }
 
@@ -536,6 +539,24 @@ public struct LottieSourceIntentDecompiler: Sendable {
             ruleID: "lottie.decompile.layer.unsupported-type",
             reason: "Unsupported Lottie layer type \(rawType) was preserved as an unsupported source-intent layer.",
             evidence: node.explanation
+        )
+    }
+
+    private func timeRemapLoss(
+        _ record: LottieLayerGraphLayerTrace,
+        frameOffset: Int
+    ) -> LottieDecompiledSourceIntentLoss {
+        LottieDecompiledSourceIntentLoss(
+            kind: .missingSourceFact,
+            reconstructability: .notReconstructable,
+            phase: "decompile",
+            classification: "gap",
+            modelPath: "$.frames[\(frameOffset)].visibleLayers",
+            sourcePath: record.sourcePath,
+            jsonPath: record.timing.timeRemapPropertyTrace?.propertyPath ?? "\(record.jsonPath).tm",
+            ruleID: "lottie.decompile.timing.time-remap-loss",
+            reason: "Time remap is evaluated to a local source frame, but the authored `tm` property is not yet reconstructable from decompiled layer timing facts.",
+            evidence: "timingMode=\(record.timing.mode.rawValue); localFrame=\(record.timing.localFrame)"
         )
     }
 
