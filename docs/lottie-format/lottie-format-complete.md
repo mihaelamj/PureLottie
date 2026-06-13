@@ -28,8 +28,10 @@ exactly the ones a spec-only importer drops silently.
 "100%, nothing left unsaid" is a claim, so it is mechanically verified rather than
 trusted. `verify-coverage.sh` (in this folder) extracts every property key and
 every enum const value from the pinned official schema and fails if any is absent
-from this document. Last run against `lottie/lottie-spec @ 4b55957` (2026-06-13):
-**70/70 property keys and 28/28 enum const values present, 0 gaps, exit 0.**
+from this document **or** from `lottie-import-mapping.md` (so every key has both a
+definition here and a model-or-report disposition there). Last run against
+`lottie/lottie-spec @ 4b55957` (2026-06-13): **70/70 property keys present in both
+docs, 28/28 enum const values present, 0 gaps, exit 0.**
 
 Honest limits: this verifies the official `lottie-spec` schema only; the superset
 in section 9 is prose (no machine schema exists for it). The single-character

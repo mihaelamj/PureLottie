@@ -88,6 +88,30 @@ one exists, else report-only. Values: bezier (relative tangents) -> IR path
 (absolute) with the conversion the importer owns; color 0..1 -> PureLayer Color;
 vector -> point; hexcolor (solid `sc`) -> Color; data-url image -> contents.
 
+## 5b. Structural and plumbing keys (explicit disposition)
+
+Model-or-report means *every* key has a disposition, including the structural
+ones that are not themselves render features. For completeness (and so the
+coverage check passes), these are stated explicitly:
+
+| key | role | status |
+| --- | --- | --- |
+| `ty` | type discriminator (layer/shape/property) | mapped (drives importer dispatch) |
+| `nm` | human name | mapped (carried onto the IR node) |
+| `id` | asset id | mapped (asset resolution) |
+| `assets` | asset table | mapped (resolved before layer import) |
+| `layers` | layer array (composition/precomp) | mapped (traversed) |
+| `shapes` | shape-layer shape array | mapped (traversed) |
+| `k` | property payload (static value or keyframe list) | mapped (property machinery) |
+| `v` | vector value / stroke-dash length | mapped (value decode; dash `v` after #53) |
+| `mode` | mask blend mode (a/s/i/n) | after #52 (add/subtract; l/d/f report-only) |
+| `n` | stroke-dash item type (d/g/o) | after #53 |
+| `ml2` | animatable miter limit | after #53 |
+| `u` | image file path | after #50 (with `refId`/`p`) |
+| `cm`,`dr` | marker comment / duration | report-only (carried as document metadata) |
+| `custom` | free metadata object | report-only |
+| `ver` | spec version | report-only (recorded; may gate compatibility warnings) |
+
 ## 6. No analogue (always report-only or blocked)
 
 `ef` effects (entire taxonomy), `sy` layer styles, `x` expressions, motion blur
@@ -114,3 +138,8 @@ This matrix is the acceptance backbone for PureComposition #21 (Lottie semantic
 import): each row is a fixture that either renders (mapped/baked/approximated,
 gated by `AliasingPixelDiff`) or appears in the import report (report-only/
 blocked), and the coverage meta-test fails if any Lottie key has no row here.
+
+That meta-test is real, not aspirational: `verify-coverage.sh` (this folder)
+checks every property key in the pinned schema (`lottie-spec @4b55957`) against
+this doc and fails on any key without a disposition. Last run: 70/70 keys have a
+disposition, 0 gaps.

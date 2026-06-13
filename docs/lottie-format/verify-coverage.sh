@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# Coverage verifier for lottie-format-complete.md.
+# Coverage verifier for the Lottie format docs.
 #
-# Turns the doc's "100%, nothing left unsaid" claim into a checkable, reproducible
-# test: it extracts every property key and every enum const value from the pinned
-# official Lottie schema and fails if any one is absent from the doc. The checker
-# is far smaller than what it checks (Knuth K5), and pins the schema commit so the
-# result is reproducible rather than a moving target.
+# Turns the "100%, nothing left unsaid" and "model-or-report" claims into a
+# checkable, reproducible test: it extracts every property key and every enum
+# const value from the pinned official Lottie schema and fails if any one is
+# absent from lottie-format-complete.md (defined) OR from lottie-import-mapping.md
+# (given a model-or-report disposition). The checker is far smaller than what it
+# checks (Knuth K5), and pins the schema commit so the result is reproducible
+# rather than a moving target.
 #
 # Scope and honest limits:
 #  - Verifies the OFFICIAL lottie-spec schema only. The superset section (text,
@@ -21,6 +23,7 @@ set -euo pipefail
 
 PINNED_SHA="4b55957472f8718e34e9c1298f0e8f021b6c597f"   # lottie/lottie-spec main, verified 2026-06-13
 DOC="$(cd "$(dirname "$0")" && pwd)/lottie-format-complete.md"
+MAP="$(cd "$(dirname "$0")" && pwd)/lottie-import-mapping.md"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
@@ -48,6 +51,12 @@ while read -r c; do
   grep -qF "\"$c\"" "$DOC" || grep -qE "(^| )$c( |\$|,)" "$DOC" || { echo "MISSING const: $c"; gaps=$((gaps+1)); }
 done < "$WORK/consts.txt"
 
-echo "keys checked: $(wc -l < "$WORK/keys.txt"), consts checked: $(wc -l < "$WORK/consts.txt"), gaps: $gaps"
+# Every schema key must also have a model-or-report disposition in the mapping doc
+# (the C6 coverage promise made checkable: nothing is silently droppable).
+while read -r k; do
+  grep -qE "\`$k\`" "$MAP" || { echo "UNMAPPED key (import-mapping): $k"; gaps=$((gaps+1)); }
+done < "$WORK/keys.txt"
+
+echo "keys checked: $(wc -l < "$WORK/keys.txt") (in 2 docs), consts checked: $(wc -l < "$WORK/consts.txt"), gaps: $gaps"
 [ "$gaps" -eq 0 ] || { echo "FAIL: $gaps schema item(s) not covered by the doc."; exit 1; }
 echo "PASS: every schema key and const value appears in the doc."
