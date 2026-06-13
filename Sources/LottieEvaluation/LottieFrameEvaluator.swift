@@ -77,7 +77,7 @@ public struct LottieFrameEvaluator: Sendable {
         at compositionFrame: Double,
         path: JSONPath = JSONPath()
     ) -> LottieEvaluationResult<Double> {
-        if let timeRemap = layer.timeRemap {
+        if let timeRemap = layer.timeRemap, !LottieFaultInjector.isActive(.skippedPrecompTimeRemap) {
             let result = evaluate(
                 timeRemap,
                 at: compositionFrame,
@@ -311,12 +311,13 @@ public struct LottieFrameEvaluator: Sendable {
             sourceFrame < keyframes[index + 1].time - offsetFrame
         } ?? keyframes.startIndex
 
-        if LottieFaultInjector.isActive(.offByOneKeyframeIndex) && keyframes.count > 2 {
-            segmentIndex = (segmentIndex + 1) % (keyframes.count - 1)
+        let faultActive = LottieFaultInjector.isActive(.offByOneKeyframeIndex) && keyframes.count > 1
+        if faultActive {
+            segmentIndex = (segmentIndex + 1) % keyframes.count
         }
 
         let keyframe = keyframes[segmentIndex]
-        let next = keyframes[segmentIndex + 1]
+        let next = keyframes[faultActive ? (segmentIndex + 1) % keyframes.count : segmentIndex + 1]
         let start = keyframe.startValue ?? []
         let end = next.startValue ?? keyframe.endValue ?? start
         let startFrame = keyframe.time - offsetFrame

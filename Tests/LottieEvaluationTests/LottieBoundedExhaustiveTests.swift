@@ -313,7 +313,7 @@ struct LottieBoundedExhaustiveTests {
         let generator = BoundedLottieGenerator(maxWeight: 4)
         let documents = generator.generateDocuments()
 
-        #expect(documents.count >= 1000, "Should generate at least 1,000 documents to cover a rich combination space")
+        #expect(documents.count == 2076, "Should generate exactly 2,076 documents for weight limit N=4")
 
         var passedCount = 0
         var rejectedCount = 0
