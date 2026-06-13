@@ -64,8 +64,8 @@ public struct LottieTransformMatrix: Codable, Sendable, Equatable {
     }
 
     public static func rotationZ(_ radians: Double) -> LottieTransformMatrix {
-        let cosine = cos(radians)
-        let sine = sin(radians)
+        let cosine = LottieMath.cos(radians)
+        let sine = LottieMath.sin(radians)
         return LottieTransformMatrix(values: [
             cosine, -sine, 0, 0,
             sine, cosine, 0, 0,
