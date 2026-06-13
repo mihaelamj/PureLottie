@@ -106,7 +106,7 @@ Run the full local gate before committing code changes:
 swiftformat . --config .swiftformat
 swiftlint --config .swiftlint.yml --strict
 swift build
-swift test
+swift test --no-parallel
 ```
 
 Run the semantic-only gate used by macOS, Linux, and Windows CI:
