@@ -1,6 +1,6 @@
 # Termination and Cost Bound Proofs
 
-Status: issue #107 termination-and-cost theorem.
+Status: `theorem` (Proven termination and worst-case asymptotic complexity weight limits for all edges)
 
 This document states the size measures, termination arguments, and asymptotic cost bounds for every compiler edge in the PureLottie pipeline (parse, validate, evaluate, lower, decompile).
 

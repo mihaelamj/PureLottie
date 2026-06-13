@@ -1,7 +1,6 @@
 # Numeric Claim Reliability
 
-Status: issue #103 witness classification report, updated by issue #104
-tolerance-bound ledger.
+Status: `blocked` (reproducibility blocked by issue #118, bounds and path-length tolerances assumed)
 
 PureLottie separates three different claims that used to be easy to conflate:
 
