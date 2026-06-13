@@ -1,8 +1,8 @@
 # Reference Provenance Ledger
 
-Status: issue #54-#57 inventory ledger, update workflow, and evidence-role
-classification for the references and fixtures that support PureLottie tests and
-Lottie-format documentation.
+Status: issue #54-#58 inventory ledger, update workflow, evidence-role
+classification, and machine-readable validation for the references and fixtures
+that support PureLottie tests and Lottie-format documentation.
 
 This ledger is not a conformance claim. It is the audit map that says where each
 reference came from, why it exists, how it is validated today, and which facts
@@ -17,6 +17,9 @@ actionable.
   [Reference Update and Audit Workflow](reference-update-audit-workflow.md).
 - Curated fixture purpose uses
   [Fixture Evidence Roles](fixture-evidence-roles.md).
+- Machine-readable provenance uses
+  [Reference Provenance Schema](reference-provenance-schema.md) and
+  `reference-provenance.json`.
 - Unknown source facts are recorded as `UNKNOWN` with a follow-up action; they
   are never implied to be safe.
 - Raw fixture files are discovery material. Curated oracle fixtures are the
@@ -35,9 +38,10 @@ actionable.
 | Curated source-intent oracle corpus | `Tests/Fixtures/LottieOracle` | 31 source JSON files | Vetted regression corpus with small source fixtures and selected frame rationales. | `LottieOracleCorpusTests` checks manifest size, coverage families, frame lists, validation statuses, and lottie-web intent alignment; `npm --prefix Tools/LottieOracle run validate-fixtures` live-loads every curated fixture through pinned lottie-web. |
 | Committed lottie-web numeric traces | `Tests/Fixtures/LottieOracle/lottie-web-intent` | 31 JSON traces | Browser-side numeric reference facts before PNG comparison. | `LottieOracleCorpusTests.everyCorpusFixtureHasCommittedLottieWebNumericIntentSnapshot` checks schema, renderer, lottie-web version, size, selected frames, and path counts. |
 | Golden source-intent trace | `Tests/Fixtures/SourceIntentTrace` | 1 JSON trace | Stable v1 source-intent schema round-trip fixture. | `LottieSourceIntentTraceTests` checks decode, provenance, vocabularies, and JSON coding round trip. |
+| Machine-readable provenance manifest | `docs/lottie-format/reference-provenance.json` | 17 entries | Typed provenance index for reference sets, tools, docs, dependency oracles, unknown facts, and validation evidence. | `ReferenceProvenanceManifestValidationTests` validates schema, vocabularies, required facts, unknown follow-ups, path-bearing diagnostics, and repository paths. |
 | lottie-web oracle tool | `Tools/LottieOracle` | 1 Node tool package | External browser/reference harness kept outside `Package.swift`. | `npm --prefix Tools/LottieOracle test` checks fixture manifest, eligibility gates, package pins, image comparison helpers, path-bearing validation diagnostics, and package isolation; `npm --prefix Tools/LottieOracle run validate-fixtures` checks live lottie-web fixture usability. |
 | Frame dump tools | `Tools/LottieFrameDump`, `Tools/LottieAPNGDump` | 2 Swift executables | Emit PureLayer frames/APNGs with semantic summaries after source-intent gates. | Built by `swift build`; covered by import/APNG/oracle tests and oracle filename checks. |
-| Lottie format docs | `docs/lottie-format` | 6 checked-in files including this ledger | Human-readable source-intent, conformance, matrix, provenance, evidence role, and update workflow contracts. | Swift/Node tests pin referenced fixture counts, trace behavior, role vocabulary, and referenced workflow commands. |
+| Lottie format docs | `docs/lottie-format` | 8 checked-in files including this ledger | Human-readable source-intent, conformance, matrix, provenance, evidence role, update workflow, and reference schema contracts. | Swift/Node tests pin referenced fixture counts, trace behavior, role vocabulary, provenance schema, and referenced workflow commands. |
 
 ## Raw Corpus Sources
 
@@ -121,8 +125,9 @@ PureLottie has one declared package dependency:
 | --- | --- | --- | --- | --- |
 | PureLayer | `https://github.com/mihaelamj/PureLayer.git`, branch `main` | `UNKNOWN` in checked-in repo because `Package.resolved` is not committed | Target layer/compositor/rendering oracle for `LottieImport`; PureDraw arrives transitively through PureLayer. | Local and CI Swift gates resolve and build it; PureLottie must not modify PureLayer or PureDraw. |
 
-Action: issue #58 should decide whether reference validation records a resolved
-dependency revision externally without committing transient build output.
+Action: `reference-provenance.json` records this as an explicit unknown with a
+follow-up action. The dependency revision must be recorded externally before the
+entry can be promoted from `usable-with-unknowns` to `usable`.
 
 ## Documentation References
 
@@ -130,23 +135,25 @@ The conformance and source-intent docs cite these research references:
 
 | Reference | Source | Revision | Used by | Purpose | Validation status |
 | --- | --- | --- | --- | --- | --- |
-| Lottie specification snapshot | `docs/lottie-format/conformance-matrix.md` cites `/tmp/lottie-spec-source` and specific spec/schema paths | `UNKNOWN` in checked-in ledger | Conformance matrix and source-format rules | Original source-format contract. | Documentation citation only; the update workflow requires a durable revision or `UNKNOWN` plus follow-up, and #58 should make that machine-checkable. |
-| lottie-web source snapshot | `docs/lottie-format/conformance-matrix.md` cites `/tmp/lottie-web-source` and specific player files | `UNKNOWN` in checked-in ledger | Transform, property, shape, trim, and renderer behavior notes | Reference implementation semantics before browser extraction. | Numeric behavior is checked through pinned `npm:lottie-web@5.13.0`; source checkout revision still needs durable recording, and #58 should make that machine-checkable. |
+| Lottie specification snapshot | `docs/lottie-format/conformance-matrix.md` cites `/tmp/lottie-spec-source` and specific spec/schema paths | `UNKNOWN` in checked-in ledger and manifest | Conformance matrix and source-format rules | Original source-format contract. | Documentation citation only; `reference-provenance.json` records the missing durable revision and license/provenance note as explicit unknowns with follow-ups. |
+| lottie-web source snapshot | `docs/lottie-format/conformance-matrix.md` cites `/tmp/lottie-web-source` and specific player files | `UNKNOWN` in checked-in ledger and manifest | Transform, property, shape, trim, and renderer behavior notes | Reference implementation semantics before browser extraction. | Numeric behavior is checked through pinned `npm:lottie-web@5.13.0`; `reference-provenance.json` records the source checkout revision as an explicit unknown with a follow-up. |
 | OpenAPIKit validation idiom | Canonical mihaela-agents validation rule references `https://github.com/mattpolzin/OpenAPIKit` | Rule text records upstream `1d42ea6477` as last analysed | Validation architecture for LottieModel | Validation style and error-path discipline. | Enforced by existing validation tests and rule loading; not vendored in this repo. |
 
 ## Known Unknowns
 
 | Unknown | Why it matters | Follow-up |
 | --- | --- | --- |
-| Durable checked-in revision for the lottie-spec source snapshot | Docs cite local `/tmp` paths, which cannot be re-resolved by a fresh checkout. | Reference Update and Audit Workflow defines the manual record; #58 should make this machine-checkable. |
-| Durable checked-in revision for the lottie-web source snapshot used by prose research | Browser behavior is pinned by npm package version, but prose citations to source files need a source checkout revision. | Reference Update and Audit Workflow defines the manual record; #58 should make this machine-checkable. |
-| Checked-in resolved PureLayer/PureDraw dependency revision | `Package.swift` tracks PureLayer `main`; build logs resolve a commit but the repo does not pin it. | #58 should decide how provenance validation records target-oracle revisions without changing dependency policy. |
+| Durable checked-in revision for the lottie-spec source snapshot | Docs cite local `/tmp` paths, which cannot be re-resolved by a fresh checkout. | `reference-provenance.json` entry `lottie-spec-documentation-reference` records `revision.status: unknown`, `license.status: unknown`, and follow-up actions. |
+| Durable checked-in revision for the lottie-web source snapshot used by prose research | Browser behavior is pinned by npm package version, but prose citations to source files need a source checkout revision. | `reference-provenance.json` entry `lottie-web-source-reference` records `revision.status: unknown` and a follow-up action. |
+| Checked-in resolved PureLayer/PureDraw dependency revision | `Package.swift` tracks PureLayer `main`; build logs resolve a commit but the repo does not pin it. | `reference-provenance.json` entry `purelayer-dependency` records `revision.status: unknown` and a follow-up action without changing dependency policy. |
 
-## Issue #54-#57 Completion Criteria
+## Issue #54-#58 Completion Criteria
 
 This ledger covers the current references and fixtures used by tests and docs,
 records known source/revision/purpose/validation facts, and makes unknowns
 explicit. The linked update workflow defines reversible add/update/remove rules,
 required validation commands, stale-reference cleanup, and review evidence. The
 linked fixture role vocabulary classifies curated fixtures by evidence purpose.
-Issue #58 turns this inventory into stricter machine validation.
+The linked schema and manifest make provenance validation machine-readable with
+composable positive-rule validation, path-bearing diagnostics, stable
+vocabularies, and explicit unknown follow-ups.

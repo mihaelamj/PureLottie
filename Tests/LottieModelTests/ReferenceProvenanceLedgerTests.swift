@@ -104,9 +104,12 @@ final class ReferenceProvenanceLedgerTests: XCTestCase {
         XCTAssertTrue(ledger.contains("#58"))
         XCTAssertTrue(ledger.contains("Reference Update and Audit Workflow"))
         XCTAssertTrue(ledger.contains("Fixture Evidence Roles"))
-        XCTAssertTrue(ledger.contains("## Issue #54-#57 Completion Criteria"))
-        XCTAssertTrue(ledger.contains("Issue #58 turns this inventory into stricter machine validation"))
-        XCTAssertTrue(ledger.contains("6 checked-in files including this ledger"))
+        XCTAssertTrue(ledger.contains("Reference Provenance Schema"))
+        XCTAssertTrue(ledger.contains("reference-provenance.json"))
+        XCTAssertTrue(ledger.contains("17 entries"))
+        XCTAssertTrue(ledger.contains("## Issue #54-#58 Completion Criteria"))
+        XCTAssertTrue(ledger.contains("composable positive-rule validation"))
+        XCTAssertTrue(ledger.contains("8 checked-in files including this ledger"))
     }
 
     func testReferenceUpdateWorkflowIsLinkedAndExecutable() throws {
@@ -116,6 +119,8 @@ final class ReferenceProvenanceLedgerTests: XCTestCase {
         XCTAssertTrue(ledger.contains("[Reference Update and Audit Workflow](reference-update-audit-workflow.md)"))
         XCTAssertTrue(workflow.contains("## Reversibility Contract"))
         XCTAssertTrue(workflow.contains("source fixture -> manifest entry -> generated trace -> validation -> review evidence"))
+        XCTAssertTrue(workflow.contains("docs/lottie-format/reference-provenance.json"))
+        XCTAssertTrue(workflow.contains("docs/lottie-format/reference-provenance-schema.md"))
         XCTAssertTrue(workflow.contains("The manifest entry"))
         XCTAssertTrue(workflow.contains("must link the fixture id to that trace"))
         XCTAssertTrue(workflow.contains("workflow review evidence must"))
