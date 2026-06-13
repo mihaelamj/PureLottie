@@ -10,6 +10,30 @@ PureLottie separates three different claims that used to be easy to conflate:
   lottie-web trace backs it yet.
 - `blocked`: the fact cannot currently be witnessed, with the blocker named.
 
+## Self-oracle: geometry and transforms are independent theorems (#139)
+
+The exact-definitional layer no longer depends on lottie-web as its source of
+truth. The geometry evaluator's contours and the layer transform matrix are
+proven, by bounded-exhaustive tests, equal to independent closed forms derived
+from the documented bodymovin/AE math (not from lottie-web traces), to
+floating-point epsilon:
+
+- ellipse vertices/bounds and the `0.5519` round-corner constant
+  (`LottieEllipseExactnessTests`);
+- polygon and star vertices, including the `floor(pt)*2` star divisor and the
+  `-pi/2` start offset (`LottiePolystarExactnessTests`);
+- non-rounded rectangle corners (`LottieRectangleExactnessTests`);
+- the layer transform matrix's action on points, in the documented row-vector
+  order `translate(-anchor) . scale . rotateZ(-r) . translate(position)`
+  (`LottieTransformExactnessTests`).
+
+For these, the committed lottie-web traces are now **corroborating witnesses**,
+not the definition. The remaining numeric claims lottie-web still witnesses are
+the genuinely sampled layer (spatial Bezier arc length, sampled at 150 in the
+player and 200 in the exporter; the influence/speed-to-Bezier easing
+reparameterization), which carry `sampled`/`witnessed` status and are not exact
+theorems. See `bodymovin-source-semantics.md` for the exact-vs-sampled split.
+
 ## Current Counts
 
 MEASURED on 2026-06-13 from
