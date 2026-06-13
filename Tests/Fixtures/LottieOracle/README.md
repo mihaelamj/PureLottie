@@ -16,6 +16,12 @@ gate snapshot for this corpus. It records 31 covered fixtures, 94 selected
 frames, each frame rationale, lowered node/draw/match counts, diagnostics, and
 backend findings so changes are reviewed as data before PNG/APNG inspection.
 
+`reversibility-gate/report.json` is the committed source-intent reversibility
+snapshot for this corpus. It records 31 covered fixtures, 94 selected frames,
+0 exclusions, 0 source-intent mismatches, 105 explicit path-bearing loss
+records, 1,308 reconstructed facts, and 48 unique source paths before any
+PureLayer/PureDraw lowering.
+
 Evidence role definitions live in
 `docs/lottie-format/fixture-evidence-roles.md`.
 
