@@ -113,4 +113,27 @@ struct LottieFeatureCoverageTests {
         let undecoded = Set(modeled).subtracting(decoded)
         #expect(undecoded.isEmpty, ".modeled keys with no CodingKey (silently dropped): \(undecoded.sorted())")
     }
+
+    /// The partition theorem: the schema keys the model decodes are EXACTLY the
+    /// `.modeled` set. This is the symmetric closure of `modeledKeysAreDecoded`:
+    /// it also fails if a key marked `.reported` actually has a CodingKey (i.e.
+    /// is decoded and should be reclassified `.modeled`). Together they prove the
+    /// registry's modeled/reported split over schema keys matches the model's
+    /// real decode surface, key for key.
+    ///
+    /// Scope: this is MODEL decode coverage. Whether the importer honours a
+    /// `.modeled` key at render time (e.g. `ao`, `sk`) is a separate, import-level
+    /// concern enforced by the validator's silent-risk validations
+    /// (`lottie.layer.silent-risk-field`, `lottie.transform.silent-risk-field`).
+    @Test("decoded schema keys are exactly the .modeled set (partition theorem)")
+    func modeledEqualsDecodedSchemaKeys() throws {
+        let decodedSchemaKeys = try Self.decodedCodingKeys().intersection(Self.schemaKeys())
+        let modeled = Set(
+            LottieFeatureCoverage.registry
+                .filter { $0.value == .modeled }
+                .map(\.key)
+        )
+        let mismatch = decodedSchemaKeys.symmetricDifference(modeled)
+        #expect(mismatch.isEmpty, "decoded-schema-keys vs .modeled mismatch: \(mismatch.sorted())")
+    }
 }
