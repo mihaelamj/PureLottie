@@ -86,6 +86,7 @@ let package = Package(
         .executableTarget(
             name: "LottieAPNGDump",
             dependencies: [
+                "LottieEvaluation",
                 "LottieImport",
                 "LottieModel",
                 .product(name: "PureLayer", package: "PureLayer"),
