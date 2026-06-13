@@ -60,6 +60,27 @@ test('fixture validation rejects unknown evidence roles', async () => {
   });
 });
 
+test('fixture validation rejects non-array evidence roles without throwing', async () => {
+  const [fixture] = loadFixtureManifest(oracleRoot);
+  const result = await validateFixtureCorpus({
+    oracleRoot,
+    fixtures: [
+      {
+        ...fixture,
+        evidenceRoles: 'conformance'
+      }
+    ]
+  });
+
+  assert.equal(result.ok, false);
+  assert.deepEqual(result.errors.map((error) => error.reason), [
+    'Failed to satisfy: Fixture evidence roles contain at least one role'
+  ]);
+  assert.deepEqual(result.errors.map((error) => error.path), [
+    'oracle-fixtures.json[0]'
+  ]);
+});
+
 test('fixture validation rejects status role contradictions', async () => {
   const [fixture] = loadFixtureManifest(oracleRoot);
   const result = await validateFixtureCorpus({

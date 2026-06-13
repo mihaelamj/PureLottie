@@ -72,6 +72,9 @@ function frameList(fixture) {
 }
 
 function unknownEvidenceRoles(fixture) {
+  if (!Array.isArray(fixture.evidenceRoles)) {
+    return [];
+  }
   return (fixture.evidenceRoles ?? []).filter((role) => !evidenceRoleSet.has(role));
 }
 
