@@ -32,4 +32,4 @@ jobs:
         run: ./scripts/ci-semantic-only.ps1
 
       - name: Test Lottie semantics
-        run: swift test --package-path .build/ci/semantic-only
+        run: swift test --package-path .build/ci/semantic-only --no-parallel

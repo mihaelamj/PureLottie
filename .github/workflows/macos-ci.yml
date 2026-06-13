@@ -27,7 +27,7 @@ jobs:
         run: swift scripts/ci-semantic-only.swift
 
       - name: Test Lottie semantics
-        run: swift test --package-path .build/ci/semantic-only
+        run: swift test --package-path .build/ci/semantic-only --no-parallel
 
   full-gate:
     name: Full Swift gate
@@ -106,4 +106,4 @@ jobs:
 
       - name: Test
         if: steps.dependency-access.outputs.has-access == 'true'
-        run: swift test
+        run: swift test --no-parallel

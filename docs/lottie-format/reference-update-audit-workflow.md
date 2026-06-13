@@ -90,9 +90,9 @@ The prose ledger explains the state; the JSON manifest is the machine gate.
 
    ```sh
    swift scripts/ci-model-only.swift
-   swift test --package-path .build/ci/model-only
+   swift test --package-path .build/ci/model-only --no-parallel
    swift build
-   swift test
+   swift test --no-parallel
    ```
 
 7. Review the diff as a single reversible unit: source fixture, manifest entry,
@@ -166,7 +166,7 @@ swift test --package-path .build/ci/model-only
 swiftformat . --config .swiftformat
 swiftlint --config .swiftlint.yml --strict
 swift build
-swift test
+swift test --no-parallel
 ```
 
 ## Review Evidence
