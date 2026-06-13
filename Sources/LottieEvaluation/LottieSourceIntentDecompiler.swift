@@ -260,6 +260,7 @@ public struct LottieSourceIntentDecompiler: Sendable {
             styles: styles(in: node),
             masks: node.masks.map(mask),
             matte: node.matte.map { matte($0, source: node.source) },
+            trimTraces: trimTraces(in: node),
             diagnostics: nodeDiagnostics(node),
             provenance: provenance(
                 from: node.source,
@@ -267,6 +268,11 @@ public struct LottieSourceIntentDecompiler: Sendable {
                 preservedFields: [node.source.jsonPath.description]
             )
         )
+    }
+
+    private func trimTraces(in node: LottieRenderNode) -> [LottieSourceTrimTrace] {
+        guard case let .shape(shape) = node.kind else { return [] }
+        return shape.draws.flatMap(\.trimTraces)
     }
 
     private func layerType(from kind: LottieRenderNode.Kind) -> LottieSourceIntentLayerType {
@@ -384,6 +390,7 @@ public struct LottieSourceIntentDecompiler: Sendable {
                 kind: .fill,
                 color: fill.color,
                 opacity: fill.opacity,
+                fillRule: fill.fillRule,
                 blendMode: fill.blendMode,
                 provenance: provenance(from: source)
             )
@@ -974,20 +981,20 @@ public enum LottieDecompiledSourceIntentBuiltinValidation {
     {
         Validation(
             ruleID: "lottie.decompile.layer.facts",
-            description: "Decompiled layer records contain stable identity finite timing opacity and transform facts"
+            description: "Decompiled layer records contain stable identity finite timing opacity transform and trim trace facts"
         ) { context in
             var errors: [ValidationError] = []
             if context.subject.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 errors.append(error(
                     ruleID: "lottie.decompile.layer.id",
-                    description: "Decompiled layer records contain stable identity finite timing opacity and transform facts",
+                    description: "Decompiled layer records contain stable identity finite timing opacity transform and trim trace facts",
                     path: context.codingPath.appending(.key("id"))
                 ))
             }
             if context.subject.renderOrder < 0 {
                 errors.append(error(
                     ruleID: "lottie.decompile.layer.render-order",
-                    description: "Decompiled layer records contain stable identity finite timing opacity and transform facts",
+                    description: "Decompiled layer records contain stable identity finite timing opacity transform and trim trace facts",
                     path: context.codingPath.appending(.key("renderOrder"))
                 ))
             }
@@ -999,12 +1006,12 @@ public enum LottieDecompiledSourceIntentBuiltinValidation {
                 ],
                 at: context.codingPath,
                 ruleID: "lottie.decompile.layer.number",
-                description: "Decompiled layer records contain stable identity finite timing opacity and transform facts"
+                description: "Decompiled layer records contain stable identity finite timing opacity transform and trim trace facts"
             ) { $0.isFinite })
             if !(0 ... 1).contains(context.subject.opacity) {
                 errors.append(error(
                     ruleID: "lottie.decompile.layer.opacity",
-                    description: "Decompiled layer records contain stable identity finite timing opacity and transform facts",
+                    description: "Decompiled layer records contain stable identity finite timing opacity transform and trim trace facts",
                     path: context.codingPath.appending(.key("opacity"))
                 ))
             }
@@ -1017,14 +1024,47 @@ public enum LottieDecompiledSourceIntentBuiltinValidation {
                 ],
                 at: context.codingPath.appending(.key("transform")),
                 ruleID: "lottie.decompile.layer.transform",
-                description: "Decompiled layer records contain stable identity finite timing opacity and transform facts"
+                description: "Decompiled layer records contain stable identity finite timing opacity transform and trim trace facts"
             ))
             if context.subject.transform.matrix.values.count != 16 {
                 errors.append(error(
                     ruleID: "lottie.decompile.layer.matrix.count",
-                    description: "Decompiled layer records contain stable identity finite timing opacity and transform facts",
+                    description: "Decompiled layer records contain stable identity finite timing opacity transform and trim trace facts",
                     path: context.codingPath.appending(.key("transform")).appending(.key("matrix"))
                 ))
+            }
+            for trimTraceIndex in (context.subject.trimTraces ?? []).indices {
+                let trimTrace = context.subject.trimTraces?[trimTraceIndex]
+                let trimTracePath = context.codingPath
+                    .appending(.key("trimTraces"))
+                    .appending(.index(trimTraceIndex))
+                if trimTrace?.sourcePath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false {
+                    errors.append(error(
+                        ruleID: "lottie.decompile.layer.trim-trace.source-path",
+                        description: "Decompiled layer records contain stable identity finite timing opacity transform and trim trace facts",
+                        path: trimTracePath.appending(.key("sourcePath"))
+                    ))
+                }
+                if trimTrace?.jsonPath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false {
+                    errors.append(error(
+                        ruleID: "lottie.decompile.layer.trim-trace.json-path",
+                        description: "Decompiled layer records contain stable identity finite timing opacity transform and trim trace facts",
+                        path: trimTracePath.appending(.key("jsonPath"))
+                    ))
+                }
+                guard let trimTrace else { continue }
+                errors.append(contentsOf: numericErrors(
+                    [
+                        ("sourceFrame", trimTrace.sourceFrame),
+                        ("totalLength", trimTrace.totalLength),
+                        ("normalizedStartFraction", trimTrace.normalization.normalizedStartFraction),
+                        ("normalizedEndFraction", trimTrace.normalization.normalizedEndFraction),
+                        ("offsetTurns", trimTrace.normalization.offsetTurns),
+                    ],
+                    at: trimTracePath,
+                    ruleID: "lottie.decompile.layer.trim-trace.number",
+                    description: "Decompiled layer records contain stable identity finite timing opacity transform and trim trace facts"
+                ) { $0.isFinite })
             }
             return errors
         }
