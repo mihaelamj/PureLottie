@@ -37,6 +37,11 @@ comparisons; the Node oracle tests pin the exact pixel-diff tolerance. Do not
 introduce a new comparison threshold without adding a ledger entry that names
 the feature, unit, comparison, threshold, and reason.
 
+Reference-engine divergences are recorded in
+`Tools/LottieOracle/reference-divergences.json`. Any fixture with the
+`engine-divergence` evidence role must list one or more `divergenceIDs` that
+point to measured behavior, source pointers, and committed trace evidence.
+
 Regenerate the curated corpus fixtures and committed lottie-web intent snapshots:
 
 ```sh

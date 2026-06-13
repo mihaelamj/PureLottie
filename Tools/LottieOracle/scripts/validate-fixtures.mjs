@@ -123,7 +123,8 @@ function validateManifestShape(fixture, index) {
     validation('Diagnosed fixtures are not source-validation eligible', ({ fixture }) => fixture.expectedValidationEligible === false, ({ fixture }) => fixture.semanticStatus === 'diagnosed'),
     validation('Diagnosed fixtures carry unsupported-feature evidence', ({ fixture }) => fixture.evidenceRoles.includes('unsupported-feature'), ({ fixture }) => fixture.semanticStatus === 'diagnosed' && Array.isArray(fixture.evidenceRoles)),
     validation('Diagnosed fixtures do not carry conformance evidence', ({ fixture }) => !fixture.evidenceRoles.includes('conformance'), ({ fixture }) => fixture.semanticStatus === 'diagnosed' && Array.isArray(fixture.evidenceRoles)),
-    validation('Visual-inspection fixtures require non-empty references', ({ fixture }) => fixture.expectReferenceNonEmpty === true, ({ fixture }) => Array.isArray(fixture.evidenceRoles) && fixture.evidenceRoles.includes('visual-inspection'))
+    validation('Visual-inspection fixtures require non-empty references', ({ fixture }) => fixture.expectReferenceNonEmpty === true, ({ fixture }) => Array.isArray(fixture.evidenceRoles) && fixture.evidenceRoles.includes('visual-inspection')),
+    validation('Engine-divergence fixtures declare divergence ids', ({ fixture }) => Array.isArray(fixture.divergenceIDs) && fixture.divergenceIDs.length > 0 && fixture.divergenceIDs.every((id) => typeof id === 'string' && id.length > 0), ({ fixture }) => Array.isArray(fixture.evidenceRoles) && fixture.evidenceRoles.includes('engine-divergence'))
   ], context);
 }
 
@@ -215,6 +216,10 @@ export function loadFixtureManifest(oracleRoot = defaultOracleRoot) {
   return readJson(path.join(oracleRoot, 'oracle-fixtures.json'));
 }
 
+function loadReferenceDivergenceLedger(oracleRoot = defaultOracleRoot) {
+  return readJson(path.join(oracleRoot, 'reference-divergences.json'));
+}
+
 export async function validateFixtureCorpus({
   oracleRoot = defaultOracleRoot,
   fixtures = null,
@@ -222,6 +227,8 @@ export async function validateFixtureCorpus({
   sampleCount = 128
 } = {}) {
   const manifest = fixtures ?? loadFixtureManifest(oracleRoot);
+  const divergenceLedger = loadReferenceDivergenceLedger(oracleRoot);
+  const divergenceByID = new Map((divergenceLedger.divergences ?? []).map((entry) => [entry.id, entry]));
   const errors = [];
   const ids = new Set();
   const duplicateIDs = new Set();
@@ -245,6 +252,16 @@ export async function validateFixtureCorpus({
 
     errors.push(...validateManifestShape(fixture, index));
     errors.push(...validateRecordedUsability(fixture, index));
+    if (Array.isArray(fixture.evidenceRoles) && fixture.evidenceRoles.includes('engine-divergence')) {
+      for (const divergenceID of fixture.divergenceIDs ?? []) {
+        const divergence = divergenceByID.get(divergenceID);
+        if (!divergence) {
+          errors.push(failure('Engine-divergence fixtures reference known divergence ids', fixture, manifestPath(index, 'divergenceIDs'), divergenceID));
+        } else if (!(divergence.fixtures ?? []).includes(fixture.id)) {
+          errors.push(failure('Engine-divergence fixtures are back-referenced by the divergence ledger', fixture, manifestPath(index, 'divergenceIDs'), divergenceID));
+        }
+      }
+    }
 
     if (!fs.existsSync(sourcePath)) {
       errors.push(failure('Fixture source path exists', fixture, manifestPath(index, 'lottie'), path.relative(oracleRoot, sourcePath)));

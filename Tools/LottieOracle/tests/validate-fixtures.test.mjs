@@ -103,6 +103,68 @@ test('fixture validation rejects status role contradictions', async () => {
   });
 });
 
+test('fixture validation rejects engine divergence fixtures without divergence ids', async () => {
+  const [fixture] = loadFixtureManifest(oracleRoot);
+  const { divergenceIDs, ...fixtureWithoutDivergenceIDs } = fixture;
+  const result = await validateFixtureCorpus({
+    oracleRoot,
+    fixtures: [fixtureWithoutDivergenceIDs]
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.length, 1);
+  assert.deepEqual(result.errors[0], {
+    fixtureID: fixture.id,
+    path: 'oracle-fixtures.json[0]',
+    reason: 'Failed to satisfy: Engine-divergence fixtures declare divergence ids',
+    details: false
+  });
+});
+
+test('fixture validation rejects unknown reference divergence ids', async () => {
+  const [fixture] = loadFixtureManifest(oracleRoot);
+  const result = await validateFixtureCorpus({
+    oracleRoot,
+    fixtures: [
+      {
+        ...fixture,
+        divergenceIDs: ['missing.divergence']
+      }
+    ]
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.length, 1);
+  assert.deepEqual(result.errors[0], {
+    fixtureID: fixture.id,
+    path: 'oracle-fixtures.json[0].divergenceIDs',
+    reason: 'Failed to satisfy: Engine-divergence fixtures reference known divergence ids',
+    details: 'missing.divergence'
+  });
+});
+
+test('fixture validation rejects divergence ids without matching ledger back-reference', async () => {
+  const [fixture] = loadFixtureManifest(oracleRoot);
+  const result = await validateFixtureCorpus({
+    oracleRoot,
+    fixtures: [
+      {
+        ...fixture,
+        divergenceIDs: ['style.fill-rule-evenodd']
+      }
+    ]
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.errors.length, 1);
+  assert.deepEqual(result.errors[0], {
+    fixtureID: fixture.id,
+    path: 'oracle-fixtures.json[0].divergenceIDs',
+    reason: 'Failed to satisfy: Engine-divergence fixtures are back-referenced by the divergence ledger',
+    details: 'style.fill-rule-evenodd'
+  });
+});
+
 test('fixture validation diagnostics include fixture id manifest path and positive rule reason', async () => {
   const [fixture] = loadFixtureManifest(oracleRoot);
   const result = await validateFixtureCorpus({

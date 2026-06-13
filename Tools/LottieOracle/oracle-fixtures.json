@@ -44,7 +44,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "transform.layer-position-sampled-matrix"
+    ]
   },
   {
     "id": "static-rectangle-fill",
@@ -136,7 +139,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "transform.layer-position-sampled-matrix"
+    ]
   },
   {
     "id": "split-position-ellipse",
@@ -183,7 +189,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "transform.split-position-rejoins-vector"
+    ]
   },
   {
     "id": "anchor-rotation-rectangle",
@@ -230,7 +239,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "transform.anchor-scale-rotation-order"
+    ]
   },
   {
     "id": "scale-rotation-anchor",
@@ -277,7 +289,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "transform.anchor-scale-rotation-order"
+    ]
   },
   {
     "id": "animated-opacity-rectangle",
@@ -368,7 +383,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "transform.shape-group-scope"
+    ]
   },
   {
     "id": "group-opacity-two-shapes",
@@ -415,7 +433,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "opacity.shape-group-atomic"
+    ]
   },
   {
     "id": "parent-null-transform-child",
@@ -462,7 +483,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "transform.parent-world-matrix"
+    ]
   },
   {
     "id": "parent-animated-transform-child",
@@ -509,7 +533,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "transform.parent-world-matrix"
+    ]
   },
   {
     "id": "ellipse-fill",
@@ -599,7 +626,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "geometry.ellipse-direction-noon-order"
+    ]
   },
   {
     "id": "rounded-rectangle",
@@ -645,7 +675,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "geometry.rounded-rectangle-clamp"
+    ]
   },
   {
     "id": "raw-bezier-triangle",
@@ -779,7 +812,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "geometry.polystar-point-flooring"
+    ]
   },
   {
     "id": "star-five",
@@ -825,7 +861,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "geometry.polystar-point-flooring"
+    ]
   },
   {
     "id": "fill-rule-evenodd",
@@ -871,7 +910,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "style.fill-rule-evenodd"
+    ]
   },
   {
     "id": "stroke-basic-line",
@@ -1007,7 +1049,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "stroke.dash-and-width-source-facts"
+    ]
   },
   {
     "id": "animated-stroke-width",
@@ -1053,7 +1098,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "stroke.dash-and-width-source-facts"
+    ]
   },
   {
     "id": "trim-rectangle-half",
@@ -1099,7 +1147,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "trim.length-normalized-segments"
+    ]
   },
   {
     "id": "trim-ellipse-quadrant",
@@ -1145,7 +1196,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "trim.length-normalized-segments"
+    ]
   },
   {
     "id": "animated-trim-path",
@@ -1192,7 +1246,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "trim.length-normalized-segments"
+    ]
   },
   {
     "id": "layer-window-in-out",
@@ -1242,7 +1299,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "timing.layer-frame-window-half-open"
+    ]
   },
   {
     "id": "mask-add-rectangle",
@@ -1288,7 +1348,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "mask.source-graph-before-backend"
+    ]
   },
   {
     "id": "alpha-matte-rectangle",
@@ -1335,7 +1398,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "matte.source-target-layer-binding"
+    ]
   },
   {
     "id": "precomp-static-child",
@@ -1382,7 +1448,10 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "precomp.local-source-frame"
+    ]
   },
   {
     "id": "time-remap-precomp-diagnosed",
@@ -1429,6 +1498,9 @@
       "numericIntent": "committed",
       "referenceNonEmpty": "passed",
       "failureReasons": []
-    }
+    },
+    "divergenceIDs": [
+      "precomp.time-remap-diagnosed-boundary"
+    ]
   }
 ]
