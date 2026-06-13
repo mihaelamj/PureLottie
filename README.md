@@ -141,8 +141,9 @@ npm --prefix Tools/LottieOracle run oracle -- --fixture eligible-shape-position
 ```
 
 The harness compares pixels only when validation, `ImportReport`, RenderIR
-diagnostics, and RenderIR-to-PureLayer backend evidence are clean. Generated
-artifacts live under
+diagnostics, RenderIR-to-PureLayer backend evidence, `oracle-summary.json`,
+`rendered-artifact-manifest.json`, and `lottie-web-intent.json` all agree on the
+selected source frames. Generated artifacts live under
 `Tools/LottieOracle/artifacts/`.
 
 The curated fixture manifest records parse/load/intent/non-empty validation

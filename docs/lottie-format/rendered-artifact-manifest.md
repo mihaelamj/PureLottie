@@ -326,5 +326,6 @@ rendered artifact set is useful only when the manifest lets a reviewer answer:
 - Which source-intent and geometry evidence backs the files?
 - Which validation, import, RenderIR, or backend findings were known?
 
-If any of those answers is missing, the manifest validator must fail or the
-artifact set must be marked ineligible by a later issue.
+If any of those answers is missing, the manifest validator fails or the
+`Tools/LottieOracle` comparison gate marks the artifact set ineligible before
+pixel diffs are treated as evidence.
