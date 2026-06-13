@@ -73,7 +73,15 @@ rule is not satisfied and where it failed.
 ### Normalize/Evaluate
 
 Evaluation samples Lottie at selected source frames before any target objects
-exist. This phase owns:
+exist. This phase also owns a formal term rewriting normalization process that
+reduces source-intent structures (geometry stacks, transforms, and trims) to a
+unique normal form. 
+
+The normalization rewrite system is detailed in [normalization-confluence.md](file:///Volumes/Code/DeveloperExt/public/PureLottie/docs/lottie-format/normalization-confluence.md). It is proven to be:
+- **Strongly Normalizing**: Every rewrite strictly decreases a well-founded weight metric $W(G)$, guaranteeing termination in finitely many steps (`theorem`).
+- **Confluent**: All overlapping rewrite rules (critical pairs) are joinable, ensuring a unique normal form regardless of rewrite order (`theorem`, `witnessed`).
+
+The evaluation phase owns:
 
 - frame-window semantics: `ip <= frame < op`;
 - property keyframe selection and easing;
@@ -230,6 +238,7 @@ The written contract is backed by these checks:
 
 | Gate | What it proves |
 | --- | --- |
+| `LottieSourceIntentNormalizerTests` | The normalization rewrite system is confluent and strongly normalizing under different rewrite orders. |
 | `LottieSourceIntentDecompilerTests` | RenderIR decompiles to path-bearing source-intent facts; semantic diagnostics become loss records. |
 | `LottieSourceIntentRoundTripGateTests` | Transform, timing, path, style, trim, mask, and matte facts round-trip or produce path-bearing losses. |
 | `LottieSourceIntentReversibilityCorpusGateTests` | The curated corpus produces the deterministic checked-in reversibility report. |
