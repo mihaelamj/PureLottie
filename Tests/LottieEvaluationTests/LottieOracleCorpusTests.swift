@@ -74,8 +74,7 @@ struct LottieOracleCorpusTests {
             let sourceURL = url(fromOracleRootPath: entry.lottie)
             let intentURL = url(fromOracleRootPath: entry.lottieWebIntent)
             let source = try LottieAnimation.decode(from: Data(contentsOf: sourceURL))
-            let intent = try JSONDecoder().decode(
-                CorpusLottieWebIntentTrace.self,
+            let intent = try LottieWebIntentTrace.decodeValidated(
                 from: Data(contentsOf: intentURL)
             )
 
@@ -95,8 +94,7 @@ struct LottieOracleCorpusTests {
     func corpusSnapshotsLineUpWithRenderIRRootLayerFacts() throws {
         for entry in try loadManifest() {
             let animation = try LottieAnimation.decode(from: Data(contentsOf: url(fromOracleRootPath: entry.lottie)))
-            let intent = try JSONDecoder().decode(
-                CorpusLottieWebIntentTrace.self,
+            let intent = try LottieWebIntentTrace.decodeValidated(
                 from: Data(contentsOf: url(fromOracleRootPath: entry.lottieWebIntent))
             )
             let builder = LottieRenderIRBuilder(animation: animation)
@@ -193,36 +191,5 @@ private struct CorpusFixtureManifestEntry: Decodable {
             "shape-transform",
             "time-remap",
         ])
-    }
-}
-
-private struct CorpusLottieWebIntentTrace: Decodable {
-    var schema: Schema
-    var source: String
-    var renderer: String
-    var lottieWeb: LottieWeb
-    var width: Double
-    var height: Double
-    var frames: [Frame]
-
-    struct Schema: Decodable {
-        var name: String
-        var version: Int
-    }
-
-    struct LottieWeb: Decodable {
-        var version: String
-    }
-
-    struct Frame: Decodable {
-        var frame: Double
-        var pathCount: Int
-        var layers: [Layer]
-    }
-
-    struct Layer: Decodable {
-        var name: String
-        var opacity: Double
-        var matrix: [Double]
     }
 }

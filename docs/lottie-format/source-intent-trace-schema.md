@@ -129,6 +129,13 @@ pinned `npm:lottie-web@5.13.0` SVG renderer and emits
 `purelottie.lottie-web-intent` JSON. This is the numeric browser-side reference
 used before PNG comparison.
 
+The JSON decodes through the production `LottieWebIntentTrace` model in
+`LottieEvaluation`. It is not a test-only convenience type. The paired
+`LottieWebIntentTraceValidator` uses the same positive-rule validation idiom as
+the source and provenance validators: schema, source, renderer, lottie-web
+version, dimensions, selected frames, layer matrices, bounds, CTM values, SVG
+style facts, and ancestor tags are validated with path-bearing diagnostics.
+
 Each trace records:
 
 | Field | Meaning |
@@ -139,6 +146,12 @@ Each trace records:
 | `frames` | Selected source frames extracted with `goToAndStop(frame, true)`. |
 | `frames[].layers` | lottie-web renderer layer internals: authored name/type/index/window, rendered frame, opacity, final transform matrix, and layer element bounds. |
 | `frames[].paths` | SVG path facts: `d`, path length, local and sampled composition bounds, computed fill/stroke style, CTM, and ancestor transform chain. |
+
+An empty SVG `d` string is allowed only as a measured lottie-web fact when the
+same path record carries zero path length and zero bounds. For example, a hidden
+layer-window fixture can still expose a structural SVG path under an ancestor
+with `display: none`. That record is evidence about lottie-web output, not a
+modeling error.
 
 Committed oracle fixtures live under
 `Tests/Fixtures/LottieOracle/lottie-web-intent/`. Issue #35 expands this from
