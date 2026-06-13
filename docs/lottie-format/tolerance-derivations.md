@@ -27,6 +27,11 @@ stated model or ASSUMED with the missing proof named.
 - STRUCTURAL: Direct matrix translation rows are emitted only when the curated
   fixture has direct animated or split position and no anchor, rotation, parent
   transform, precomp, shape transform, or time-remap coverage.
+- STRUCTURAL: The matrix translation bound is valid only inside its domain
+  (`|coordinate| < 64` CSS px, where the Float32 ulp is `2^-18`). That domain is
+  enforced by `Tools/LottieOracle/tests/oracle-tolerances.test.mjs`, which fails
+  if any direct-translation fixture's compared `matrix[12..13]` reaches `64`, so a
+  future fixture cannot silently move the comparison outside the derived bound.
 
 ## Bounds
 

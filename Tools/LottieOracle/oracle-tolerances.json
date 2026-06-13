@@ -52,7 +52,13 @@
           "lottie-web@5.13.0 player/js/utils/PropertyFactory.js createTypedArray('float32')",
           "lottie-web@5.13.0 player/js/3rd_party/transformation-matrix.js fixed matrix multiplication"
         ],
-        "counterexampleOffset": 0.000003814697265626
+        "counterexampleOffset": 0.000003814697265626,
+        "domain": {
+          "maxAbsoluteCssPixel": 64,
+          "appliesTo": "lottie-web finalTransform.mat.props[12..13] and PureLottie worldMatrix[12..13] for direct-translation fixtures",
+          "reason": "The 2^-18 Float32 ulp holds only while |coordinate| < 64; at magnitude >= 64 the Float32 exponent grows and the ulp doubles, so the derived bound would understate the real error. The bound is valid only inside this domain.",
+          "enforcedBy": "Tools/LottieOracle/tests/oracle-tolerances.test.mjs"
+        }
       },
       "witness": {
         "status": "witnessed",
