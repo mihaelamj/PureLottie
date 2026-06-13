@@ -469,9 +469,10 @@ public struct LottieSourceIntentDecompiler: Sendable {
     }
 
     private func mask(_ mask: LottieRenderMask) -> LottieSourceIntentMask {
-        LottieSourceIntentMask(
+        let modeValue = LottieFaultInjector.isActive(.swappedMaskMode) ? (mask.mode == "a" ? "s" : "a") : mask.mode
+        return LottieSourceIntentMask(
             name: mask.name,
-            mode: mask.mode,
+            mode: modeValue,
             inverted: mask.isInverted,
             opacity: mask.opacity,
             path: mask.path.map(path),

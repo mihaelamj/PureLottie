@@ -41,7 +41,7 @@ public struct LottieSourceIntentRewriteRule: Sendable {
     }
 }
 
-private func isIdentityMatrix(_ values: [Double], tolerance: Double = 1e-6) -> Bool {
+private func isIdentityMatrix(_ values: [Double]) -> Bool {
     guard values.count == 16 else { return false }
     let identity = [
         1.0, 0.0, 0.0, 0.0,
@@ -50,7 +50,7 @@ private func isIdentityMatrix(_ values: [Double], tolerance: Double = 1e-6) -> B
         0.0, 0.0, 0.0, 1.0,
     ]
     for i in 0 ..< 16 {
-        if abs(values[i] - identity[i]) > tolerance {
+        if values[i] != identity[i] {
             return false
         }
     }
@@ -161,7 +161,7 @@ public extension LottieSourceIntentRewriteRule {
             let mod = mods[i]
             if mod.kind == .trim, let trim = mod.trim {
                 let (s, e) = normalizeTrim(trim)
-                if abs(s - 0.0) < 1e-6, abs(e - 1.0) < 1e-6 {
+                if s == 0.0, e == 1.0 {
                     mods.remove(at: i)
                     var newGeom = geometry
                     newGeom.modifiers = mods

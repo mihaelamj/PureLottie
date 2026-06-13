@@ -617,7 +617,7 @@ public struct LottieSourceGeometryEvaluator: Sendable {
     }
 
     private func absoluteVertices(from bezier: LottieBezier) -> GeneratedPoints {
-        let points = bezier.vertices.indices.map { index -> AbsolutePoint in
+        var points = bezier.vertices.indices.map { index -> AbsolutePoint in
             let vertex = bezier.vertices[index]
             let inTangent = bezier.inTangents.indices.contains(index) ? bezier.inTangents[index] : []
             let outTangent = bezier.outTangents.indices.contains(index) ? bezier.outTangents[index] : []
@@ -633,6 +633,11 @@ public struct LottieSourceGeometryEvaluator: Sendable {
                     (vertex.component(1) ?? 0) + (inTangent.component(1) ?? 0),
                 ]
             )
+        }
+        if LottieFaultInjector.isActive(.reversedBezierDirection), !points.isEmpty {
+            points = points.reversed().map { pt in
+                AbsolutePoint(vertex: pt.vertex, inControl: pt.outControl, outControl: pt.inControl)
+            }
         }
         return GeneratedPoints(points: points, radiusClamp: 0)
     }

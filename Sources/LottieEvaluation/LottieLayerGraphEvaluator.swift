@@ -733,7 +733,7 @@ private struct LottieLayerGraphTraceBuilder {
         sourcePath: String,
         diagnostics: inout [LottieLayerGraphDiagnostic]
     ) -> LottieLayerGraphTimingTrace {
-        if let timeRemap = layer.timeRemap {
+        if let timeRemap = layer.timeRemap, !LottieFaultInjector.isActive(.skippedPrecompTimeRemap) {
             let result = frameEvaluator.evaluate(
                 timeRemap,
                 at: inputFrame,

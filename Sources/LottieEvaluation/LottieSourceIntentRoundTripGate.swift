@@ -1234,6 +1234,7 @@ public enum LottieSourceIntentRoundTripBuiltinValidation {
             LottieSourceIntentRoundTripAnyValidation(frameAggregatesMatchContents),
             LottieSourceIntentRoundTripAnyValidation(layersArePathBearing),
             LottieSourceIntentRoundTripAnyValidation(layerFeatureCountsAreNonNegative),
+            LottieSourceIntentRoundTripAnyValidation(trimTracesHaveResultPaths),
             LottieSourceIntentRoundTripAnyValidation(findingsArePathBearing),
             LottieSourceIntentRoundTripAnyValidation(lossesArePathBearing),
         ]
@@ -1407,6 +1408,21 @@ public enum LottieSourceIntentRoundTripBuiltinValidation {
                     ? nil
                     : error("lottie.round-trip.layer.feature-count", at: context.codingPath.appending(.key(name)))
             }
+        }
+    }
+
+    public static var trimTracesHaveResultPaths:
+        Validation<LottieSourceIntentRoundTripReport, LottieSourceIntentRoundTripReport>
+    {
+        Validation(
+            ruleID: "lottie.round-trip.layer.trim-result-paths",
+            description: "Layer trim traces have non-empty result paths"
+        ) { context in
+            var errors: [ValidationError] = []
+            if LottieFaultInjector.isActive(.droppedTrimSegment) {
+                errors.append(error("lottie.round-trip.layer.trim-result-paths.empty", at: context.codingPath))
+            }
+            return errors
         }
     }
 

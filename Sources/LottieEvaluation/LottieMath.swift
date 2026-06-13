@@ -17,32 +17,40 @@ public enum LottieMath {
     /// and Taylor series. This is 100% deterministic across all platforms.
     public static func sin(_ x: Double) -> Double {
         let reduced = reduceAngle(x)
-        switch reduced.quadrant {
+        var result: Double = switch reduced.quadrant {
         case 0:
-            return sinTaylor(reduced.remainder)
+            sinTaylor(reduced.remainder)
         case 1:
-            return cosTaylor(reduced.remainder)
+            cosTaylor(reduced.remainder)
         case -1:
-            return -cosTaylor(reduced.remainder)
+            -cosTaylor(reduced.remainder)
         default: // 2 or -2
-            return -sinTaylor(reduced.remainder)
+            -sinTaylor(reduced.remainder)
         }
+        if LottieFaultInjector.isActive(.roundedAwayPrecision) {
+            result = (result * 100.0).rounded() / 100.0
+        }
+        return result
     }
 
     /// A bit-identical implementation of cos(x) using argument reduction to [-pi/4, pi/4]
     /// and Taylor series. This is 100% deterministic across all platforms.
     public static func cos(_ x: Double) -> Double {
         let reduced = reduceAngle(x)
-        switch reduced.quadrant {
+        var result: Double = switch reduced.quadrant {
         case 0:
-            return cosTaylor(reduced.remainder)
+            cosTaylor(reduced.remainder)
         case 1:
-            return -sinTaylor(reduced.remainder)
+            -sinTaylor(reduced.remainder)
         case -1:
-            return sinTaylor(reduced.remainder)
+            sinTaylor(reduced.remainder)
         default: // 2 or -2
-            return -cosTaylor(reduced.remainder)
+            -cosTaylor(reduced.remainder)
         }
+        if LottieFaultInjector.isActive(.roundedAwayPrecision) {
+            result = (result * 100.0).rounded() / 100.0
+        }
+        return result
     }
 
     private struct ReducedAngle {
