@@ -82,6 +82,28 @@ struct LottieRenderOracleTests {
         #expect(abs(box.maxY - 75) <= margin, "bottom edge \(box.maxY) vs predicted 75")
     }
 
+    @Test("additive mask clips the box to the geometric intersection (PureLayer mask is correct)")
+    func additiveMaskClipsToIntersection() throws {
+        // Box rc p=[32,32] s=[40,30] -> x[12,52] y[17,47]. Mask "Left Half" verts
+        // [[12,12],[34,12],[34,52],[12,52]] -> x[12,34] y[12,52]. Additive mask shows
+        // the box where the mask is: box ∩ mask = x[12,34] y[17,47]. The render must
+        // clip to that intersection, not the full box. (Verified: unmasked covers
+        // 1200px, masked 660px = the 22x30 intersection. #134's mask item attributed
+        // this to PureLayer in error; the geometry proves PureLayer renders it right.)
+        let json = """
+        {"v":"5.7.4","fr":10,"ip":0,"op":10,"w":64,"h":64,"layers":[{"ty":4,"ind":1,"ip":0,"op":10,"ks":{},
+          "masksProperties":[{"inv":false,"mode":"a","pt":{"a":0,"k":{"i":[[0,0],[0,0],[0,0],[0,0]],"o":[[0,0],[0,0],[0,0],[0,0]],"v":[[12,12],[34,12],[34,52],[12,52]],"c":true}},"o":{"a":0,"k":100}}],
+          "shapes":[{"ty":"rc","p":{"a":0,"k":[32,32]},"s":{"a":0,"k":[40,30]},"r":{"a":0,"k":0}},{"ty":"fl","c":{"a":0,"k":[1,0,0,1]},"o":{"a":0,"k":100}}]}]}
+        """
+        let box = try coveredBoundingBox(json)
+        #expect(box.maxX >= 0, "nothing painted")
+        let margin = 2
+        #expect(abs(box.minX - 12) <= margin, "left \(box.minX) vs intersection 12")
+        #expect(abs(box.maxX - 34) <= margin, "right \(box.maxX) vs intersection 34 (clipped from box's 52)")
+        #expect(abs(box.minY - 17) <= margin, "top \(box.minY) vs intersection 17")
+        #expect(abs(box.maxY - 47) <= margin, "bottom \(box.maxY) vs intersection 47")
+    }
+
     /// Render an imported single-layer Lottie through the real engine and return
     /// the bounding box of pixels that differ from the (background) corner pixel.
     private func coveredBoundingBox(_ json: String) throws -> (minX: Int, minY: Int, maxX: Int, maxY: Int) {
