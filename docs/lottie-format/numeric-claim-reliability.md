@@ -1,6 +1,6 @@
 # Numeric Claim Reliability
 
-Status: `blocked` (reproducibility blocked by issue #118, bounds and path-length tolerances assumed)
+Status: `assumed` (Five tolerances derived; bounds and path-length tolerances remain assumed)
 
 PureLottie separates three different claims that used to be easy to conflate:
 

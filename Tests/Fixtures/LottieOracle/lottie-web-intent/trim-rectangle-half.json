@@ -709,5 +709,20 @@
         }
       ]
     }
-  ]
+  ],
+  "provenance": {
+    "lottieWeb": "npm:lottie-web@5.13.0",
+    "playwright": "npm:playwright@1.60.0",
+    "chromiumRevision": "1223",
+    "renderer": "svg",
+    "scale": 1,
+    "sampleCount": 1024,
+    "frames": [
+      0,
+      5,
+      9
+    ],
+    "command": "node Tools/LottieOracle/scripts/build-curated-corpus.mjs",
+    "contentHash": "sha256:d20b63ff8126f35fa1dd277d0251d49e4e4fddbaf21941a4ee01d73685d23f39"
+  }
 }

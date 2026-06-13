@@ -101,6 +101,8 @@ struct LottieWebIntentTraceValidationTests {
         trace.frames[0].layers[0].matrix = [1, 0]
         trace.frames[0].paths[0].d = ""
         trace.frames[0].paths[0].style.fill = ""
+        trace.provenance.playwright = "invalid"
+        trace.provenance.contentHash = "123"
 
         let errors = LottieWebIntentTraceValidator().collectErrors(in: trace)
         let paths = Set(errors.map(\.codingPath.description))
@@ -110,6 +112,8 @@ struct LottieWebIntentTraceValidationTests {
         #expect(paths.contains("$.frames[0].layers[0].matrix"))
         #expect(paths.contains("$.frames[0].paths[0].d"))
         #expect(paths.contains("$.frames[0].paths[0].style.fill"))
+        #expect(paths.contains("$.provenance.playwright"))
+        #expect(paths.contains("$.provenance.contentHash"))
 
         var maskTrace = try intentTrace("mask-add-rectangle")
         maskTrace.frames[0].maskCount = 99

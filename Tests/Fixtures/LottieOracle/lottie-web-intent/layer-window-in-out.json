@@ -1533,5 +1533,21 @@
       "trims": [],
       "diagnostics": []
     }
-  ]
+  ],
+  "provenance": {
+    "lottieWeb": "npm:lottie-web@5.13.0",
+    "playwright": "npm:playwright@1.60.0",
+    "chromiumRevision": "1223",
+    "renderer": "svg",
+    "scale": 1,
+    "sampleCount": 1024,
+    "frames": [
+      2,
+      3,
+      8,
+      9
+    ],
+    "command": "node Tools/LottieOracle/scripts/build-curated-corpus.mjs",
+    "contentHash": "sha256:200abf6ef7b38808758645bbfa96442b50aa974dd96e30a08e8feb73a1b1048c"
+  }
 }

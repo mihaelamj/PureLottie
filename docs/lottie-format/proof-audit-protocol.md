@@ -77,7 +77,7 @@ We have audited the closed-epic claims from Issue #38 (Numeric Oracles), Issue #
   4. *Calibration*: Counterexample offsets fail the differ.
   5. *Reproducibility*: Pinned to lottie-web 5.13.0.
   6. *Counterexamples*: Proved via counterexample tests.
-* **Verdict**: **Assumed / Blocked** (Five thresholds are `derived`, but `bounds.css-pixel.absolute` and `path-length.css-pixel.absolute` are **Assumed** because Chromium's SVG bounds do not expose a portable error bound. The entire set is **Blocked** for reproducibility until browser revisions and hashes are pinned in Issue #118).
+* **Verdict**: **Assumed** (Five thresholds are `derived` and witnessed, but `bounds.css-pixel.absolute` and `path-length.css-pixel.absolute` are **Assumed** because Chromium's SVG bounds do not expose a portable error bound. The reproducibility blocker has been resolved by pinning browser revisions and content hashes in Issue #118).
 
 ---
 

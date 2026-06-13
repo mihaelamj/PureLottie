@@ -11,6 +11,7 @@ public struct LottieWebIntentTrace: Codable, Equatable, Sendable, Validatable {
     public var scale: Double
     public var coordinateSemantics: [String]
     public var frames: [Frame]
+    public var provenance: Provenance
 
     public struct Schema: Codable, Equatable, Sendable, Validatable {
         public var name: String
@@ -20,6 +21,18 @@ public struct LottieWebIntentTrace: Codable, Equatable, Sendable, Validatable {
     public struct LottieWeb: Codable, Equatable, Sendable, Validatable {
         public var package: String
         public var version: String
+    }
+
+    public struct Provenance: Codable, Equatable, Sendable, Validatable {
+        public var lottieWeb: String
+        public var playwright: String
+        public var chromiumRevision: String
+        public var renderer: String
+        public var scale: Double
+        public var sampleCount: Int
+        public var frames: [Double]
+        public var command: String
+        public var contentHash: String
     }
 
     public struct Frame: Codable, Equatable, Sendable, Validatable {
@@ -258,6 +271,7 @@ public final class LottieWebIntentTraceValidator {
         visit(trace, at: JSONPath(), in: trace, errors: &errors)
         visit(trace.schema, at: JSONPath([.key("schema")]), in: trace, errors: &errors)
         visit(trace.lottieWeb, at: JSONPath([.key("lottieWeb")]), in: trace, errors: &errors)
+        visit(trace.provenance, at: JSONPath([.key("provenance")]), in: trace, errors: &errors)
         for frameIndex in trace.frames.indices {
             let frame = trace.frames[frameIndex]
             let framePath = JSONPath([.key("frames"), .index(frameIndex)])
@@ -463,6 +477,7 @@ public enum LottieWebIntentBuiltinValidation {
             LottieWebIntentAnyValidation(coordinateSemanticsAreRecorded),
             LottieWebIntentAnyValidation(framesArePresentAndUnique),
             LottieWebIntentAnyValidation(lottieWebPackageIsPinned),
+            LottieWebIntentAnyValidation(provenanceIsValid),
             LottieWebIntentAnyValidation(framesHaveValidCounts),
             LottieWebIntentAnyValidation(framesHavePositiveFrameRate),
             LottieWebIntentAnyValidation(layersHaveValidOpacityAndWindow),
@@ -614,6 +629,44 @@ public enum LottieWebIntentBuiltinValidation {
                     ruleID: "lottie-web-intent.engine.version",
                     description: "Lottie-web intent trace was extracted with npm:lottie-web@5.13.0",
                     path: context.codingPath.appending(.key("version"))
+                ))
+            }
+            return errors
+        }
+    }
+
+    public static var provenanceIsValid: Validation<LottieWebIntentTrace, LottieWebIntentTrace.Provenance> {
+        Validation(
+            ruleID: "lottie-web-intent.provenance.valid",
+            description: "Lottie-web intent trace carries complete and valid generation provenance"
+        ) { context in
+            var errors: [ValidationError] = []
+            if context.subject.lottieWeb.isEmpty {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.provenance.lottie-web",
+                    description: "Provenance lottieWeb is recorded",
+                    path: context.codingPath.appending(.key("lottieWeb"))
+                ))
+            }
+            if !context.subject.playwright.hasPrefix("npm:playwright@") {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.provenance.playwright",
+                    description: "Provenance playwright package is recorded and pinned",
+                    path: context.codingPath.appending(.key("playwright"))
+                ))
+            }
+            if context.subject.chromiumRevision.isEmpty {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.provenance.chromium-revision",
+                    description: "Provenance chromiumRevision is recorded",
+                    path: context.codingPath.appending(.key("chromiumRevision"))
+                ))
+            }
+            if !context.subject.contentHash.hasPrefix("sha256:") || context.subject.contentHash.count != 71 {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.provenance.content-hash",
+                    description: "Provenance contentHash is a valid sha256 hash",
+                    path: context.codingPath.appending(.key("contentHash"))
                 ))
             }
             return errors
