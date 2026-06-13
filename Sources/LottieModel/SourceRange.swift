@@ -1,5 +1,5 @@
 /// A 1-based location in a source file.
-public struct SourceLocation: Sendable, Equatable, CustomStringConvertible {
+public struct SourceLocation: Codable, Sendable, Equatable, CustomStringConvertible {
     public let offset: Int
     public let line: Int
     public let column: Int
@@ -16,7 +16,7 @@ public struct SourceLocation: Sendable, Equatable, CustomStringConvertible {
 }
 
 /// A half-open range in source text.
-public struct SourceRange: Sendable, Equatable, CustomStringConvertible {
+public struct SourceRange: Codable, Sendable, Equatable, CustomStringConvertible {
     public let start: SourceLocation
     public let end: SourceLocation
 
@@ -31,12 +31,44 @@ public struct SourceRange: Sendable, Equatable, CustomStringConvertible {
 }
 
 /// A JSON path rooted at `$`, used by parser and validation diagnostics.
-public struct JSONPath: Sendable, Hashable, CustomStringConvertible {
+public struct JSONPath: Codable, Sendable, Hashable, CustomStringConvertible {
     public private(set) var components: [Component]
 
-    public enum Component: Sendable, Hashable, CustomStringConvertible {
+    public enum Component: Codable, Sendable, Hashable, CustomStringConvertible {
         case key(String)
         case index(Int)
+
+        private enum CodingKeys: String, CodingKey {
+            case kind
+            case value
+        }
+
+        private enum Kind: String, Codable {
+            case key
+            case index
+        }
+
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            switch try container.decode(Kind.self, forKey: .kind) {
+            case .key:
+                self = try .key(container.decode(String.self, forKey: .value))
+            case .index:
+                self = try .index(container.decode(Int.self, forKey: .value))
+            }
+        }
+
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            switch self {
+            case let .key(value):
+                try container.encode(Kind.key, forKey: .kind)
+                try container.encode(value, forKey: .value)
+            case let .index(value):
+                try container.encode(Kind.index, forKey: .kind)
+                try container.encode(value, forKey: .value)
+            }
+        }
 
         public var description: String {
             switch self {

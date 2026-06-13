@@ -6,7 +6,7 @@
 import LottieModel
 
 /// Breakpoint predicates understood by the composition VM debugger.
-public enum LottieVMBreakpoint: Sendable, Equatable {
+public enum LottieVMBreakpoint: Codable, Sendable, Equatable {
     /// Stops at an exact human-readable source path.
     case sourcePath(String)
     /// Stops within a human-readable source subtree.
@@ -26,7 +26,7 @@ public enum LottieVMBreakpoint: Sendable, Equatable {
 }
 
 /// Watch expressions evaluated against debugger steps.
-public enum LottieVMWatch: Sendable, Equatable {
+public enum LottieVMWatch: Codable, Sendable, Equatable {
     /// Current transform stack plus sampled transform values when present.
     case transform
     /// Current opacity/compositing stack plus sampled opacity when present.
@@ -40,7 +40,7 @@ public enum LottieVMWatch: Sendable, Equatable {
 }
 
 /// One evaluated watch value at a debugger step.
-public struct LottieVMWatchValue: Sendable, Equatable {
+public struct LottieVMWatchValue: Codable, Sendable, Equatable {
     /// Watch expression that produced this value.
     public var watch: LottieVMWatch
     /// Display-ready watch fields.
@@ -53,7 +53,7 @@ public struct LottieVMWatchValue: Sendable, Equatable {
 }
 
 /// Backend output emitted by a debugger step.
-public struct LottieVMDebugOutput: Sendable, Equatable {
+public struct LottieVMDebugOutput: Codable, Sendable, Equatable {
     /// Render node emitted by this step.
     public var renderNodeID: LottieRenderNodeID
     /// VM emission label.
@@ -69,7 +69,7 @@ public struct LottieVMDebugOutput: Sendable, Equatable {
 }
 
 /// Compact, display-ready view of the VM state after a step.
-public struct LottieVMDebugStateSummary: Sendable, Equatable, CustomStringConvertible {
+public struct LottieVMDebugStateSummary: Codable, Sendable, Equatable, CustomStringConvertible {
     /// Selected Lottie source frame.
     public var frameClock: Double
     /// Current human-readable source path.
@@ -113,7 +113,7 @@ public struct LottieVMDebugStateSummary: Sendable, Equatable, CustomStringConver
 }
 
 /// One debugger-visible step over a VM trace record.
-public struct LottieVMDebugStep: Sendable, Equatable {
+public struct LottieVMDebugStep: Codable, Sendable, Equatable {
     /// The trace record this debugger step exposes.
     public var record: LottieVMTraceRecord
     /// Current human-readable source path.
@@ -135,7 +135,7 @@ public struct LottieVMDebugStep: Sendable, Equatable {
 }
 
 /// Deterministic debugger cursor over `LottieCompositionVM` trace results.
-public struct LottieVMDebugger: Sendable {
+public struct LottieVMDebugger: Codable, Sendable {
     /// VM execution result being debugged.
     public let result: LottieVMResult
     /// Stored breakpoints used by `continueToBreakpoint()`.
@@ -144,6 +144,13 @@ public struct LottieVMDebugger: Sendable {
     public var watches: [LottieVMWatch]
     /// Current index into `result.trace`.
     public private(set) var currentIndex: Int
+
+    private enum CodingKeys: String, CodingKey {
+        case result
+        case breakpoints
+        case watches
+        case currentIndex
+    }
 
     public init(
         result: LottieVMResult,
@@ -159,6 +166,24 @@ public struct LottieVMDebugger: Sendable {
         } else {
             currentIndex = min(max(index, 0), result.trace.count - 1)
         }
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            result: container.decode(LottieVMResult.self, forKey: .result),
+            breakpoints: container.decode([LottieVMBreakpoint].self, forKey: .breakpoints),
+            watches: container.decode([LottieVMWatch].self, forKey: .watches),
+            startAt: container.decode(Int.self, forKey: .currentIndex)
+        )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(result, forKey: .result)
+        try container.encode(breakpoints, forKey: .breakpoints)
+        try container.encode(watches, forKey: .watches)
+        try container.encode(currentIndex, forKey: .currentIndex)
     }
 
     /// Builds a debugger by running the composition VM for one source frame.

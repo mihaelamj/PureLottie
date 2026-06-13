@@ -1,17 +1,17 @@
-public enum ValidationPhase: String, Sendable {
+public enum ValidationPhase: String, Codable, Sendable {
     case parse
     case source
     case semantic
     case lowering
 }
 
-public enum ValidationSeverity: String, Sendable {
+public enum ValidationSeverity: String, Codable, Sendable {
     case error
     case warning
     case note
 }
 
-public enum FeatureClassification: String, Sendable {
+public enum FeatureClassification: String, Codable, Sendable {
     case exact
     case approximate
     case reported
@@ -112,7 +112,7 @@ struct AnyValidation<Document: Validatable> {
     }
 }
 
-public struct ValidationError: Error, Sendable, Equatable, CustomStringConvertible {
+public struct ValidationError: Codable, Error, Sendable, Equatable, CustomStringConvertible {
     public let ruleID: String
     public let reason: String
     public let codingPath: JSONPath
@@ -151,7 +151,7 @@ public struct ValidationError: Error, Sendable, Equatable, CustomStringConvertib
     }
 }
 
-public struct ValidationErrorCollection: Error, Sendable, Equatable {
+public struct ValidationErrorCollection: Codable, Error, Sendable, Equatable {
     public let values: [ValidationError]
 
     public init(_ values: [ValidationError]) {
