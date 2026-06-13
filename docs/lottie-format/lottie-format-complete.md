@@ -73,7 +73,7 @@ asset both extend it.
 - **image** (extends asset + slottable-object): `w`, `h`, `p` (file name or data
   URL), `u` (path), `e` (int-boolean: if 1, `p` is a data URL), `sid` (slot id).
   `w`/`h`/`p` required unless `sid` present. If `e=1`, `p` must match data-url.
-- **precomposition** (extends asset + composition): `layers` (required) — an
+- **precomposition** (extends asset + composition): `layers` (required), an
   inline composition referenced by precomposition layers via `refId`.
 
 ---
@@ -117,7 +117,7 @@ All layers are unioned by **all-layers** (`oneOf` by `ty`). Inheritance chain:
 | 4 | Shape | `shapes` (req, array<all-graphic-elements>) |
 | other | Unknown | any `ty` not in {0,1,2,3,4}; preserved, not an error |
 
-(Superset adds ty 5 Text, 6 Audio, 13 Camera, and data/footage — see section 9.)
+(Superset adds ty 5 Text, 6 Audio, 13 Camera, and data/footage, see section 9.)
 
 ---
 
@@ -187,7 +187,7 @@ stroke-dash: `n` (stroke-dash-type d/g/o, def "d"), `v` (length, scalar-property
 | (unknown) | Unknown Shape | any `ty` not in the known set; preserved |
 
 (Superset adds `mm` merge-paths, `op`/`rp` offset-path & repeater, `zz` zig-zag,
-`tw` twist — see section 9.)
+`tw` twist, see section 9.)
 
 ---
 
@@ -207,13 +207,13 @@ optional fallbacks).
 | `v2` | Position | vector | array<position-keyframe> |
 | `c` | Color | color | array<color-keyframe> |
 | `b` | Bezier (shape) | bezier | array<bezier-keyframe> |
-| `g` | Gradient | (via gradient-stops) | — |
+| `g` | Gradient | (via gradient-stops) | (none) |
 
 - **gradient-property**: `p` (color-stop count, req), `k` (gradient-stops), `ty="g"`.
 - **gradient-stops**: `a` (req), `k` (gradient value or array<gradient-keyframe>, req).
 - **splittable-position-property**: `oneOf` [ position-property (grouped, `s:false`),
   split-position ]. **split-position**: `s:true` (req), `x` (scalar-property req),
-  `y` (scalar-property req) — animate axes independently.
+  `y` (scalar-property req), animate axes independently.
 
 ### Keyframes
 
@@ -226,7 +226,7 @@ out-tangent, vector) for curved motion paths.
 
 ### Easing handle (`i`/`o`)
 
-`x` (time component, 0..1) and `y` (value component) — each a scalar **or an
+`x` (time component, 0..1) and `y` (value component), each a scalar **or an
 array** (per-dimension easing for multi-dim properties). This is the normalized
 cubic-Bezier timing handle that bodymovin computes from AE's influence/speed (see
 `bodymovin-source-semantics.md` for the exact conversion and its losses).
@@ -300,7 +300,7 @@ parser drops them silently (the C6 danger). Detail and provenance in
   range selectors, path options, more-options, per-char 3D; plus top-level
   `fonts` and `chars` baked glyphs), `ty:6` Audio (`au`), `ty:13` Camera, and
   data/footage layers. The spec models only 0..4.
-- **Effects** (`ef`): the AE effects taxonomy — Tint(20), Fill(21), Stroke(22),
+- **Effects** (`ef`): the AE effects taxonomy, Tint(20), Fill(21), Stroke(22),
   Tritone(23), Pro Levels(24), Drop Shadow(25), Radial Wipe(26), Displacement
   Map(27), Set Matte(28), Gaussian Blur(29), Mesh Warp(31), Wavy(32),
   Spherize(33), Puppet(34), plus custom. Not in the spec at all.
