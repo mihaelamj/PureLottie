@@ -7,14 +7,17 @@ no claim is `assumed` where a stronger status is written.
 
 ## The question, decomposed
 
-"Translate Lottie" means four separable things. Three are proven; the fourth is
-proven incomplete and its path is named.
+"Translate Lottie" means four separable things. Reading and mapping-or-reporting
+are theorems; exact computation rests on closed forms that are theorems with a
+sampled implementation check; the fourth is proven incomplete and its path is
+named.
 
 1. **Read it**: decode every field, drop nothing silently.
 2. **Map-or-report it**: every field is either modeled with a typed home or
    recorded as unsupported, never silently ignored.
-3. **Compute it exactly**: the definitional geometry and transforms equal the
-   documented closed form, independent of any reference renderer.
+3. **Compute it exactly**: the definitional geometry and transforms equal a
+   closed form (exact by construction), checked at sampled points, independent of
+   any reference renderer.
 4. **Render it equivalently**: the rendered pixels match an independent
    reference. This is the one that is NOT proven.
 
