@@ -16,10 +16,10 @@ PureLottie is a typed Lottie document model and importer.
 
 | Badge | Workflow | What it proves |
 | --- | --- | --- |
-| macOS CI | `.github/workflows/macos-ci.yml` | `LottieModel` builds and tests on macOS. The full package gate also runs when PureLayer credentials are configured. |
-| Linux CI | `.github/workflows/linux-ci.yml` | `LottieModel` builds and tests on Linux without resolving PureLayer. |
-| Windows CI | `.github/workflows/windows-ci.yml` | `LottieModel` builds and tests on Windows without resolving PureLayer. |
-| Wasm CI | `.github/workflows/wasm-ci.yml` | `LottieModel` compiles for `wasm32-unknown-wasi`. |
+| macOS CI | `.github/workflows/macos-ci.yml` | Semantic tests for `LottieModel`, `LottieEvaluation`, and `LottieOracleDiff` run on macOS. The full package gate also runs when PureLayer credentials are configured. |
+| Linux CI | `.github/workflows/linux-ci.yml` | Semantic tests for `LottieModel`, `LottieEvaluation`, and `LottieOracleDiff` run on Linux without resolving PureLayer. |
+| Windows CI | `.github/workflows/windows-ci.yml` | Semantic tests for `LottieModel`, `LottieEvaluation`, and `LottieOracleDiff` run on Windows without resolving PureLayer. |
+| Wasm CI | `.github/workflows/wasm-ci.yml` | The semantic package through `LottieOracleDiff` compiles for `wasm32-unknown-wasi`. |
 | Oracle CI | `.github/workflows/oracle-ci.yml` | `Tools/LottieOracle` validates the curated fixture manifest and live-loads every curated fixture through pinned `lottie-web`. |
 
 The macOS full package gate requires access to the private PureLayer dependency. Configure one of these repository secrets to enable it:
@@ -27,7 +27,9 @@ The macOS full package gate requires access to the private PureLayer dependency.
 - `PURELAYER_TOKEN`: a GitHub token with read access to `mihaelamj/PureLayer` and any private transitive dependencies.
 - `PURELAYER_DEPLOY_KEY`: an SSH deploy key for `mihaelamj/PureLayer`. Prefer `PURELAYER_TOKEN` if transitive dependencies are private too.
 
-macOS, Linux, and Wasm model jobs intentionally run through `scripts/ci-model-only.swift`; Windows uses the equivalent `scripts/ci-model-only.ps1` because Swift script JIT is not reliable on the Windows runner. Both scripts create `.build/ci/model-only`, a temporary package containing `Sources/LottieModel`, `Tests/LottieModelTests`, `Tests/Fixtures`, and conformance docs needed by model tests. This keeps cross-platform model checks honest while PureLayer resolution is still a dependency-gated full-package concern.
+macOS, Linux, and Wasm semantic jobs intentionally run through `scripts/ci-semantic-only.swift`; Windows uses the equivalent `scripts/ci-semantic-only.ps1` because Swift script JIT is not reliable on the Windows runner. Both scripts create `.build/ci/semantic-only`, a temporary package containing `Sources/LottieModel`, `Sources/LottieEvaluation`, `Sources/LottieOracleDiff`, their PureLayer-free tests, committed fixtures, conformance docs, oracle manifests, and `Tests/LottieImportTests` as uncompiled evidence files for ledger path validation. This keeps cross-platform semantic checks honest while PureLayer resolution is still a dependency-gated full-package concern.
+
+The exact platform matrix and current blockers are tracked in `docs/ci-platform-matrix.md`.
 
 ## VM Debugger
 
@@ -105,25 +107,25 @@ swift build
 swift test
 ```
 
-Run the model-only gate used by macOS, Linux, and Wasm CI:
+Run the semantic-only gate used by macOS, Linux, and Windows CI:
 
 ```sh
-swift scripts/ci-model-only.swift
-swift test --package-path .build/ci/model-only
+swift scripts/ci-semantic-only.swift
+swift test --package-path .build/ci/semantic-only
 ```
 
-Run the model-only gate used by Windows CI from PowerShell:
+Run the semantic-only gate used by Windows CI from PowerShell:
 
 ```powershell
-./scripts/ci-model-only.ps1
-swift test --package-path .build/ci/model-only
+./scripts/ci-semantic-only.ps1
+swift test --package-path .build/ci/semantic-only
 ```
 
-Run the Wasm model build after installing the Swift 6.3.2 Wasm SDK from Swift.org:
+Run the Wasm semantic build after installing the Swift 6.3.2 Wasm SDK from Swift.org:
 
 ```sh
-swift scripts/ci-model-only.swift
-swift build --package-path .build/ci/model-only --swift-sdk swift-6.3.2-RELEASE_wasm --target LottieModel
+swift scripts/ci-semantic-only.swift
+swift build --package-path .build/ci/semantic-only --swift-sdk swift-6.3.2-RELEASE_wasm --target LottieOracleDiff
 ```
 
 ## lottie-web Oracle

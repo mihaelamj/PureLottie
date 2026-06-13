@@ -13,8 +13,8 @@ permissions:
   contents: read
 
 jobs:
-  model-only:
-    name: LottieModel Wasm build
+  semantic-only:
+    name: Semantic Wasm build
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -35,8 +35,8 @@ jobs:
       - name: Show Swift version
         run: swift --version
 
-      - name: Generate model-only package
-        run: swift scripts/ci-model-only.swift
+      - name: Generate semantic-only package
+        run: swift scripts/ci-semantic-only.swift
 
-      - name: Build LottieModel for Wasm
-        run: swift build --package-path .build/ci/model-only --swift-sdk swift-6.3.2-RELEASE_wasm --target LottieModel
+      - name: Build Lottie semantics for Wasm
+        run: swift build --package-path .build/ci/semantic-only --swift-sdk swift-6.3.2-RELEASE_wasm --target LottieOracleDiff
