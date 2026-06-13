@@ -158,7 +158,9 @@ the frame was placed at the expected coordinates before visual inspection. A
 clean legacy import report is not required for export, but every RenderIR
 approximation or unsupported backend feature must appear in the RenderIR
 lowering findings with VM trace, RenderIR term, layer graph, and artifact
-evidence.
+evidence. Layer-graph evidence includes timing fields such as source frame,
+local precomposition frame, start time, stretch, time-remap seconds, and
+precomposition asset paths when those facts affect lowering.
 
 `LottieFrameDump` writes the same geometry evidence next to still-frame dumps:
 

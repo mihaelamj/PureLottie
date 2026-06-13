@@ -719,6 +719,18 @@ private final class RenderIRLoweringContext {
             matteMode: record.matte?.mode,
             matteSourcePath: record.matte?.sourceLayerPath,
             matteTargetPath: record.matte?.targetLayerPath,
+            timingMode: record.timing.mode.rawValue,
+            timingInputFrame: record.timing.inputFrame,
+            timingStartTime: record.timing.startTime,
+            timingStretch: record.timing.stretch,
+            timingFrameRate: record.timing.frameRate,
+            timingLocalFrame: record.timing.localFrame,
+            timingTimeRemapSeconds: record.timing.timeRemapSeconds,
+            timingTimeRemapPropertyPath: record.timing.timeRemapPropertyTrace?.propertyPath,
+            precompositionAssetID: record.precomposition?.assetID,
+            precompositionPath: record.precomposition?.compositionPath,
+            precompositionLocalFrame: record.precomposition?.localFrame,
+            precompositionChildLayerCount: record.precomposition?.childLayerCount,
             diagnosticRuleIDs: record.diagnostics.map(\.ruleID)
         )
     }

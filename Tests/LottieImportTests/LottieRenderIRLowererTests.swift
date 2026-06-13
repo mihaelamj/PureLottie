@@ -106,6 +106,48 @@ struct LottieRenderIRLowererTests {
         #expect(wrapper.sublayers.first?.name == target.id.description)
     }
 
+    @Test("precomposition backend evidence preserves time remap frame mapping")
+    func precompositionBackendEvidencePreservesTimeRemapFrameMapping() throws {
+        let frame = try renderFrame(fixture: "time-remap-precomp-diagnosed.json", at: 0)
+        let boundary = try #require(frame.nodes.first { node in
+            if case .precompositionBoundary = node.kind { return true }
+            return false
+        })
+        let child = try #require(frame.nodes.first {
+            $0.source.sourcePath == "root > layer 'Time Remapped Precomp' > precomp 'box_precomp' > layer 'Precomp Box'"
+        })
+
+        let tree = LottieRenderIRLowerer().lower(frame)
+
+        #expect(boundary.localFrame == 5)
+        #expect(child.localFrame == 5)
+        let finding = try #require(tree.report.findings.first {
+            $0.feature == "precomposition boundary 'box_precomp' flattened into evaluated child nodes"
+        })
+        #expect(finding.disposition == .approximated)
+
+        let evidence = try #require(finding.evidence)
+        #expect(evidence.sourceFrame == 0)
+        #expect(evidence.renderNode?.sourcePath == "root > layer 'Time Remapped Precomp'")
+        #expect(evidence.renderNode?.localFrame == 5)
+
+        let graph = try #require(evidence.layerGraphRecord)
+        #expect(graph.sourcePath == "root > layer 'Time Remapped Precomp'")
+        #expect(graph.participation == LottieLayerGraphParticipation.precompositionBoundary.rawValue)
+        #expect(graph.timingMode == LottieLayerGraphTimingMode.timeRemapSeconds.rawValue)
+        #expect(graph.timingInputFrame == 0)
+        #expect(graph.timingStartTime == 0)
+        #expect(graph.timingStretch == 1)
+        #expect(graph.timingFrameRate == 10)
+        #expect(graph.timingLocalFrame == 5)
+        #expect(graph.timingTimeRemapSeconds == 0.5)
+        #expect(graph.timingTimeRemapPropertyPath == "$.layers[0].tm")
+        #expect(graph.precompositionAssetID == "box_precomp")
+        #expect(graph.precompositionPath == "root > layer 'Time Remapped Precomp' > precomp 'box_precomp'")
+        #expect(graph.precompositionLocalFrame == 5)
+        #expect(graph.precompositionChildLayerCount == 1)
+    }
+
     @Test("backend gaps are reported with RenderIR source path")
     func backendGapsAreReportedWithRenderIRSourcePath() throws {
         let frame = try renderFrame(from: """
