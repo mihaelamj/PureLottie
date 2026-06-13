@@ -30,12 +30,24 @@ func copyDirectory(_ relativePath: String, to destinationRoot: URL) throws {
     try fileManager.copyItem(at: source, to: destination)
 }
 
+func copyFile(_ relativePath: String, to destinationRoot: URL) throws {
+    let source = repositoryRoot.appendingPathComponent(relativePath)
+    let destination = destinationRoot.appendingPathComponent(relativePath)
+    try fileManager.createDirectory(
+        at: destination.deletingLastPathComponent(),
+        withIntermediateDirectories: true
+    )
+    try fileManager.copyItem(at: source, to: destination)
+}
+
 try recreateDirectory(packageRoot)
 
 try copyDirectory("Sources/LottieModel", to: packageRoot)
 try copyDirectory("Tests/LottieModelTests", to: packageRoot)
 try copyDirectory("Tests/Fixtures", to: packageRoot)
 try copyDirectory("docs/lottie-format", to: packageRoot)
+try copyFile("Tools/LottieOracle/oracle-fixtures.json", to: packageRoot)
+try copyFile("Tools/LottieOracle/package-lock.json", to: packageRoot)
 
 let manifest = """
 // swift-tools-version: 6.0

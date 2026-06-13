@@ -14,6 +14,9 @@ Copy-Item -Recurse "Tests/LottieModelTests" (Join-Path $packageRoot "Tests/Lotti
 Copy-Item -Recurse "Tests/Fixtures" (Join-Path $packageRoot "Tests/Fixtures")
 New-Item -ItemType Directory -Force -Path (Join-Path $packageRoot "docs") | Out-Null
 Copy-Item -Recurse "docs/lottie-format" (Join-Path $packageRoot "docs/lottie-format")
+New-Item -ItemType Directory -Force -Path (Join-Path $packageRoot "Tools/LottieOracle") | Out-Null
+Copy-Item "Tools/LottieOracle/oracle-fixtures.json" (Join-Path $packageRoot "Tools/LottieOracle/oracle-fixtures.json")
+Copy-Item "Tools/LottieOracle/package-lock.json" (Join-Path $packageRoot "Tools/LottieOracle/package-lock.json")
 
 $manifest = @'
 // swift-tools-version: 6.0
