@@ -11,7 +11,7 @@ repeatable target state.
 
 | Surface | Targets | Runner coverage | Command |
 | --- | --- | --- | --- |
-| Full package | `LottieModel`, `LottieEvaluation`, `LottieImport`, `LottieOracleDiff`, frame/APNG tools, and all tests | Local macOS always; GitHub macOS only when `PURELAYER_TOKEN` or `PURELAYER_DEPLOY_KEY` is configured | `swiftformat . --config .swiftformat && swiftlint --config .swiftlint.yml --strict && swift build && swift test` |
+| Full package | `LottieModel`, `LottieEvaluation`, `LottieImport`, `LottieOracleDiff`, frame/APNG tools, and all tests | Local macOS always; GitHub macOS only when `PURELAYER_TOKEN` or `PURELAYER_DEPLOY_KEY` is configured | `swiftformat . --config .swiftformat && swiftlint --config .swiftlint.yml --strict && swift build && swift test --no-parallel` |
 | Semantic package | `LottieModel`, `LottieEvaluation`, `LottieOracleDiff`, model tests, evaluation tests, oracle-diff tests, committed fixtures/docs/oracle manifests, and uncompiled `Tests/LottieImportTests` evidence files | macOS, Linux, Windows | `swift scripts/ci-semantic-only.swift && swift test --package-path .build/ci/semantic-only` |
 | Windows semantic package | Same as semantic package | Windows | `./scripts/ci-semantic-only.ps1; swift test --package-path .build/ci/semantic-only` |
 | Wasm semantic build | `LottieModel`, `LottieEvaluation`, `LottieOracleDiff` | Linux runner with Swift Wasm SDK | `swift build --package-path .build/ci/semantic-only --swift-sdk swift-6.3.2-RELEASE_wasm --target LottieOracleDiff` |

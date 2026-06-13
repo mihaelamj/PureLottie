@@ -42,12 +42,12 @@ npx --prefix Tools/LottieOracle playwright install chromium
 swiftformat . --config .swiftformat
 swiftlint --config .swiftlint.yml --strict
 swift build                                              # 0 warnings
-swift test                                               # all pass, ZERO skipped
+swift test --no-parallel                                 # all pass, ZERO skipped (sequenced to avoid toolchain concurrent metadata crash)
 npm --prefix Tools/LottieOracle test                     # 32/32
 npm --prefix Tools/LottieOracle run validate-fixtures    # ok: true, 0 errors
 ```
 
-Done means: the full gate passes locally, `swift test` reports zero skipped
+Done means: the full gate passes locally, `swift test --no-parallel` reports zero skipped
 tests, the tree is clean except the intended files, and the commit is pushed.
 
 ## 3. Current state and resume point

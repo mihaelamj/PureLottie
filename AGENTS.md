@@ -22,5 +22,5 @@ Non-negotiables for any change:
 - CI gates are not set up yet: PureLayer is a private dependency and the
   workflows need a deploy key before they can resolve it. Until then, run the
   full local gate before every commit:
-  `swiftformat . --config .swiftformat && swiftlint --config .swiftlint.yml --strict && swift test`.
+  `swiftformat . --config .swiftformat && swiftlint --config .swiftlint.yml --strict && swift test --no-parallel`.
 - Commits follow `<type>(<scope>): summary`.

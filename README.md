@@ -106,21 +106,21 @@ Run the full local gate before committing code changes:
 swiftformat . --config .swiftformat
 swiftlint --config .swiftlint.yml --strict
 swift build
-swift test
+swift test --no-parallel
 ```
 
 Run the semantic-only gate used by macOS, Linux, and Windows CI:
 
 ```sh
 swift scripts/ci-semantic-only.swift
-swift test --package-path .build/ci/semantic-only
+swift test --package-path .build/ci/semantic-only --no-parallel
 ```
 
 Run the semantic-only gate used by Windows CI from PowerShell:
 
 ```powershell
 ./scripts/ci-semantic-only.ps1
-swift test --package-path .build/ci/semantic-only
+swift test --package-path .build/ci/semantic-only --no-parallel
 ```
 
 Run the Wasm semantic build after installing the Swift 6.3.2 Wasm SDK from Swift.org:
