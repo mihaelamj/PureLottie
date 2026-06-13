@@ -75,14 +75,27 @@ drift.
 
 ## Not proven: render pixel-equivalence (4)
 
-This is the honest frontier, and it is proven *incomplete*, not open-by-omission:
+This is the honest frontier, and it is unproven, not open-by-omission. But the
+*shape* of the gap is more subtle than first reported, and that subtlety is
+itself a result:
 
-- **#130 proved numeric agreement does not imply pixel agreement.** A corrected
-  composite metric showed six numeric-eligible fixtures whose pixels diverge.
-- **#134 records six features that render wrong with a clean numeric oracle and a
-  clean ImportReport** (mask not applied, dash dropped, +4).
-- Therefore a claim of "100% render-equivalent translation" is false, and the
-  project's own gates would catch it.
+- **#130 showed PureLayer and lottie-web disagree on six numeric-eligible
+  fixtures** (a corrected composite metric, after the raw-RGB metric falsely
+  failed everything). That is a real divergence.
+- **It does NOT establish that PureLayer renders them wrong.** The #130 probe
+  assumed lottie-web is the correct reference and attributed every divergence to
+  PureLayer. Coordinate root-cause on the first case (mask-add-rectangle)
+  overturned that: the box is 1200px, the mask 880px, their intersection 660px,
+  and PureLayer renders exactly 660 (the geometric intersection). PureLayer's
+  additive mask is **correct**; lottie-web's value was the anomaly. See
+  `LottieRenderOracleTests.additiveMaskClipsToIntersection`.
+- So the remaining five #134 items are **unverified**: they need the same
+  geometry-grounded coordinate check before being called PureLayer bugs. The
+  honest claim is "PureLayer and lottie-web diverge on N cases; which side is
+  correct is established only where the geometry has been computed."
+- A claim of "100% render-equivalent translation" is still unproven (the
+  divergences are real and most are unattributed). But "PureLayer renders six
+  features wrong" was an overclaim resting on lottie-web-as-ground-truth.
 
 Closing this requires, and is blocked on:
 - **#140** an independent pixel oracle (an analytic rasterizer, or pinned
@@ -109,7 +122,10 @@ numeric agreement is `sampled` against forms that are themselves exact. None of
 it is bare assertion, and none of it is overclaimed as a bounded-exhaustive
 numeric theorem.
 
-We cannot prove, and do not claim, **render-equivalent** translation: we have
-proven the opposite for at least six features, and the path to closing that gap
-(#140 + #21) is named, not hand-waved. Saying otherwise would be the one shortcut
-this whole effort exists to forbid.
+We cannot prove, and do not claim, **render-equivalent** translation: PureLayer
+and lottie-web diverge on several fixtures, and that gap is real. We also do not
+claim the inverse ("PureLayer renders them wrong") beyond what the geometry has
+shown: coordinate root-cause on the mask case proved PureLayer correct there, so
+the divergences are mostly unattributed pending the same check. The path to a
+real render oracle (#140 + #21) is named, not hand-waved. Claiming either a green
+render or a blanket PureLayer-is-broken would be the shortcut this effort forbids.
