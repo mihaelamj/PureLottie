@@ -78,7 +78,9 @@ fixture identity, renderer identity, export policy, generated artifact paths,
 per-frame source-intent evidence links, geometry evidence links, and any
 validation/import/backend findings. It lives in `LottieEvaluation`, imports no
 PureLayer or PureDraw symbols, and validates with path-bearing OpenAPIKit-style
-rules.
+rules. PNG review folders are loaded back through `LottieReviewFrameFolder`
+after export, so local commands fail on missing, empty, or unexpected extra
+frame PNGs and on one-frame placeholders for multi-frame source windows.
 
 ## Backend Gap Evidence
 
@@ -194,3 +196,7 @@ swift run LottieFrameDump \
   --scale 1 \
   --lottie-web-intent Tests/Fixtures/LottieOracle/lottie-web-intent/eligible-shape-position.json
 ```
+
+`--frames` is mandatory. The output folder must contain exactly the selected
+PNG frames listed by `rendered-artifact-manifest.json`; stale PNGs from a prior
+run are rejected instead of being silently ignored.

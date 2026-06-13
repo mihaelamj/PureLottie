@@ -15,8 +15,8 @@ struct LottieRenderedArtifactManifestTests {
         #expect(manifest.export.kind == "png-sequence")
         #expect(manifest.export.generatedFrameCount == 2)
         #expect(manifest.artifacts.map(\.path) == [
-            "frames/frame_0000000.00.png",
-            "frames/frame_0000005.00.png",
+            "frames/frame_0000.00.png",
+            "frames/frame_0005.00.png",
         ])
         #expect(manifest.evidence.references.contains { $0.kind == "lottie-web-intent" })
         #expect(manifest.evidence.references.contains { $0.kind == "geometry-json" })
@@ -227,6 +227,20 @@ struct LottieRenderedArtifactManifestTests {
         })
     }
 
+    @Test("rendered artifact manifest rejects generated frame count drift")
+    func renderedArtifactManifestRejectsGeneratedFrameCountDrift() throws {
+        var manifest = try validManifest()
+        manifest.export.generatedFrameCount = 1
+
+        let errors = LottieRenderedArtifactManifestValidator()
+            .collectErrors(in: manifest)
+
+        #expect(errors.contains {
+            $0.ruleID == "rendered-artifact-manifest.export.frame-count" &&
+                $0.codingPath.description == "$.export.generatedFrameCount"
+        })
+    }
+
     @Test("rendered artifact manifest rejects malformed evidence row address")
     func renderedArtifactManifestRejectsMalformedEvidenceRowAddress() throws {
         var manifest = try validManifest()
@@ -313,7 +327,7 @@ struct LottieRenderedArtifactManifestTests {
           "artifacts": [
             {
               "kind": "png-frame",
-              "path": "frames/frame_0000000.00.png",
+              "path": "frames/frame_0000.00.png",
               "frameIndex": 0,
               "sourceFrame": 0,
               "timeSeconds": 0,
@@ -340,7 +354,7 @@ struct LottieRenderedArtifactManifestTests {
             },
             {
               "kind": "png-frame",
-              "path": "frames/frame_0000005.00.png",
+              "path": "frames/frame_0005.00.png",
               "frameIndex": 1,
               "sourceFrame": 5,
               "timeSeconds": 0.5,
