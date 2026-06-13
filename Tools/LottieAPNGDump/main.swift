@@ -25,9 +25,15 @@ struct LottieAPNGDump {
         let start = options.start ?? 0
         let duration = scene?.duration ?? max(0, (animation.outPoint - animation.inPoint) / animation.frameRate)
         let end = options.end ?? duration
-        let sampleEnd = inclusiveSampleEnd(start: start, exclusiveEnd: end, fps: options.fps)
+        let frameTiming = LottieArtifactFrameTiming.apngHalfOpenWindow(
+            source: .init(animation: animation),
+            requestedStartSeconds: start,
+            requestedExclusiveEndSeconds: end,
+            outputFPS: options.fps
+        )
+        try frameTiming.validate()
         let size = LottieRenderSurface.pixelSize(width: animation.width, height: animation.height, scale: options.scale)
-        let sourceFrames = Self.sourceFrames(animation: animation, start: start, end: sampleEnd, fps: options.fps)
+        let sourceFrames = frameTiming.samples.map(\.sourceFrame)
         var renderIRFindings: [ImportReport.Finding] = []
         let framePNGs = try sourceFrames.map { sourceFrame in
             let frame = LottieRenderIRBuilder(animation: animation).frame(at: sourceFrame)
@@ -55,36 +61,11 @@ struct LottieAPNGDump {
             importFindings: scene?.report.findings ?? [],
             options: options,
             start: start,
-            end: sampleEnd,
+            end: frameTiming.derivation.effectiveInclusiveEndSeconds ?? start,
             size: size,
-            frameCount: sourceFrames.count,
+            frameTiming: frameTiming,
             renderIRFindings: renderIRFindings
         )
-    }
-
-    private static func inclusiveSampleEnd(start: Double, exclusiveEnd end: Double, fps: Double) -> Double {
-        guard end > start, fps > 0 else { return start }
-        return max(start, end - 1 / fps)
-    }
-
-    private static func sourceFrames(
-        animation: LottieAnimation,
-        start: Double,
-        end: Double,
-        fps: Double
-    ) -> [Double] {
-        sampleTimes(start: start, end: end, fps: fps).map { time in
-            animation.inPoint + time * animation.frameRate
-        }
-    }
-
-    private static func sampleTimes(start: Double, end: Double, fps: Double) -> [Double] {
-        let frameCount = max(1, Int((max(0, end - start) * fps).rounded()) + 1)
-        guard frameCount > 1 else { return [start] }
-        return (0 ..< frameCount).map { index in
-            let progress = Double(index) / Double(frameCount - 1)
-            return start + (end - start) * progress
-        }
     }
 
     private static func writeReport(
@@ -96,7 +77,7 @@ struct LottieAPNGDump {
         start: Double,
         end: Double,
         size: PixelSize,
-        frameCount: Int,
+        frameTiming: LottieArtifactFrameTiming,
         renderIRFindings: [ImportReport.Finding]
     ) throws {
         let report = APNGReport(
@@ -110,7 +91,8 @@ struct LottieAPNGDump {
             startSeconds: start,
             endSeconds: end,
             fps: options.fps,
-            generatedFrameCount: frameCount,
+            generatedFrameCount: frameTiming.derivation.generatedFrameCount,
+            frameTiming: frameTiming,
             validationEligible: validationEligible,
             validationErrorCount: validationErrors.count,
             validationErrors: validationErrors.map(ValidationErrorSummary.init),
@@ -307,6 +289,7 @@ private struct APNGReport: Encodable {
     var endSeconds: Double
     var fps: Double
     var generatedFrameCount: Int
+    var frameTiming: LottieArtifactFrameTiming
     var validationEligible: Bool
     var validationErrorCount: Int
     var validationErrors: [ValidationErrorSummary]

@@ -161,9 +161,12 @@ swift run LottieAPNGDump \
   --scale 2
 ```
 
-The command writes a sibling `.report.json` with frame count, timing, pixel
-size, validation errors, legacy importer findings, and RenderIR lowering
-findings. Validation/import findings explain what the old direct importer still
+The command writes a sibling `.report.json` with frame count, frame-timing
+rationale, pixel size, validation errors, legacy importer findings, and RenderIR
+lowering findings. The `frameTiming` section records the source `fr`/`ip`/`op`,
+the requested exclusive time window, the effective inclusive sample endpoint,
+the count formula, and one `timeSeconds`/`sourceFrame` row per generated APNG
+frame. Validation/import findings explain what the old direct importer still
 rejects; RenderIR lowering findings explain what the PureLayer backend could
 not represent for the sampled frames. It also writes sibling `.geometry.json`
 and `.geometry.csv` files that compare evaluated Lottie composition

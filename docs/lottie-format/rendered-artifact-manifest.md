@@ -102,14 +102,63 @@ For this repository the backend is expected to describe PureLayer-rendered
 output, while the manifest model itself stays in `LottieEvaluation` and imports
 no PureLayer or PureDraw symbols.
 
-`export` records the artifact policy. Issue #95 extends this section with the
-full derivation for why exactly the exported frame count exists. In version 1,
-the section already carries the export kind, policy label, scale, requested FPS,
-and generated frame count.
+`export` records the artifact policy. In version 1, the section carries the
+export kind, policy label, scale, requested FPS, and generated frame count.
+The generated report beside the artifact set additionally carries
+`frameTiming`, a `LottieArtifactFrameTiming` object that explains why that
+count exists.
 
 `artifacts` lists generated files. `png-frame` artifacts must be frame-addressed
 with `frameIndex`, `sourceFrame`, and `timeSeconds`. APNG artifacts record the
-movie path once; later timing manifests supply per-frame timing evidence.
+movie path once; the sibling APNG report supplies per-frame timing evidence in
+`frameTiming.samples`.
+
+## Frame Timing Rationale
+
+Every generated PNG/APNG report must answer: why exactly this many frames?
+`LottieArtifactFrameTiming` is the shared answer. It has five parts:
+
+- `policy`: either `apng-half-open-window` or `explicit-source-frame-list`.
+- `source`: the Lottie root `fr`, `ip`, and `op` timing facts in source-frame
+  units, plus the derived source duration in seconds.
+- `request`: the exporter's input. APNG uses `startSeconds`,
+  `exclusiveEndSeconds`, `outputFPS`, and `outputFrameIntervalSeconds`.
+  Still-frame dumps use `sourceFrames`.
+- `derivation`: the count formula, time formula, source-frame formula, generated
+  frame count, effective sample endpoints when applicable, and prose rationale.
+- `samples`: one row per generated frame with `index`, `timeSeconds`, and
+  `sourceFrame`.
+
+APNG exports preserve the Lottie half-open root window `ip <= frame < op`.
+Given requested start `s`, requested exclusive end `e`, and output FPS `f`, the
+tool computes:
+
+```text
+outputFrameIntervalSeconds = 1 / f
+effectiveInclusiveEndSeconds = max(s, e - outputFrameIntervalSeconds)
+generatedFrameCount = max(1, round(max(0, effectiveInclusiveEndSeconds - s) * f) + 1)
+```
+
+The samples are then linearly spaced from `s` to
+`effectiveInclusiveEndSeconds`, inclusive. Each selected Lottie source frame is:
+
+```text
+sourceFrame = ip + timeSeconds * fr
+```
+
+Example: `ip=100`, `fr=10`, `s=0`, `e=1`, `f=5` gives an output interval of
+`0.2s`, an inclusive sample end of `0.8s`, `5` generated frames, times
+`0, 0.2, 0.4, 0.6, 0.8`, and source frames `100, 102, 104, 106, 108`.
+
+Still-frame dumps do not resample time. Their count is exactly:
+
+```text
+generatedFrameCount = requestedSourceFrames.count
+timeSeconds = max(0, (sourceFrame - ip) / fr)
+```
+
+Example: `ip=100`, `fr=10`, and requested source frames `100, 105, 109` produce
+`3` frames with seconds `0, 0.5, 0.9`.
 
 `evidence.references` links the visual output back to measured numeric facts.
 A valid manifest must include at least one `lottie-web-intent` reference and at
@@ -173,6 +222,13 @@ carry JSON paths.
 - Rendered artifact evidence references use stable kinds non-empty paths and notes
 - Rendered artifact evidence includes source-intent and geometry references
 - Rendered artifact findings contain stable phase severity rule id path and reason
+- Artifact frame timing source frame rate is positive and frame window is ordered
+- Artifact frame timing derivation records formulas and a specific rationale
+- Artifact frame timing generated frame count matches the sample list
+- Artifact frame timing samples use contiguous zero-based indexes
+- Artifact frame timing samples match the declared source frame and time formulas
+- APNG artifact frame timing records start exclusive end output fps and inclusive sample end
+- Explicit artifact frame timing records the requested source-frame list
 
 ## Proof Boundary
 
