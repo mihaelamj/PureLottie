@@ -6,6 +6,7 @@
   "description": "External lottie-web reference oracle for PureLottie frame comparisons.",
   "scripts": {
     "build-corpus": "node scripts/build-curated-corpus.mjs",
+    "diff-intent": "swift run --package-path ../.. LottieNumericOracleDiff --manifest oracle-fixtures.json --tolerances oracle-tolerances.json --output artifacts/numeric-diff",
     "extract-intent": "node scripts/extract-intent.mjs",
     "oracle": "node scripts/run-oracle.mjs",
     "render-reference": "node scripts/render-reference.mjs",

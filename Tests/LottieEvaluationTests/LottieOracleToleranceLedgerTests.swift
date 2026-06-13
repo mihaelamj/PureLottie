@@ -13,6 +13,7 @@ struct LottieOracleToleranceLedgerTests {
         #expect(ids == LottieOracleToleranceBuiltinValidation.requiredToleranceIDs)
         #expect(try ledger.threshold(id: "opacity.unit-interval.absolute") == 0.000_001)
         #expect(try ledger.threshold(id: "matrix.translation.css-pixel.absolute") == 0.05)
+        #expect(try ledger.threshold(id: "frame.source-frame.absolute") == 0.000_001)
         #expect(try ledger.threshold(id: "bounds.css-pixel.absolute") == 0.000_01)
         #expect(try ledger.threshold(id: "path-length.css-pixel.absolute") == 0.000_001)
         #expect(try ledger.threshold(id: "trim.segment.unit-interval.absolute") == 0.000_001)
@@ -55,12 +56,14 @@ struct LottieOracleToleranceLedgerTests {
             "Tests/LottieEvaluationTests/LottieOracleCorpusTests.swift",
             "Tests/LottieImportTests/LottieAPNGExportTests.swift",
             "Tests/LottieImportTests/LottieLoweringSourceIntentGateTests.swift",
+            "Sources/LottieOracleDiff/LottieNumericOracleDiff.swift",
         ]
         .map { try String(contentsOf: repositoryRoot().appendingPathComponent($0), encoding: .utf8) }
         .joined(separator: "\n")
 
         for id in [
             "bounds.css-pixel.absolute",
+            "frame.source-frame.absolute",
             "matrix.translation.css-pixel.absolute",
             "opacity.unit-interval.absolute",
             "path-length.css-pixel.absolute",

@@ -20,6 +20,7 @@ test('oracle tolerance ledger records required numeric comparison families', () 
   const byID = new Map(ledger.tolerances.map((entry) => [entry.id, entry]));
   assert.deepEqual([...byID.keys()].sort(), [
     'bounds.css-pixel.absolute',
+    'frame.source-frame.absolute',
     'matrix.translation.css-pixel.absolute',
     'opacity.unit-interval.absolute',
     'path-length.css-pixel.absolute',
@@ -40,4 +41,11 @@ test('oracle tolerance ledger records required numeric comparison families', () 
   assert.equal(trim.comparison, 'absolute-difference');
   assert.equal(trim.threshold, 0.000001);
   assert.match(trim.reason, /normalized start and end fractions/);
+
+  const frame = byID.get('frame.source-frame.absolute');
+  assert.equal(frame.feature, 'frame');
+  assert.equal(frame.unit, 'sourceFrame');
+  assert.equal(frame.comparison, 'absolute-difference');
+  assert.equal(frame.threshold, 0.000001);
+  assert.match(frame.reason, /Lottie source-frame coordinates/);
 });

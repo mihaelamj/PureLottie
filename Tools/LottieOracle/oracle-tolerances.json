@@ -21,6 +21,14 @@
       "reason": "Translation is compared after lottie-web SVG matrix extraction and PureLottie source evaluation; five hundredths of a CSS pixel separates numeric intent from raster inspection noise."
     },
     {
+      "id": "frame.source-frame.absolute",
+      "feature": "frame",
+      "unit": "sourceFrame",
+      "comparison": "absolute-difference",
+      "threshold": 0.000001,
+      "reason": "Precomposition and time-remap comparisons use Lottie source-frame coordinates before seconds conversion or backend rendering, so only floating-point representation noise is tolerated."
+    },
+    {
       "id": "bounds.css-pixel.absolute",
       "feature": "bounds",
       "unit": "cssPixel",

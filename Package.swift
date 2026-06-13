@@ -40,6 +40,13 @@ let package = Package(
                 .product(name: "PureLayer", package: "PureLayer"),
             ]
         ),
+        .target(
+            name: "LottieOracleDiff",
+            dependencies: [
+                "LottieEvaluation",
+                "LottieModel",
+            ]
+        ),
         .testTarget(
             name: "LottieModelTests",
             dependencies: ["LottieModel"]
@@ -60,6 +67,12 @@ let package = Package(
                 .product(name: "PureLayer", package: "PureLayer"),
             ]
         ),
+        .testTarget(
+            name: "LottieOracleDiffTests",
+            dependencies: [
+                "LottieOracleDiff",
+            ]
+        ),
         .executableTarget(
             name: "LottieFrameDump",
             dependencies: [
@@ -78,6 +91,13 @@ let package = Package(
                 .product(name: "PureLayer", package: "PureLayer"),
             ],
             path: "Tools/LottieAPNGDump"
+        ),
+        .executableTarget(
+            name: "LottieNumericOracleDiff",
+            dependencies: [
+                "LottieOracleDiff",
+            ],
+            path: "Tools/LottieNumericOracleDiff"
         ),
     ]
 )
