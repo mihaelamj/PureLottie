@@ -184,8 +184,10 @@ struct LottieSourceIntentReversibilityCorpusGateTests {
         }
 
         let expected = try Data(contentsOf: snapshotURL)
+        let encodedString = String(data: encoded, encoding: .utf8)?.replacingOccurrences(of: "\r\n", with: "\n")
+        let expectedString = String(data: expected, encoding: .utf8)?.replacingOccurrences(of: "\r\n", with: "\n")
         #expect(
-            String(data: encoded, encoding: .utf8) == String(data: expected, encoding: .utf8),
+            encodedString == expectedString,
             "Regenerate with PURELOTTIE_UPDATE_REVERSIBILITY_GATE_REPORT=1 swift test --filter LottieSourceIntentReversibilityCorpusGateTests"
         )
     }
