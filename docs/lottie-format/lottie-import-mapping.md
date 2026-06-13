@@ -8,14 +8,14 @@ Section/issue numbers (#42-#53) refer to the PureComposition language epic #41.
 
 ## Status legend
 
-- **mapped** — expressible in `CompositionIR` today; lowers to PureLayer.
-- **after #N** — mappable once language child #N lands.
-- **baked** — parametric source baked to a bezier path by the importer (lossless
+- **mapped**: expressible in `CompositionIR` today; lowers to PureLayer.
+- **after #N**: mappable once language child #N lands.
+- **baked**: parametric source baked to a bezier path by the importer (lossless
   except the documented `0.5519` ellipse constant).
-- **approximated** — representable but lossy; the loss is named and statused.
-- **report-only** — no PureComposition/PureLayer analogue; recorded in the import
+- **approximated**: representable but lossy; the loss is named and statused.
+- **report-only**: no PureComposition/PureLayer analogue; recorded in the import
   report with its path, never rendered as if supported.
-- **blocked** — needs a backend capability that does not exist; recorded as a
+- **blocked**: needs a backend capability that does not exist; recorded as a
   blocker, not faked.
 
 ## 1. Document and assets
