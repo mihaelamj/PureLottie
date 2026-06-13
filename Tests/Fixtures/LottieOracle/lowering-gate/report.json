@@ -1,0 +1,2512 @@
+{
+  "backendFindingCount" : 45,
+  "diagnosticCount" : 0,
+  "excludedFixtureCount" : 0,
+  "excludedFixtures" : [
+
+  ],
+  "fixtureCount" : 31,
+  "fixtures" : [
+    {
+      "coverage" : [
+        "ellipse",
+        "fill",
+        "matte",
+        "rectangle"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 2,
+          "shapeDrawCount" : 2,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 2,
+          "shapeDrawCount" : 2,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 2,
+          "shapeDrawCount" : 2,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "alpha-matte-rectangle",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/alpha-matte-rectangle.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/alpha-matte-rectangle.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "anchor",
+        "fill",
+        "rectangle",
+        "rotation"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "anchor-rotation-rectangle",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/anchor-rotation-rectangle.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/anchor-rotation-rectangle.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "fill",
+        "opacity",
+        "rectangle"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "animated-opacity-rectangle",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/animated-opacity-rectangle.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/animated-opacity-rectangle.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "animated-position",
+        "fill",
+        "rectangle",
+        "transform"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "animated-position-linear",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/animated-position-linear.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/animated-position-linear.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "animated-width",
+        "path",
+        "stroke"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Growing Stroke' > group 'Stroke Group' > stroke 'Animated Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Growing Stroke' > group 'Stroke Group' > stroke 'Animated Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Growing Stroke' > group 'Stroke Group' > stroke 'Animated Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "animated-stroke-width",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/animated-stroke-width.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/animated-stroke-width.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "animated-trim",
+        "path",
+        "stroke",
+        "trim"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[2]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Animated Trim' > group 'Trim Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[2]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[2]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 1
+        },
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[2]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Animated Trim' > group 'Trim Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[2]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[2]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 1
+        },
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[2]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Animated Trim' > group 'Trim Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[2]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[2]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 1
+        }
+      ],
+      "id" : "animated-trim-path",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/animated-trim-path.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/animated-trim-path.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "animated-position",
+        "fill",
+        "rectangle",
+        "transform"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "eligible-shape-position",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/eligible-shape-position.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/eligible-shape-position.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "ellipse",
+        "fill"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "ellipse-fill",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/ellipse-fill.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/ellipse-fill.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "direction",
+        "ellipse",
+        "fill"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "ellipse-reversed-direction",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/ellipse-reversed-direction.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/ellipse-reversed-direction.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "fill",
+        "fill-rule",
+        "path"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "fill-rule-evenodd",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/fill-rule-evenodd.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/fill-rule-evenodd.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "ellipse",
+        "group-opacity",
+        "rectangle",
+        "shape-group"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "group-opacity-two-shapes",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/group-opacity-two-shapes.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/group-opacity-two-shapes.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "fill",
+        "rectangle",
+        "shape-transform"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "group-transform-rectangle",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/group-transform-rectangle.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/group-transform-rectangle.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "fill",
+        "frame-window",
+        "rectangle"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 2,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Frame before the gated layer in-point proves ordinary content is still absent before ip.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 3,
+          "matchedLayerCount" : 2,
+          "matchedShapeCount" : 2,
+          "rationale" : "Frame at the gated layer in-point proves Lottie uses ip inclusively.",
+          "renderNodeCount" : 2,
+          "shapeDrawCount" : 2,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 8,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Frame at the gated layer out-point proves Lottie uses op exclusively.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last root frame proves the background remains after the gated layer leaves.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "layer-window-in-out",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/layer-window-in-out.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/layer-window-in-out.json",
+      "selectedFrameCount" : 4,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "fill",
+        "mask",
+        "rectangle"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "mask-add-rectangle",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/mask-add-rectangle.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/mask-add-rectangle.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "animated-position",
+        "null-layer",
+        "parent-transform",
+        "rectangle"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 2,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 2,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 2,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 2,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 2,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 2,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "parent-animated-transform-child",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/parent-animated-transform-child.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/parent-animated-transform-child.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "fill",
+        "null-layer",
+        "parent-transform",
+        "rectangle"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 2,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 2,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 2,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 2,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 2,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 2,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "parent-null-transform-child",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/parent-null-transform-child.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/parent-null-transform-child.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "fill",
+        "polygon",
+        "polystar"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "polygon-five",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/polygon-five.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/polygon-five.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "animated-position",
+        "fill",
+        "precomp",
+        "rectangle"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "approximated",
+              "evidenceJSONPath" : "$.layers[0]",
+              "feature" : "precomposition boundary 'box_precomp' flattened into evaluated child nodes",
+              "owner" : "intentionalApproximation",
+              "path" : "root > layer 'Precomp Layer'",
+              "renderTermJSONPath" : "",
+              "renderTermKind" : "",
+              "sourcePath" : "$.layers[0]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 2,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 2,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "approximated",
+              "evidenceJSONPath" : "$.layers[0]",
+              "feature" : "precomposition boundary 'box_precomp' flattened into evaluated child nodes",
+              "owner" : "intentionalApproximation",
+              "path" : "root > layer 'Precomp Layer'",
+              "renderTermJSONPath" : "",
+              "renderTermKind" : "",
+              "sourcePath" : "$.layers[0]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 2,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 2,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "approximated",
+              "evidenceJSONPath" : "$.layers[0]",
+              "feature" : "precomposition boundary 'box_precomp' flattened into evaluated child nodes",
+              "owner" : "intentionalApproximation",
+              "path" : "root > layer 'Precomp Layer'",
+              "renderTermJSONPath" : "",
+              "renderTermKind" : "",
+              "sourcePath" : "$.layers[0]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 2,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 2,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "precomp-static-child",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/precomp-static-child.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/precomp-static-child.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "path",
+        "stroke"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 3,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke line cap",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Cubic Stroke' > group 'Cubic Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            },
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke line join",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Cubic Stroke' > group 'Cubic Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            },
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Cubic Stroke' > group 'Cubic Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 3,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke line cap",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Cubic Stroke' > group 'Cubic Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            },
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke line join",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Cubic Stroke' > group 'Cubic Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            },
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Cubic Stroke' > group 'Cubic Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 3,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke line cap",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Cubic Stroke' > group 'Cubic Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            },
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke line join",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Cubic Stroke' > group 'Cubic Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            },
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Cubic Stroke' > group 'Cubic Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "raw-bezier-cubic",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/raw-bezier-cubic.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/raw-bezier-cubic.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "fill",
+        "path"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "raw-bezier-triangle",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/raw-bezier-triangle.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/raw-bezier-triangle.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "fill",
+        "rectangle",
+        "roundness"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "rounded-rectangle",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/rounded-rectangle.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/rounded-rectangle.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "anchor",
+        "rectangle",
+        "rotation",
+        "scale"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "scale-rotation-anchor",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/scale-rotation-anchor.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/scale-rotation-anchor.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "ellipse",
+        "fill",
+        "split-position",
+        "transform"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "split-position-ellipse",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/split-position-ellipse.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/split-position-ellipse.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "fill",
+        "polystar",
+        "star"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "star-five",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/star-five.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/star-five.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "fill",
+        "rectangle",
+        "static-position"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 0,
+          "backendFindings" : [
+
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "static-rectangle-fill",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/static-rectangle-fill.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/static-rectangle-fill.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "path",
+        "stroke"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Line' > group 'Line Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Line' > group 'Line Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Line' > group 'Line Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "stroke-basic-line",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/stroke-basic-line.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/stroke-basic-line.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "line-cap",
+        "line-join",
+        "path",
+        "stroke"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 3,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke line cap",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Round Stroke' > group 'Angled Group' > stroke 'Round Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            },
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke line join",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Round Stroke' > group 'Angled Group' > stroke 'Round Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            },
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Round Stroke' > group 'Angled Group' > stroke 'Round Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 3,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke line cap",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Round Stroke' > group 'Angled Group' > stroke 'Round Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            },
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke line join",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Round Stroke' > group 'Angled Group' > stroke 'Round Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            },
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Round Stroke' > group 'Angled Group' > stroke 'Round Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 3,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke line cap",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Round Stroke' > group 'Angled Group' > stroke 'Round Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            },
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke line join",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Round Stroke' > group 'Angled Group' > stroke 'Round Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            },
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Round Stroke' > group 'Angled Group' > stroke 'Round Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "stroke-caps-joins",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/stroke-caps-joins.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/stroke-caps-joins.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "dash",
+        "path",
+        "stroke"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 2,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke dash pattern",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Dashed Line' > group 'Dash Group' > stroke 'Dashed Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            },
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Dashed Line' > group 'Dash Group' > stroke 'Dashed Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 2,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke dash pattern",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Dashed Line' > group 'Dash Group' > stroke 'Dashed Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            },
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Dashed Line' > group 'Dash Group' > stroke 'Dashed Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 2,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke dash pattern",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Dashed Line' > group 'Dash Group' > stroke 'Dashed Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            },
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Dashed Line' > group 'Dash Group' > stroke 'Dashed Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[1]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[1]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "stroke-dash",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/stroke-dash.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/stroke-dash.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "animated-position",
+        "diagnostic",
+        "precomp",
+        "time-remap"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "approximated",
+              "evidenceJSONPath" : "$.layers[0]",
+              "feature" : "precomposition boundary 'box_precomp' flattened into evaluated child nodes",
+              "owner" : "intentionalApproximation",
+              "path" : "root > layer 'Time Remapped Precomp'",
+              "renderTermJSONPath" : "",
+              "renderTermKind" : "",
+              "sourcePath" : "$.layers[0]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 2,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 2,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "approximated",
+              "evidenceJSONPath" : "$.layers[0]",
+              "feature" : "precomposition boundary 'box_precomp' flattened into evaluated child nodes",
+              "owner" : "intentionalApproximation",
+              "path" : "root > layer 'Time Remapped Precomp'",
+              "renderTermJSONPath" : "",
+              "renderTermKind" : "",
+              "sourcePath" : "$.layers[0]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 2,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 2,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        },
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "approximated",
+              "evidenceJSONPath" : "$.layers[0]",
+              "feature" : "precomposition boundary 'box_precomp' flattened into evaluated child nodes",
+              "owner" : "intentionalApproximation",
+              "path" : "root > layer 'Time Remapped Precomp'",
+              "renderTermJSONPath" : "",
+              "renderTermKind" : "",
+              "sourcePath" : "$.layers[0]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 2,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 2,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 0
+        }
+      ],
+      "id" : "time-remap-precomp-diagnosed",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/time-remap-precomp-diagnosed.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/time-remap-precomp-diagnosed.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "diagnosed"
+    },
+    {
+      "coverage" : [
+        "ellipse",
+        "stroke",
+        "trim"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[2]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Trimmed Ellipse' > group 'Trim Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[2]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[2]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 1
+        },
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[2]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Trimmed Ellipse' > group 'Trim Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[2]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[2]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 1
+        },
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[2]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Trimmed Ellipse' > group 'Trim Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[2]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[2]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 1
+        }
+      ],
+      "id" : "trim-ellipse-quadrant",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/trim-ellipse-quadrant.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/trim-ellipse-quadrant.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    },
+    {
+      "coverage" : [
+        "rectangle",
+        "stroke",
+        "trim"
+      ],
+      "excluded" : false,
+      "frames" : [
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[2]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Trimmed Rectangle' > group 'Trim Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[2]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[2]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 0,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "First root source frame records the authored initial state.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 1
+        },
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[2]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Trimmed Rectangle' > group 'Trim Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[2]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[2]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 5,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Interior source frame catches interpolation and transform composition errors.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 1
+        },
+        {
+          "backendFindingCount" : 1,
+          "backendFindings" : [
+            {
+              "disposition" : "skipped",
+              "evidenceJSONPath" : "$.layers[0].shapes[0].it[2]",
+              "feature" : "stroke miter limit",
+              "owner" : "backendCapability",
+              "path" : "root > layer 'Trimmed Rectangle' > group 'Trim Group' > stroke 'Stroke'",
+              "renderTermJSONPath" : "$.layers[0].shapes[0].it[2]",
+              "renderTermKind" : "strokeStyle",
+              "sourcePath" : "$.layers[0].shapes[0].it[2]"
+            }
+          ],
+          "diagnosticCount" : 0,
+          "diagnostics" : [
+
+          ],
+          "frame" : 9,
+          "matchedLayerCount" : 1,
+          "matchedShapeCount" : 1,
+          "rationale" : "Last integer source frame before exclusive op=10 checks the end boundary.",
+          "renderNodeCount" : 1,
+          "shapeDrawCount" : 1,
+          "trimTraceCount" : 1
+        }
+      ],
+      "id" : "trim-rectangle-half",
+      "lottie" : "../../Tests/Fixtures/LottieOracle/trim-rectangle-half.json",
+      "lottieWebIntent" : "../../Tests/Fixtures/LottieOracle/lottie-web-intent/trim-rectangle-half.json",
+      "selectedFrameCount" : 3,
+      "semanticStatus" : "modeled"
+    }
+  ],
+  "matchedLayerCount" : 107,
+  "matchedShapeCount" : 95,
+  "schema" : {
+    "name" : "purelottie.renderir-purelayer-lowering-gate",
+    "version" : 1
+  },
+  "selectedFrameCount" : 94,
+  "shapeDrawCount" : 98,
+  "trimTraceCount" : 9
+}

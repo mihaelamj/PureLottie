@@ -11,6 +11,11 @@ The files in this directory are the vetted regression set: each one isolates a
 specific semantic bug class, evidence roles, selected source frames, and the
 numeric browser trace used before any PNG comparison.
 
+`lowering-gate/report.json` is the committed RenderIR-to-PureLayer lowering
+gate snapshot for this corpus. It records 31 covered fixtures, 94 selected
+frames, each frame rationale, lowered node/draw/match counts, diagnostics, and
+backend findings so changes are reviewed as data before PNG/APNG inspection.
+
 Evidence role definitions live in
 `docs/lottie-format/fixture-evidence-roles.md`.
 

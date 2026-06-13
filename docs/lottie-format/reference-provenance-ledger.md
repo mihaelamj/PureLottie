@@ -75,6 +75,7 @@ The curated corpus is the regression set selected from authored fixtures under
 | Manifest | `Tools/LottieOracle/oracle-fixtures.json` |
 | Source fixtures | 31 JSON files in `Tests/Fixtures/LottieOracle` |
 | Numeric browser traces | 31 JSON files in `Tests/Fixtures/LottieOracle/lottie-web-intent` |
+| RenderIR-to-PureLayer lowering report | `Tests/Fixtures/LottieOracle/lowering-gate/report.json` with 31 fixtures, 94 selected frames, 0 exclusions, and 45 backend findings |
 | Semantic status split | 30 `modeled`, 1 `diagnosed` |
 | Evidence role split | 30 `conformance`, 31 `regression`, 31 `visual-inspection`, 24 `engine-divergence`, 1 `unsupported-feature` |
 | Renderer | `svg` |
@@ -83,7 +84,7 @@ The curated corpus is the regression set selected from authored fixtures under
 | Fixture revision | Repository history plus manifest path; external browser behavior is pinned by `lottie-web@5.13.0`. |
 | License/provenance note | PureLottie test fixtures, not copied from the raw external corpus. |
 | Purpose | Numeric source-intent and browser-reference checks before PNG/APNG inspection. |
-| Validation | Manifest tests, committed-intent tests, RenderIR comparison tests, source-intent lowering gate, APNG pre-export source-intent gate, and live lottie-web usability validation. |
+| Validation | Manifest tests, committed-intent tests, RenderIR comparison tests, checked-in lowering-gate report, APNG pre-export source-intent gate, and live lottie-web usability validation. |
 
 Every manifest entry records a fixture id, description, protected bug class,
 evidence roles, purpose, coverage tags, semantic status, source fixture path,
