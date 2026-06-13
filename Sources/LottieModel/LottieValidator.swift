@@ -70,8 +70,22 @@ public final class LottieValidator {
         _ subject: any Validatable,
         at path: JSONPath,
         in document: LottieSourceDocument,
-        errors: inout [ValidationError]
+        errors: inout [ValidationError],
+        depth: Int = 0
     ) {
+        let maxDepth = 100
+        if depth > maxDepth {
+            errors.append(ValidationError(
+                ruleID: "lottie.validation.depth-limit-exceeded",
+                reason: "Validation nesting depth limit exceeded.",
+                at: path,
+                range: (subject as? JSONValue)?.range ?? document.source.range,
+                phase: .semantic,
+                classification: .gap
+            ))
+            return
+        }
+
         for validation in activeValidations {
             errors.append(contentsOf: validation.apply(to: subject, at: path, in: document))
         }
@@ -80,11 +94,11 @@ public final class LottieValidator {
         switch value {
         case let .object(members, _):
             for member in members {
-                visit(member.value, at: path.appending(.key(member.key)), in: document, errors: &errors)
+                visit(member.value, at: path.appending(.key(member.key)), in: document, errors: &errors, depth: depth + 1)
             }
         case let .array(values, _):
             for index in values.indices {
-                visit(values[index], at: path.appending(.index(index)), in: document, errors: &errors)
+                visit(values[index], at: path.appending(.index(index)), in: document, errors: &errors, depth: depth + 1)
             }
         case .string, .number, .bool, .null:
             break

@@ -101,6 +101,17 @@ public struct LottieSourceDocument: Sendable, Validatable {
     }
 
     public static func parse(_ source: String) throws -> LottieSourceDocument {
+        let maxSourceLength = 20_000_000
+        if source.count > maxSourceLength {
+            throw ValidationErrorCollection([
+                ValidationError(
+                    ruleID: "json.source.size-limit-exceeded",
+                    reason: "Source length exceeds the maximum limit of \(maxSourceLength) characters.",
+                    at: JSONPath(),
+                    phase: .parse
+                ),
+            ])
+        }
         let result = JSONParser().parse(source)
         if !result.diagnostics.isEmpty {
             throw ValidationErrorCollection(result.diagnostics)

@@ -49,7 +49,16 @@ private struct JSONScanner {
     var diagnostics: [ValidationError] = []
 
     mutating func tokenize() -> (tokens: [JSONToken], diagnostics: [ValidationError]) {
+        let maxTokens = 5_000_000
         while let scalar = peek() {
+            if tokens.count > maxTokens {
+                emit(
+                    ruleID: "json.lex.token-limit-exceeded",
+                    range: SourceRange(start: location(), end: location()),
+                    message: "Token count exceeds the limit of \(maxTokens)."
+                )
+                break
+            }
             switch scalar {
             case " ", "\t", "\r", "\n":
                 advance()
@@ -294,6 +303,14 @@ private struct JSONScanner {
             )
             return
         }
+        if !number.isFinite {
+            emit(
+                ruleID: "json.lex.non-finite-number",
+                range: SourceRange(start: start, end: location()),
+                message: "JSON numbers must be finite."
+            )
+            return
+        }
         tokens.append(JSONToken(kind: .number(number), range: SourceRange(start: start, end: location())))
     }
 
@@ -348,6 +365,8 @@ private struct Parser {
     let tokens: [JSONToken]
     var index = 0
     var diagnostics: [ValidationError]
+    var depth = 0
+    private let maxDepth = 100
 
     mutating func parse() -> JSONParseResult {
         let value = parseValue(path: JSONPath())
@@ -363,6 +382,18 @@ private struct Parser {
     }
 
     mutating func parseValue(path: JSONPath) -> JSONValue? {
+        if depth > maxDepth {
+            emit(
+                ruleID: "json.parse.depth-limit-exceeded",
+                path: path,
+                range: current.range,
+                message: "Nesting depth limit exceeded."
+            )
+            return nil
+        }
+        depth += 1
+        defer { depth -= 1 }
+
         let token = current
         switch token.kind {
         case .leftBrace:
@@ -404,6 +435,7 @@ private struct Parser {
     mutating func parseObject(path: JSONPath) -> JSONValue? {
         let start = consume(.leftBrace)
         var members: [JSONObjectMember] = []
+        let maxObjectMembers = 100_000
 
         if match(.rightBrace) {
             let end = previous.range
@@ -411,6 +443,16 @@ private struct Parser {
         }
 
         while !check(.endOfFile) {
+            if members.count > maxObjectMembers {
+                emit(
+                    ruleID: "json.parse.object-size-limit-exceeded",
+                    path: path,
+                    range: current.range,
+                    message: "Object member count exceeds the limit of \(maxObjectMembers)."
+                )
+                synchronizeObject()
+                break
+            }
             guard case let .string(key) = current.kind else {
                 emit(
                     ruleID: "json.parse.expected-object-key",
@@ -465,6 +507,7 @@ private struct Parser {
         let start = consume(.leftBracket)
         var values: [JSONValue] = []
         var elementIndex = 0
+        let maxArrayLength = 100_000
 
         if match(.rightBracket) {
             let end = previous.range
@@ -472,6 +515,16 @@ private struct Parser {
         }
 
         while !check(.endOfFile) {
+            if values.count > maxArrayLength {
+                emit(
+                    ruleID: "json.parse.array-size-limit-exceeded",
+                    path: path,
+                    range: current.range,
+                    message: "Array element count exceeds the limit of \(maxArrayLength)."
+                )
+                synchronizeArray()
+                break
+            }
             if let value = parseValue(path: path.appending(.index(elementIndex))) {
                 values.append(value)
             }
