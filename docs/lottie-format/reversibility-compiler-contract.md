@@ -246,6 +246,7 @@ The written contract is backed by these checks:
 | `LottieSourceIntentReversibilityCorpusGateTests` | The curated corpus produces the deterministic checked-in reversibility report. |
 | `LottieOracleCorpusTests` | Curated fixtures have frame rationales, committed lottie-web intent, and validation status. |
 | `LottieTerminationCostTests` | Bounded execution cost and acyclic/termination guarantees hold for deep nesting, wide fan-out, and adversarial time remap. |
+| `LottieBoundedExhaustiveTests` | Bounded-exhaustive import totality and round-trip correctness claims hold on the entire generated set up to size N=4. |
 | `npm --prefix Tools/LottieOracle run validate-fixtures` | Each curated fixture live-loads through pinned lottie-web and matches its manifest validation record. |
 
 The contract is valid only while these gates remain green. If a future phase
