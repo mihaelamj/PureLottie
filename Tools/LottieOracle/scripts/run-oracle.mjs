@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { comparePngDirectories } from './compare-images.mjs';
-import { backendEvidenceFindingCount, comparisonEligibility } from './eligibility.mjs';
+import { backendEvidenceFindingCount, comparisonEligibility, renderedArtifactManifestSummary } from './eligibility.mjs';
 import { extractLottieIntent } from './extract-intent.mjs';
 import { renderReferenceFrames } from './render-reference.mjs';
 
@@ -57,6 +57,13 @@ function writeJson(file, value) {
   fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`);
 }
 
+function readJsonIfExists(file) {
+  if (!fs.existsSync(file)) {
+    return null;
+  }
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
+}
+
 function markdownReport(report) {
   const frameRows = report.selectedFrames
     .map((entry) => `| ${entry.frame} | ${entry.rationale} |`)
@@ -65,7 +72,7 @@ function markdownReport(report) {
     .map((entry) => `| ${entry.frame} | ${entry.status} | ${entry.changedPixels ?? 'n/a'} | ${entry.maxChannelDelta ?? 'n/a'} | ${entry.diffFile ?? 'n/a'} |`)
     .join('\n');
   const reasons = report.comparisonEligibility.reasons.length === 0
-    ? 'Comparison allowed: validation, import report, and RenderIR diagnostics are clean.'
+    ? 'Comparison allowed: validation, import report, RenderIR diagnostics, rendered artifact manifest, and lottie-web intent evidence are clean.'
     : `Comparison skipped: ${report.comparisonEligibility.reasons.join('; ')}.`;
 
   return `# Lottie Oracle Report: ${report.id}
@@ -93,6 +100,9 @@ ${frameRows}
 - Import findings: \`${report.importReport.findingCount}\`
 - RenderIR diagnostics: \`${report.renderIRDiagnosticCount}\`
 - RenderIR backend evidence findings: \`${report.backendEvidenceFindingCount}\`
+- Source-intent evidence complete: \`${report.comparisonEligibility.sourceIntentEvidenceComplete}\`
+- Rendered artifact manifest complete: \`${report.comparisonEligibility.renderedArtifactManifestComplete}\`
+- lottie-web intent complete: \`${report.comparisonEligibility.lottieWebIntentComplete}\`
 - Reference non-empty check: \`${report.referenceIntegrity.status}\`
 
 ${reasons}
@@ -157,7 +167,13 @@ async function runFixture(fixture, options) {
   });
 
   const summary = JSON.parse(fs.readFileSync(path.join(pureLayerDir, 'oracle-summary.json'), 'utf8'));
-  const eligibility = comparisonEligibility(summary);
+  const renderedArtifactManifest = readJsonIfExists(path.join(pureLayerDir, 'rendered-artifact-manifest.json'));
+  const eligibility = comparisonEligibility({
+    summary,
+    manifest: renderedArtifactManifest,
+    lottieWebIntent,
+    frames
+  });
   const comparisons = eligibility.allowed
     ? comparePngDirectories({
       referenceDir,
@@ -233,6 +249,7 @@ async function runFixture(fixture, options) {
       layerCounts: lottieWebIntent.frames.map((entry) => entry.layerCount),
       pathCounts: lottieWebIntent.frames.map((entry) => entry.pathCount)
     },
+    renderedArtifactManifest: renderedArtifactManifestSummary(renderedArtifactManifest),
     artifacts: {
       outputRoot,
       referenceDir,

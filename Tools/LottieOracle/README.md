@@ -100,9 +100,13 @@ The harness compares pixels only when all of these are true:
 - `ImportReport` is clean, so PureLayer lowering did not skip or approximate a feature.
 - RenderIR diagnostics are empty for the selected frames.
 - RenderIR-to-PureLayer backend evidence is empty for the selected frames.
+- `oracle-summary.json` has `frameTiming.samples` and RenderIR rows for every selected frame.
+- `rendered-artifact-manifest.json` has one `png-frame` artifact for every selected frame.
+- Every `png-frame` artifact links matching `lottie-web-intent` and geometry evidence rows.
+- `lottie-web-intent.json` has one measured browser intent row for every selected frame.
 - Fixtures marked `expectReferenceNonEmpty` produce non-empty lottie-web reference frames.
 
-A pretty image is not evidence by itself. The report records validation eligibility, import findings, RenderIR diagnostics, selected frame numbers, and the reason each frame was selected.
+A pretty image is not evidence by itself. The report records validation eligibility, import findings, RenderIR diagnostics, selected frame numbers, the reason each frame was selected, and every reason pixel comparison was skipped.
 
 ## Curated Fixture Corpus
 
