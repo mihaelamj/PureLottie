@@ -35,6 +35,10 @@ test('oracle dependencies are exact external pins', () => {
   assert.equal(packageJson.dependencies.playwright, '1.60.0');
   assert.equal(packageJson.dependencies.pngjs, '7.0.0');
   assert.equal(packageJson.scripts['build-corpus'], 'node scripts/build-curated-corpus.mjs');
+  assert.equal(
+    packageJson.scripts['diff-intent'],
+    'swift run --package-path ../.. LottieNumericOracleDiff --manifest oracle-fixtures.json --tolerances oracle-tolerances.json --output artifacts/numeric-diff'
+  );
   assert.equal(packageJson.scripts['extract-intent'], 'node scripts/extract-intent.mjs');
   assert.equal(packageJson.scripts['validate-fixtures'], 'node scripts/validate-fixtures.mjs --check-lottie-web');
 

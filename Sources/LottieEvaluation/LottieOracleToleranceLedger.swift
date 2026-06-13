@@ -187,6 +187,7 @@ public extension LottieOracleToleranceLedger {
 public enum LottieOracleToleranceBuiltinValidation {
     public static let requiredToleranceIDs: Set<String> = [
         "bounds.css-pixel.absolute",
+        "frame.source-frame.absolute",
         "matrix.translation.css-pixel.absolute",
         "opacity.unit-interval.absolute",
         "path-length.css-pixel.absolute",
@@ -196,6 +197,7 @@ public enum LottieOracleToleranceBuiltinValidation {
 
     public static let supportedFeatures: Set<String> = [
         "bounds",
+        "frame",
         "matrix-translation",
         "opacity",
         "path-length",
@@ -205,6 +207,7 @@ public enum LottieOracleToleranceBuiltinValidation {
 
     public static let supportedUnits: Set<String> = [
         "cssPixel",
+        "sourceFrame",
         "rgbaChannelValue",
         "unitInterval",
     ]
@@ -285,13 +288,13 @@ public enum LottieOracleToleranceBuiltinValidation {
     public static var requiredToleranceFamiliesArePresent: Validation<LottieOracleToleranceLedger, LottieOracleToleranceLedger> {
         Validation(
             ruleID: "oracle-tolerance.required.present",
-            description: "Oracle tolerance ledger records opacity matrix translation bounds path length trim segment and pixel diff families"
+            description: "Oracle tolerance ledger records opacity matrix translation bounds frame path length trim segment and pixel diff families"
         ) { context in
             let actual = Set(context.subject.tolerances.map(\.id))
             return requiredToleranceIDs.subtracting(actual).map { missingID in
                 error(
                     ruleID: "oracle-tolerance.required.missing",
-                    description: "Oracle tolerance ledger records opacity matrix translation bounds path length trim segment and pixel diff families",
+                    description: "Oracle tolerance ledger records opacity matrix translation bounds frame path length trim segment and pixel diff families",
                     path: context.codingPath.appending(.key("tolerances")),
                     evidence: missingID
                 )

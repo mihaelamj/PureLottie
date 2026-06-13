@@ -65,14 +65,25 @@ The prose ledger explains the state; the JSON manifest is the machine gate.
    npm --prefix Tools/LottieOracle run extract-intent -- --input ../../Tests/Fixtures/LottieOracle/<fixture>.json --frames <frames> --output ../../Tests/Fixtures/LottieOracle/lottie-web-intent/<fixture>.json
    ```
 
-4. Run the oracle checks:
+4. Run the numeric source-intent diff before rendering evidence:
+
+   ```sh
+   npm --prefix Tools/LottieOracle run diff-intent -- --fixture <fixture-id>
+   ```
+
+   The generated `numeric-oracle-diff.json` and `numeric-oracle-diff.md` must
+   name every compared lottie-web expected path, PureLottie actual path,
+   tolerance id, expected value, actual value, delta, and pass/fail result.
+   Any failed numeric comparison is a source-intent bug until proven otherwise.
+
+5. Run the oracle checks:
 
    ```sh
    npm --prefix Tools/LottieOracle test
    npm --prefix Tools/LottieOracle run validate-fixtures
    ```
 
-5. Run the Swift checks that consume the committed trace:
+6. Run the Swift checks that consume the committed trace:
 
    ```sh
    swift scripts/ci-model-only.swift
@@ -81,7 +92,7 @@ The prose ledger explains the state; the JSON manifest is the machine gate.
    swift test
    ```
 
-6. Review the diff as a single reversible unit: source fixture, manifest entry,
+7. Review the diff as a single reversible unit: source fixture, manifest entry,
    generated trace, docs, and tests move together.
 
 ## Updating a Curated Fixture
@@ -95,7 +106,8 @@ Treat an update as replacing one reversible chain with another:
 3. Update selected frame rationales when frames change. The rationale must say
    why those source frames are sufficient for the protected behavior.
 4. Update evidence roles and purpose when coverage or test intent changes.
-5. Re-run the oracle and Swift checks from the adding workflow.
+5. Re-run the numeric diff, oracle checks, and Swift checks from the adding
+   workflow.
 6. Confirm old generated artifacts are removed when they no longer correspond to
    the manifest entry.
 
@@ -145,6 +157,7 @@ Run these before committing reference workflow changes:
 npm --prefix Tools/LottieOracle ci
 npm --prefix Tools/LottieOracle test
 npm --prefix Tools/LottieOracle run validate-fixtures
+npm --prefix Tools/LottieOracle run diff-intent -- --all
 swift scripts/ci-model-only.swift
 swift test --package-path .build/ci/model-only
 swiftformat . --config .swiftformat

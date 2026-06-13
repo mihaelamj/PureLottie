@@ -30,12 +30,35 @@ Validate the curated corpus before trusting it as evidence:
 npm --prefix Tools/LottieOracle run validate-fixtures
 ```
 
+Run the numeric source-intent diff for the curated corpus:
+
+```sh
+npm --prefix Tools/LottieOracle run diff-intent -- --all
+```
+
+Run one fixture and write reports to an explicit directory:
+
+```sh
+npm --prefix Tools/LottieOracle run diff-intent -- --fixture eligible-shape-position --output /tmp/purelottie-numeric-diff
+```
+
 Numeric comparison tolerances are recorded in
 `Tools/LottieOracle/oracle-tolerances.json`. Swift oracle tests load that ledger
-by id for opacity, matrix translation, bounds, path length, and trim segment
-comparisons; the Node oracle tests pin the exact pixel-diff tolerance. Do not
-introduce a new comparison threshold without adding a ledger entry that names
-the feature, unit, comparison, threshold, and reason.
+by id for opacity, matrix translation, source-frame, bounds, path length, and
+trim segment comparisons; the Node oracle tests pin the exact pixel-diff
+tolerance. Do not introduce a new comparison threshold without adding a ledger
+entry that names the feature, unit, comparison, threshold, and reason.
+
+`diff-intent` writes deterministic machine and human reports:
+
+| Path | Contents |
+| --- | --- |
+| `numeric-oracle-diff.json` | Per-field lottie-web expected value, PureLottie actual value, compared paths, tolerance id, tolerance, delta, and pass/fail result. |
+| `numeric-oracle-diff.md` | Markdown table over the same comparisons for review. |
+
+The command exits non-zero when any numeric comparison fails. It is the required
+gate before PNG or APNG inspection: rendered artifacts are only useful after the
+source-intent numbers say what Lottie expected.
 
 Reference-engine divergences are recorded in
 `Tools/LottieOracle/reference-divergences.json`. Any fixture with the
@@ -66,6 +89,8 @@ Artifacts are written to `Tools/LottieOracle/artifacts/<fixture-id>/`:
 | `mismatch-traces.json` | RenderIR trace and backend evidence summaries only for frames that differ. |
 | `comparison-report.json` | Machine-readable report. |
 | `comparison-report.md` | Human-readable report. |
+| `numeric-diff/numeric-oracle-diff.json` | Curated-corpus numeric source-intent diff report. |
+| `numeric-diff/numeric-oracle-diff.md` | Markdown rendering of the numeric source-intent diff report. |
 
 ## Eligibility Gate
 
