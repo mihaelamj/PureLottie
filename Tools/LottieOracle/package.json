@@ -10,6 +10,7 @@
     "diff-intent": "swift run --package-path ../.. LottieNumericOracleDiff --manifest oracle-fixtures.json --tolerances oracle-tolerances.json --output artifacts/numeric-diff",
     "extract-intent": "node scripts/extract-intent.mjs",
     "oracle": "node scripts/run-oracle.mjs",
+    "pixel-sufficiency": "node scripts/pixel-sufficiency.mjs",
     "render-reference": "node scripts/render-reference.mjs",
     "validate-fixtures": "node scripts/validate-fixtures.mjs --check-lottie-web",
     "test": "node --test tests/*.test.mjs"
