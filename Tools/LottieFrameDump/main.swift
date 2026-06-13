@@ -418,6 +418,18 @@ private struct BackendLayerGraphRecordSummary: Encodable {
     var matteMode: Int?
     var matteSourcePath: String?
     var matteTargetPath: String?
+    var timingMode: String
+    var timingInputFrame: Double
+    var timingStartTime: Double
+    var timingStretch: Double
+    var timingFrameRate: Double
+    var timingLocalFrame: Double
+    var timingTimeRemapSeconds: Double?
+    var timingTimeRemapPropertyPath: String?
+    var precompositionAssetID: String?
+    var precompositionPath: String?
+    var precompositionLocalFrame: Double?
+    var precompositionChildLayerCount: Int?
     var diagnosticRuleIDs: [String]
 
     init(_ record: LottieBackendGapEvidence.LayerGraphRecord) {
@@ -429,6 +441,18 @@ private struct BackendLayerGraphRecordSummary: Encodable {
         matteMode = record.matteMode
         matteSourcePath = record.matteSourcePath
         matteTargetPath = record.matteTargetPath
+        timingMode = record.timingMode
+        timingInputFrame = record.timingInputFrame
+        timingStartTime = record.timingStartTime
+        timingStretch = record.timingStretch
+        timingFrameRate = record.timingFrameRate
+        timingLocalFrame = record.timingLocalFrame
+        timingTimeRemapSeconds = record.timingTimeRemapSeconds
+        timingTimeRemapPropertyPath = record.timingTimeRemapPropertyPath
+        precompositionAssetID = record.precompositionAssetID
+        precompositionPath = record.precompositionPath
+        precompositionLocalFrame = record.precompositionLocalFrame
+        precompositionChildLayerCount = record.precompositionChildLayerCount
         diagnosticRuleIDs = record.diagnosticRuleIDs
     }
 }

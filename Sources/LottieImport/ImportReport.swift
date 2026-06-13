@@ -118,6 +118,18 @@ public struct LottieBackendGapEvidence: Sendable, Equatable {
         public var matteMode: Int?
         public var matteSourcePath: String?
         public var matteTargetPath: String?
+        public var timingMode: String
+        public var timingInputFrame: Double
+        public var timingStartTime: Double
+        public var timingStretch: Double
+        public var timingFrameRate: Double
+        public var timingLocalFrame: Double
+        public var timingTimeRemapSeconds: Double?
+        public var timingTimeRemapPropertyPath: String?
+        public var precompositionAssetID: String?
+        public var precompositionPath: String?
+        public var precompositionLocalFrame: Double?
+        public var precompositionChildLayerCount: Int?
         public var diagnosticRuleIDs: [String]
 
         public init(
@@ -129,6 +141,18 @@ public struct LottieBackendGapEvidence: Sendable, Equatable {
             matteMode: Int? = nil,
             matteSourcePath: String? = nil,
             matteTargetPath: String? = nil,
+            timingMode: String = "",
+            timingInputFrame: Double = 0,
+            timingStartTime: Double = 0,
+            timingStretch: Double = 1,
+            timingFrameRate: Double = 0,
+            timingLocalFrame: Double = 0,
+            timingTimeRemapSeconds: Double? = nil,
+            timingTimeRemapPropertyPath: String? = nil,
+            precompositionAssetID: String? = nil,
+            precompositionPath: String? = nil,
+            precompositionLocalFrame: Double? = nil,
+            precompositionChildLayerCount: Int? = nil,
             diagnosticRuleIDs: [String] = []
         ) {
             self.sourcePath = sourcePath
@@ -139,6 +163,18 @@ public struct LottieBackendGapEvidence: Sendable, Equatable {
             self.matteMode = matteMode
             self.matteSourcePath = matteSourcePath
             self.matteTargetPath = matteTargetPath
+            self.timingMode = timingMode
+            self.timingInputFrame = timingInputFrame
+            self.timingStartTime = timingStartTime
+            self.timingStretch = timingStretch
+            self.timingFrameRate = timingFrameRate
+            self.timingLocalFrame = timingLocalFrame
+            self.timingTimeRemapSeconds = timingTimeRemapSeconds
+            self.timingTimeRemapPropertyPath = timingTimeRemapPropertyPath
+            self.precompositionAssetID = precompositionAssetID
+            self.precompositionPath = precompositionPath
+            self.precompositionLocalFrame = precompositionLocalFrame
+            self.precompositionChildLayerCount = precompositionChildLayerCount
             self.diagnosticRuleIDs = diagnosticRuleIDs
         }
     }
