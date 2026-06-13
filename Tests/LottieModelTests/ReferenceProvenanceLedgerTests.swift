@@ -109,7 +109,12 @@ final class ReferenceProvenanceLedgerTests: XCTestCase {
         XCTAssertTrue(ledger.contains("17 entries"))
         XCTAssertTrue(ledger.contains("## Issue #54-#58 Completion Criteria"))
         XCTAssertTrue(ledger.contains("composable positive-rule validation"))
-        XCTAssertTrue(ledger.contains("8 checked-in files including this ledger"))
+        XCTAssertTrue(ledger.contains("10 checked-in files including this ledger"))
+        XCTAssertTrue(ledger.contains("Reversibility Compiler Contract"))
+        XCTAssertEqual(
+            try regularFiles(in: repositoryRoot().appendingPathComponent("docs/lottie-format", isDirectory: true)).count,
+            10
+        )
     }
 
     func testReferenceUpdateWorkflowIsLinkedAndExecutable() throws {
@@ -117,7 +122,9 @@ final class ReferenceProvenanceLedgerTests: XCTestCase {
         let workflow = try workflowContents()
 
         XCTAssertTrue(ledger.contains("[Reference Update and Audit Workflow](reference-update-audit-workflow.md)"))
+        XCTAssertTrue(ledger.contains("[Reversibility Compiler Contract](reversibility-compiler-contract.md)"))
         XCTAssertTrue(workflow.contains("## Reversibility Contract"))
+        XCTAssertTrue(workflow.contains("docs/lottie-format/reversibility-compiler-contract.md"))
         XCTAssertTrue(workflow.contains("source fixture -> manifest entry -> generated trace -> validation -> review evidence"))
         XCTAssertTrue(workflow.contains("docs/lottie-format/reference-provenance.json"))
         XCTAssertTrue(workflow.contains("docs/lottie-format/reference-provenance-schema.md"))
@@ -185,6 +192,18 @@ final class ReferenceProvenanceLedgerTests: XCTestCase {
             contentsOf: repositoryRoot().appendingPathComponent("docs/lottie-format/reference-update-audit-workflow.md"),
             encoding: .utf8
         )
+    }
+
+    private func regularFiles(in root: URL) throws -> [URL] {
+        try FileManager.default.contentsOfDirectory(
+            at: root,
+            includingPropertiesForKeys: [.isRegularFileKey],
+            options: [.skipsHiddenFiles]
+        )
+        .filter { url in
+            (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true
+        }
+        .sorted { $0.path < $1.path }
     }
 
     private func jsonFiles(in root: URL) throws -> [URL] {

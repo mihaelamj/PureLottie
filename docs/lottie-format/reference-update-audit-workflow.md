@@ -9,6 +9,9 @@ explain every remaining unknown.
 
 ## Reversibility Contract
 
+The canonical compiler-boundary and loss-taxonomy document is
+`docs/lottie-format/reversibility-compiler-contract.md`.
+
 Every curated reference follows this chain:
 
 ```text
