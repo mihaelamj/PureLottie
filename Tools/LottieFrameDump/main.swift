@@ -21,36 +21,25 @@ struct LottieFrameDump {
             ? try LottieImporter().scene(from: data, validator: validator)
             : nil
 
+        let size = LottieRenderSurface.pixelSize(width: animation.width, height: animation.height, scale: options.scale)
+        let exporter = MovieExporter()
         var dumpedFrames: [DumpFrameSummary] = []
-        if scene != nil {
-            let size = LottieRenderSurface.pixelSize(width: animation.width, height: animation.height, scale: options.scale)
-            let exporter = MovieExporter()
-            for frame in options.frames {
-                let time = max(0, (frame - animation.inPoint) / animation.frameRate)
-                let fileName = Self.fileName(for: frame)
-                let url = options.output.appendingPathComponent(fileName)
-                let root = renderRoot(animation: animation, sourceFrame: frame, scale: options.scale)
-                try exporter.writeScreenshot(of: root, size: size, at: 0, to: url)
-                dumpedFrames.append(DumpFrameSummary(
-                    frame: frame,
-                    timeSeconds: time,
-                    file: fileName,
-                    rendered: true
-                ))
-            }
-        } else {
-            dumpedFrames = options.frames.map { frame in
-                DumpFrameSummary(
-                    frame: frame,
-                    timeSeconds: max(0, (frame - animation.inPoint) / animation.frameRate),
-                    file: Self.fileName(for: frame),
-                    rendered: false
-                )
-            }
+        for frame in options.frames {
+            let time = max(0, (frame - animation.inPoint) / animation.frameRate)
+            let fileName = Self.fileName(for: frame)
+            let url = options.output.appendingPathComponent(fileName)
+            let root = renderRoot(animation: animation, sourceFrame: frame, scale: options.scale)
+            try exporter.writeScreenshot(of: root, size: size, at: 0, to: url)
+            dumpedFrames.append(DumpFrameSummary(
+                frame: frame,
+                timeSeconds: time,
+                file: fileName,
+                rendered: true
+            ))
         }
 
         let importFindings = scene?.report.findings ?? []
-        let geometryTraceFiles = try scene.map { _ in
+        let geometryTraceFiles = try {
             let trace = LottieGeometryTraceBuilder().trace(
                 animation: animation,
                 sourceFrames: options.frames,
@@ -59,7 +48,7 @@ struct LottieFrameDump {
                 renderRoot(animation: animation, sourceFrame: sourceFrame, scale: options.scale)
             }
             return try writeGeometryTrace(trace, output: options.output)
-        }
+        }()
         let report = importFindings.map { finding in
             "\(finding.disposition.rawValue)\t\(finding.feature)\t\(finding.path)"
         }
@@ -399,6 +388,7 @@ private struct BackendGapEvidenceSummary: Encodable {
     var vmTrace: BackendVMTraceSummary?
     var renderNode: BackendRenderNodeSummary?
     var renderTerm: BackendRenderTermSummary?
+    var layerGraphRecord: BackendLayerGraphRecordSummary?
     var expectedLottieWebFrameArtifact: String?
     var pureLayerFrameArtifact: String?
 
@@ -413,8 +403,33 @@ private struct BackendGapEvidenceSummary: Encodable {
         vmTrace = evidence.vmTrace.map(BackendVMTraceSummary.init)
         renderNode = evidence.renderNode.map(BackendRenderNodeSummary.init)
         renderTerm = evidence.renderTerm.map(BackendRenderTermSummary.init)
+        layerGraphRecord = evidence.layerGraphRecord.map(BackendLayerGraphRecordSummary.init)
         expectedLottieWebFrameArtifact = evidence.expectedLottieWebFrameArtifact
         pureLayerFrameArtifact = evidence.pureLayerFrameArtifact
+    }
+}
+
+private struct BackendLayerGraphRecordSummary: Encodable {
+    var sourcePath: String
+    var jsonPath: String
+    var participation: String
+    var renderOrder: Int?
+    var maskCount: Int
+    var matteMode: Int?
+    var matteSourcePath: String?
+    var matteTargetPath: String?
+    var diagnosticRuleIDs: [String]
+
+    init(_ record: LottieBackendGapEvidence.LayerGraphRecord) {
+        sourcePath = record.sourcePath
+        jsonPath = record.jsonPath
+        participation = record.participation
+        renderOrder = record.renderOrder
+        maskCount = record.maskCount
+        matteMode = record.matteMode
+        matteSourcePath = record.matteSourcePath
+        matteTargetPath = record.matteTargetPath
+        diagnosticRuleIDs = record.diagnosticRuleIDs
     }
 }
 

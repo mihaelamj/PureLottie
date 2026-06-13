@@ -36,8 +36,8 @@ public struct LottieRenderIRLowerer {
         root.position = Point(x: frame.width / 2, y: frame.height / 2)
         root.masksToBounds = true
 
-        for node in frame.nodes {
-            guard let layer = context.layer(for: node) else { continue }
+        context.buildLayerLookup()
+        for layer in context.rootLayers() {
             root.addSublayer(layer)
         }
 
@@ -49,10 +49,62 @@ private final class RenderIRLoweringContext {
     let frame: LottieRenderFrame
     let evidenceContext: LottieBackendEvidenceContext
     let report = ImportReportBuilder()
+    private var layersByNodeID: [LottieRenderNodeID: Layer] = [:]
+    private var layersByLayerIndex: [Int: Layer] = [:]
+    private var nodesByLayerIndex: [Int: LottieRenderNode] = [:]
 
     init(frame: LottieRenderFrame, evidenceContext: LottieBackendEvidenceContext) {
         self.frame = frame
         self.evidenceContext = evidenceContext
+    }
+
+    func buildLayerLookup() {
+        for node in frame.nodes {
+            if let layerIndex = node.layerIndex {
+                nodesByLayerIndex[layerIndex] = node
+            }
+            guard let layer = layer(for: node) else { continue }
+            layersByNodeID[node.id] = layer
+            if let layerIndex = node.layerIndex {
+                layersByLayerIndex[layerIndex] = layer
+            }
+        }
+    }
+
+    func rootLayers() -> [Layer] {
+        let matteSourceIndices = Set(frame.nodes.compactMap { $0.matte?.sourceLayerIndex })
+        var exactMatteSourceIndices = Set<Int>()
+        var result: [Layer] = []
+
+        for node in frame.nodes {
+            if let wrapper = alphaMatteWrapper(for: node) {
+                if let sourceIndex = node.matte?.sourceLayerIndex {
+                    exactMatteSourceIndices.insert(sourceIndex)
+                }
+                result.append(wrapper)
+                continue
+            }
+
+            if let layerIndex = node.layerIndex, matteSourceIndices.contains(layerIndex), node.matte == nil {
+                if !exactMatteSourceIndices.contains(layerIndex), node.matteSourceMarker != nil {
+                    reportMatteSourceMarker(node)
+                }
+                continue
+            }
+
+            if node.matteSourceMarker != nil {
+                reportMatteSourceMarker(node)
+                continue
+            }
+            if node.matte != nil {
+                reportUnsupportedMatte(node)
+            }
+
+            guard let layer = layersByNodeID[node.id] else { continue }
+            result.append(layer)
+        }
+
+        return result
     }
 
     func reportFrameDiagnostics(_ diagnostics: [ValidationError]) {
@@ -81,9 +133,8 @@ private final class RenderIRLoweringContext {
         }
     }
 
-    func layer(for node: LottieRenderNode) -> Layer? {
-        reportNodeGaps(node)
-
+    private func layer(for node: LottieRenderNode) -> Layer? {
+        reportNodeBackendGaps(node)
         let layer: Layer?
         switch node.kind {
         case let .shape(shape):
@@ -117,46 +168,7 @@ private final class RenderIRLoweringContext {
         return layer
     }
 
-    private func reportNodeGaps(_ node: LottieRenderNode) {
-        if let marker = node.matteSourceMarker {
-            let jsonPath = node.source.jsonPath.appending(.key("td"))
-            skipBackend(
-                "track matte source marker \(marker)",
-                at: node.source,
-                node: node,
-                jsonPath: jsonPath,
-                term: evidenceTerm(
-                    "matteSourceMarker",
-                    source: node.source,
-                    jsonPath: jsonPath,
-                    values: ["marker": "\(marker)"]
-                )
-            )
-        }
-        if let matte = node.matte {
-            var feature = "track matte mode \(matte.mode)"
-            if let sourcePath = matte.sourcePath {
-                feature += " using \(sourcePath)"
-            }
-            let jsonPath = node.source.jsonPath.appending(.key("tt"))
-            skipBackend(
-                feature,
-                at: node.source,
-                node: node,
-                jsonPath: jsonPath,
-                term: evidenceTerm(
-                    "trackMatte",
-                    source: node.source,
-                    jsonPath: jsonPath,
-                    values: [
-                        "explicitSource": "\(matte.isExplicitSource)",
-                        "mode": "\(matte.mode)",
-                        "sourceLayerIndex": matte.sourceLayerIndex.map(String.init) ?? "",
-                        "sourcePath": matte.sourcePath ?? "",
-                    ]
-                )
-            )
-        }
+    private func reportNodeBackendGaps(_ node: LottieRenderNode) {
         if let blendMode = node.compositing.blendMode, blendMode != 0 {
             skipBackend(
                 "layer blend mode \(blendMode)",
@@ -180,6 +192,66 @@ private final class RenderIRLoweringContext {
                 )
             )
         }
+    }
+
+    private func alphaMatteWrapper(for node: LottieRenderNode) -> Layer? {
+        guard let matte = node.matte, matte.mode == 1 else { return nil }
+        guard let sourceLayerIndex = matte.sourceLayerIndex,
+              nodesByLayerIndex[sourceLayerIndex] != nil,
+              let sourceLayer = layersByLayerIndex[sourceLayerIndex],
+              let targetLayer = layersByNodeID[node.id]
+        else {
+            return nil
+        }
+
+        let wrapper = carrierLayer()
+        wrapper.name = node.id.description
+        wrapper.mask = sourceLayer
+        wrapper.addSublayer(targetLayer)
+        return wrapper
+    }
+
+    private func reportMatteSourceMarker(_ node: LottieRenderNode) {
+        guard let marker = node.matteSourceMarker else { return }
+        let jsonPath = node.source.jsonPath.appending(.key("td"))
+        skipBackend(
+            "track matte source marker \(marker)",
+            at: node.source,
+            node: node,
+            jsonPath: jsonPath,
+            term: evidenceTerm(
+                "matteSourceMarker",
+                source: node.source,
+                jsonPath: jsonPath,
+                values: ["marker": "\(marker)"]
+            )
+        )
+    }
+
+    private func reportUnsupportedMatte(_ node: LottieRenderNode) {
+        guard let matte = node.matte else { return }
+        var feature = "track matte mode \(matte.mode)"
+        if let sourcePath = matte.sourcePath {
+            feature += " using \(sourcePath)"
+        }
+        let jsonPath = node.source.jsonPath.appending(.key("tt"))
+        skipBackend(
+            feature,
+            at: node.source,
+            node: node,
+            jsonPath: jsonPath,
+            term: evidenceTerm(
+                "trackMatte",
+                source: node.source,
+                jsonPath: jsonPath,
+                values: [
+                    "explicitSource": "\(matte.isExplicitSource)",
+                    "mode": "\(matte.mode)",
+                    "sourceLayerIndex": matte.sourceLayerIndex.map(String.init) ?? "",
+                    "sourcePath": matte.sourcePath ?? "",
+                ]
+            )
+        )
     }
 
     private func carrierLayer() -> Layer {
@@ -226,7 +298,14 @@ private final class RenderIRLoweringContext {
     private func applyMasks(_ masks: [LottieRenderMask], to layer: Layer, at node: LottieRenderNode) {
         guard !masks.isEmpty else { return }
         guard masks.count == 1, let mask = masks.first else {
-            skipBackend("multiple masks", at: node.source, node: node)
+            for mask in masks {
+                skipBackend(
+                    "multiple masks",
+                    at: mask.source,
+                    node: node,
+                    term: evidenceTerm("mask", source: mask.source, values: maskEvidenceValues(mask))
+                )
+            }
             return
         }
         guard mask.mode == "a" || mask.mode == "n" else {
@@ -556,6 +635,7 @@ private final class RenderIRLoweringContext {
             vmTrace: node.map(traceEvidence),
             renderNode: node.map(renderNodeEvidence),
             renderTerm: term,
+            layerGraphRecord: layerGraphEvidence(for: node, fallbackSource: source),
             expectedLottieWebFrameArtifact: evidenceContext.expectedLottieWebFrameArtifact,
             pureLayerFrameArtifact: evidenceContext.pureLayerFrameArtifact
         )
@@ -586,6 +666,7 @@ private final class RenderIRLoweringContext {
                     "severity": diagnostic.severity.rawValue,
                 ]
             ),
+            layerGraphRecord: frame.layerGraph.records.first { $0.sourcePath == sourcePath }.map(layerGraphEvidence),
             expectedLottieWebFrameArtifact: evidenceContext.expectedLottieWebFrameArtifact,
             pureLayerFrameArtifact: evidenceContext.pureLayerFrameArtifact
         )
@@ -615,6 +696,30 @@ private final class RenderIRLoweringContext {
             localFrame: node.localFrame,
             opacity: node.opacity,
             explanation: node.explanation
+        )
+    }
+
+    private func layerGraphEvidence(
+        for node: LottieRenderNode?,
+        fallbackSource: LottieRenderSource
+    ) -> LottieBackendGapEvidence.LayerGraphRecord? {
+        let sourcePath = node?.source.sourcePath ?? fallbackSource.sourcePath
+        return frame.layerGraph.records.first { $0.sourcePath == sourcePath }.map(layerGraphEvidence)
+    }
+
+    private func layerGraphEvidence(
+        _ record: LottieLayerGraphLayerTrace
+    ) -> LottieBackendGapEvidence.LayerGraphRecord {
+        LottieBackendGapEvidence.LayerGraphRecord(
+            sourcePath: record.sourcePath,
+            jsonPath: record.jsonPath,
+            participation: record.participation.rawValue,
+            renderOrder: record.renderOrder,
+            maskCount: record.masks.count,
+            matteMode: record.matte?.mode,
+            matteSourcePath: record.matte?.sourceLayerPath,
+            matteTargetPath: record.matte?.targetLayerPath,
+            diagnosticRuleIDs: record.diagnostics.map(\.ruleID)
         )
     }
 
