@@ -108,6 +108,41 @@ public struct LottieBackendGapEvidence: Sendable, Equatable {
         }
     }
 
+    /// Layer-graph facts for the source layer involved in the backend decision.
+    public struct LayerGraphRecord: Sendable, Equatable {
+        public var sourcePath: String
+        public var jsonPath: String
+        public var participation: String
+        public var renderOrder: Int?
+        public var maskCount: Int
+        public var matteMode: Int?
+        public var matteSourcePath: String?
+        public var matteTargetPath: String?
+        public var diagnosticRuleIDs: [String]
+
+        public init(
+            sourcePath: String,
+            jsonPath: String,
+            participation: String,
+            renderOrder: Int? = nil,
+            maskCount: Int,
+            matteMode: Int? = nil,
+            matteSourcePath: String? = nil,
+            matteTargetPath: String? = nil,
+            diagnosticRuleIDs: [String] = []
+        ) {
+            self.sourcePath = sourcePath
+            self.jsonPath = jsonPath
+            self.participation = participation
+            self.renderOrder = renderOrder
+            self.maskCount = maskCount
+            self.matteMode = matteMode
+            self.matteSourcePath = matteSourcePath
+            self.matteTargetPath = matteTargetPath
+            self.diagnosticRuleIDs = diagnosticRuleIDs
+        }
+    }
+
     /// Investigation owner.
     public var owner: Owner
     /// Source fixture path or id when known.
@@ -128,6 +163,8 @@ public struct LottieBackendGapEvidence: Sendable, Equatable {
     public var renderNode: RenderNode?
     /// RenderIR term that could not be lowered exactly.
     public var renderTerm: RenderTerm?
+    /// Layer graph record that produced the RenderIR node or term.
+    public var layerGraphRecord: LayerGraphRecord?
     /// Pinned lottie-web frame artifact, when an oracle generated one.
     public var expectedLottieWebFrameArtifact: String?
     /// PureLayer/PureDraw output frame artifact, when generated.
@@ -144,6 +181,7 @@ public struct LottieBackendGapEvidence: Sendable, Equatable {
         vmTrace: VMTrace? = nil,
         renderNode: RenderNode? = nil,
         renderTerm: RenderTerm? = nil,
+        layerGraphRecord: LayerGraphRecord? = nil,
         expectedLottieWebFrameArtifact: String? = nil,
         pureLayerFrameArtifact: String? = nil
     ) {
@@ -157,6 +195,7 @@ public struct LottieBackendGapEvidence: Sendable, Equatable {
         self.vmTrace = vmTrace
         self.renderNode = renderNode
         self.renderTerm = renderTerm
+        self.layerGraphRecord = layerGraphRecord
         self.expectedLottieWebFrameArtifact = expectedLottieWebFrameArtifact
         self.pureLayerFrameArtifact = pureLayerFrameArtifact
     }

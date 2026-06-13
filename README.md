@@ -144,16 +144,21 @@ swift run LottieAPNGDump \
 ```
 
 The command writes a sibling `.report.json` with frame count, timing, pixel
-size, import findings, and RenderIR lowering findings. It also writes sibling
-`.geometry.json` and `.geometry.csv` files that compare evaluated Lottie
-composition coordinates, scale-adjusted expected output coordinates, and
-PureLayer draw-list coordinates for every generated APNG sample.
+size, validation errors, legacy importer findings, and RenderIR lowering
+findings. Validation/import findings explain what the old direct importer still
+rejects; RenderIR lowering findings explain what the PureLayer backend could
+not represent for the sampled frames. It also writes sibling `.geometry.json`
+and `.geometry.csv` files that compare evaluated Lottie composition
+coordinates, scale-adjusted expected output coordinates, and PureLayer draw-list
+coordinates for every generated APNG sample.
 
 APNG chunks (`acTL`, `fdAT`) prove that a playable animation was written. A
 geometry trace whose `deltaToExpectedOutputBounds` values are zero proves that
 the frame was placed at the expected coordinates before visual inspection. A
-clean import report is not required for export, but every approximation or
-unsupported feature must appear in `ImportReport`.
+clean legacy import report is not required for export, but every RenderIR
+approximation or unsupported backend feature must appear in the RenderIR
+lowering findings with VM trace, RenderIR term, layer graph, and artifact
+evidence.
 
 `LottieFrameDump` writes the same geometry evidence next to still-frame dumps:
 

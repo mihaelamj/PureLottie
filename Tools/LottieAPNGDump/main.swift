@@ -14,12 +14,19 @@ struct LottieAPNGDump {
         )
 
         let data = try Data(contentsOf: options.input)
-        let animation = try LottieSourceDocument.parse(data).decodeAnimation()
-        let scene = try LottieImporter().scene(from: data)
+        let document = try LottieSourceDocument.parse(data)
+        let animation = try document.decodeAnimation()
+        let validator = LottieValidator()
+        let validationErrors = validator.collectErrors(in: document)
+        let validationEligible = validationErrors.isEmpty
+        let scene = validationEligible
+            ? try LottieImporter().scene(from: data, validator: validator)
+            : nil
         let start = options.start ?? 0
-        let end = options.end ?? scene.duration
+        let duration = scene?.duration ?? max(0, (animation.outPoint - animation.inPoint) / animation.frameRate)
+        let end = options.end ?? duration
         let sampleEnd = inclusiveSampleEnd(start: start, exclusiveEnd: end, fps: options.fps)
-        let size = LottieRenderSurface.pixelSize(for: scene, scale: options.scale)
+        let size = LottieRenderSurface.pixelSize(width: animation.width, height: animation.height, scale: options.scale)
         let sourceFrames = Self.sourceFrames(animation: animation, start: start, end: sampleEnd, fps: options.fps)
         var renderIRFindings: [ImportReport.Finding] = []
         let framePNGs = try sourceFrames.map { sourceFrame in
@@ -42,7 +49,10 @@ struct LottieAPNGDump {
         }
         try writeGeometryTrace(geometryTrace, output: options.output)
         try writeReport(
-            scene: scene,
+            animation: animation,
+            validationEligible: validationEligible,
+            validationErrors: validationErrors,
+            importFindings: scene?.report.findings ?? [],
             options: options,
             start: start,
             end: sampleEnd,
@@ -78,7 +88,10 @@ struct LottieAPNGDump {
     }
 
     private static func writeReport(
-        scene: LottieScene,
+        animation: LottieAnimation,
+        validationEligible: Bool,
+        validationErrors: [ValidationError],
+        importFindings: [ImportReport.Finding],
         options: Options,
         start: Double,
         end: Double,
@@ -89,17 +102,20 @@ struct LottieAPNGDump {
         let report = APNGReport(
             input: options.input.path,
             output: options.output.path,
-            width: scene.width,
-            height: scene.height,
+            width: animation.width,
+            height: animation.height,
             pixelWidth: size.width,
             pixelHeight: size.height,
-            frameRate: scene.frameRate,
+            frameRate: animation.frameRate,
             startSeconds: start,
             endSeconds: end,
             fps: options.fps,
             generatedFrameCount: frameCount,
-            importFindingCount: scene.report.findings.count,
-            importFindings: scene.report.findings.map(ImportFindingSummary.init),
+            validationEligible: validationEligible,
+            validationErrorCount: validationErrors.count,
+            validationErrors: validationErrors.map(ValidationErrorSummary.init),
+            importFindingCount: importFindings.count,
+            importFindings: importFindings.map(ImportFindingSummary.init),
             renderIRLoweringFindingCount: renderIRFindings.count,
             renderIRLoweringFindings: renderIRFindings.map(ImportFindingSummary.init),
             geometryTrace: options.output.deletingPathExtension().appendingPathExtension("geometry.json").path,
@@ -291,6 +307,9 @@ private struct APNGReport: Encodable {
     var endSeconds: Double
     var fps: Double
     var generatedFrameCount: Int
+    var validationEligible: Bool
+    var validationErrorCount: Int
+    var validationErrors: [ValidationErrorSummary]
     var importFindingCount: Int
     var importFindings: [ImportFindingSummary]
     var renderIRLoweringFindingCount: Int
@@ -299,17 +318,151 @@ private struct APNGReport: Encodable {
     var geometryCSV: String
 }
 
+private struct ValidationErrorSummary: Encodable {
+    var path: String
+    var reason: String
+    var ruleID: String
+    var severity: String
+    var phase: String
+    var classification: String
+
+    init(_ error: ValidationError) {
+        path = error.codingPath.description
+        reason = error.reason
+        ruleID = error.ruleID
+        severity = error.severity.rawValue
+        phase = error.phase.rawValue
+        classification = error.classification.rawValue
+    }
+}
+
 private struct ImportFindingSummary: Encodable {
     var path: String
     var sourcePath: String?
     var feature: String
     var disposition: String
+    var evidence: BackendGapEvidenceSummary?
 
     init(_ finding: ImportReport.Finding) {
         path = finding.path
         sourcePath = finding.sourcePath
         feature = finding.feature
         disposition = finding.disposition.rawValue
+        evidence = finding.evidence.map(BackendGapEvidenceSummary.init)
+    }
+}
+
+private struct BackendGapEvidenceSummary: Encodable {
+    var owner: String
+    var sourceFixture: String?
+    var sourceFrame: Double
+    var frameRate: Double
+    var lottiePath: String
+    var jsonPath: String?
+    var vmTrace: BackendVMTraceSummary?
+    var renderNode: BackendRenderNodeSummary?
+    var renderTerm: BackendRenderTermSummary?
+    var layerGraphRecord: BackendLayerGraphRecordSummary?
+    var expectedLottieWebFrameArtifact: String?
+    var pureLayerFrameArtifact: String?
+
+    init(_ evidence: LottieBackendGapEvidence) {
+        owner = evidence.owner.rawValue
+        sourceFixture = evidence.sourceFixture
+        sourceFrame = evidence.sourceFrame
+        frameRate = evidence.frameRate
+        lottiePath = evidence.lottiePath
+        jsonPath = evidence.jsonPath
+        vmTrace = evidence.vmTrace.map(BackendVMTraceSummary.init)
+        renderNode = evidence.renderNode.map(BackendRenderNodeSummary.init)
+        renderTerm = evidence.renderTerm.map(BackendRenderTermSummary.init)
+        layerGraphRecord = evidence.layerGraphRecord.map(BackendLayerGraphRecordSummary.init)
+        expectedLottieWebFrameArtifact = evidence.expectedLottieWebFrameArtifact
+        pureLayerFrameArtifact = evidence.pureLayerFrameArtifact
+    }
+}
+
+private struct BackendVMTraceSummary: Encodable {
+    var nodeID: String?
+    var instruction: String?
+    var compositionStack: [String]
+    var layerStack: [String]
+    var transformStack: [String]
+    var styleStack: [String]
+    var matteStack: [String]
+    var reason: String?
+
+    init(_ trace: LottieBackendGapEvidence.VMTrace) {
+        nodeID = trace.nodeID
+        instruction = trace.instruction
+        compositionStack = trace.compositionStack
+        layerStack = trace.layerStack
+        transformStack = trace.transformStack
+        styleStack = trace.styleStack
+        matteStack = trace.matteStack
+        reason = trace.reason
+    }
+}
+
+private struct BackendRenderNodeSummary: Encodable {
+    var nodeID: String
+    var kind: String
+    var layerName: String
+    var layerIndex: Int?
+    var sourcePath: String
+    var jsonPath: String
+    var localFrame: Double
+    var opacity: Double
+    var explanation: String
+
+    init(_ node: LottieBackendGapEvidence.RenderNode) {
+        nodeID = node.nodeID
+        kind = node.kind
+        layerName = node.layerName
+        layerIndex = node.layerIndex
+        sourcePath = node.sourcePath
+        jsonPath = node.jsonPath
+        localFrame = node.localFrame
+        opacity = node.opacity
+        explanation = node.explanation
+    }
+}
+
+private struct BackendRenderTermSummary: Encodable {
+    var kind: String
+    var sourcePath: String
+    var jsonPath: String
+    var values: [String: String]
+
+    init(_ term: LottieBackendGapEvidence.RenderTerm) {
+        kind = term.kind
+        sourcePath = term.sourcePath
+        jsonPath = term.jsonPath
+        values = term.values
+    }
+}
+
+private struct BackendLayerGraphRecordSummary: Encodable {
+    var sourcePath: String
+    var jsonPath: String
+    var participation: String
+    var renderOrder: Int?
+    var maskCount: Int
+    var matteMode: Int?
+    var matteSourcePath: String?
+    var matteTargetPath: String?
+    var diagnosticRuleIDs: [String]
+
+    init(_ record: LottieBackendGapEvidence.LayerGraphRecord) {
+        sourcePath = record.sourcePath
+        jsonPath = record.jsonPath
+        participation = record.participation
+        renderOrder = record.renderOrder
+        maskCount = record.maskCount
+        matteMode = record.matteMode
+        matteSourcePath = record.matteSourcePath
+        matteTargetPath = record.matteTargetPath
+        diagnosticRuleIDs = record.diagnosticRuleIDs
     }
 }
 
