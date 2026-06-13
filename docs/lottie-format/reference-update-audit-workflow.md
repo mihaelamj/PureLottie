@@ -48,6 +48,10 @@ or conformance claim:
 Use positive validation names. A failed check should say which rule was expected,
 where it failed, and which fixture id or document path caused it.
 
+Record the same facts in `docs/lottie-format/reference-provenance.json` using
+the schema documented in `docs/lottie-format/reference-provenance-schema.md`.
+The prose ledger explains the state; the JSON manifest is the machine gate.
+
 ## Adding a Curated Fixture
 
 1. Add the source Lottie JSON under `Tests/Fixtures/LottieOracle`.
@@ -102,6 +106,8 @@ directory:
 
 - Record upstream source URL, revision, file count, and license path in
   `docs/lottie-format/reference-provenance-ledger.md`.
+- Record or update the matching machine entry in
+  `docs/lottie-format/reference-provenance.json`.
 - Keep copied license text under `Tests/Fixtures/LottieCorpus/_licenses`.
 - Update tests that pin source counts, unique payload counts, license files, and
   observed-field classification.
@@ -123,7 +129,8 @@ only when the preceding source-intent numbers say what Lottie expected.
 When removing or deprecating a reference:
 
 - Remove the source fixture, manifest entry, committed trace, rendered artifact
-  references, and ledger references in the same change.
+  references, machine provenance entry, and ledger references in the same
+  change.
 - If a reference cannot be traced to a durable source, either repair the source
   record or remove the reference from tests and conformance claims.
 - Leave an `UNKNOWN` only when it has a concrete follow-up issue and does not

@@ -1,0 +1,528 @@
+{
+  "schema": {
+    "name": "purelottie.reference-provenance",
+    "version": 1
+  },
+  "entries": [
+    {
+      "id": "raw-airbnb-lottie-android",
+      "kind": "raw-corpus-source",
+      "path": "Tests/Fixtures/LottieCorpus/airbnb-lottie-android",
+      "source": {
+        "type": "git",
+        "value": "https://github.com/airbnb/lottie-android"
+      },
+      "revision": {
+        "status": "known",
+        "value": "05ea92e"
+      },
+      "license": {
+        "status": "known",
+        "value": "Tests/Fixtures/LottieCorpus/_licenses/airbnb-lottie-android-LICENSE"
+      },
+      "purpose": "Broad Bodymovin and Lottie feature discovery from Android project fixtures.",
+      "classifications": [
+        "discovery",
+        "raw-corpus"
+      ],
+      "validation": {
+        "status": "usable",
+        "evidence": [
+          "CorpusSemanticLedgerTests.testCorpusSourceProvenanceIsPinned",
+          "FixtureCorpusTests.testFixtureCorpusFilesAreLottieDocuments"
+        ]
+      },
+      "measurements": {
+        "jsonFiles": 451
+      }
+    },
+    {
+      "id": "raw-airbnb-lottie-ios",
+      "kind": "raw-corpus-source",
+      "path": "Tests/Fixtures/LottieCorpus/airbnb-lottie-ios",
+      "source": {
+        "type": "git",
+        "value": "https://github.com/airbnb/lottie-ios"
+      },
+      "revision": {
+        "status": "known",
+        "value": "c10b740"
+      },
+      "license": {
+        "status": "known",
+        "value": "Tests/Fixtures/LottieCorpus/_licenses/airbnb-lottie-ios-LICENSE"
+      },
+      "purpose": "Cross-engine fixture discovery from the iOS Lottie project fixtures.",
+      "classifications": [
+        "discovery",
+        "raw-corpus"
+      ],
+      "validation": {
+        "status": "usable",
+        "evidence": [
+          "CorpusSemanticLedgerTests.testCorpusSourceProvenanceIsPinned",
+          "FixtureCorpusTests.testFixtureCorpusFilesAreLottieDocuments"
+        ]
+      },
+      "measurements": {
+        "jsonFiles": 186
+      }
+    },
+    {
+      "id": "raw-samsung-rlottie",
+      "kind": "raw-corpus-source",
+      "path": "Tests/Fixtures/LottieCorpus/Samsung-rlottie",
+      "source": {
+        "type": "git",
+        "value": "https://github.com/Samsung/rlottie"
+      },
+      "revision": {
+        "status": "known",
+        "value": "bf689b7"
+      },
+      "license": {
+        "status": "known",
+        "value": "Tests/Fixtures/LottieCorpus/_licenses/Samsung-rlottie-COPYING"
+      },
+      "purpose": "Native renderer fixture discovery from the Samsung rlottie repository.",
+      "classifications": [
+        "discovery",
+        "raw-corpus"
+      ],
+      "validation": {
+        "status": "usable",
+        "evidence": [
+          "CorpusSemanticLedgerTests.testCorpusSourceProvenanceIsPinned",
+          "FixtureCorpusTests.testFixtureCorpusFilesAreLottieDocuments"
+        ]
+      },
+      "measurements": {
+        "jsonFiles": 105
+      }
+    },
+    {
+      "id": "raw-telegram-rlottie",
+      "kind": "raw-corpus-source",
+      "path": "Tests/Fixtures/LottieCorpus/TelegramMessenger-rlottie",
+      "source": {
+        "type": "git",
+        "value": "https://github.com/TelegramMessenger/rlottie"
+      },
+      "revision": {
+        "status": "known",
+        "value": "67f103b"
+      },
+      "license": {
+        "status": "known",
+        "value": "Tests/Fixtures/LottieCorpus/_licenses/TelegramMessenger-rlottie-COPYING"
+      },
+      "purpose": "Native renderer fixture discovery from the Telegram rlottie fork and usage.",
+      "classifications": [
+        "discovery",
+        "raw-corpus"
+      ],
+      "validation": {
+        "status": "usable",
+        "evidence": [
+          "CorpusSemanticLedgerTests.testCorpusSourceProvenanceIsPinned",
+          "FixtureCorpusTests.testFixtureCorpusFilesAreLottieDocuments"
+        ]
+      },
+      "measurements": {
+        "jsonFiles": 97
+      }
+    },
+    {
+      "id": "raw-airbnb-lottie-web",
+      "kind": "raw-corpus-source",
+      "path": "Tests/Fixtures/LottieCorpus/airbnb-lottie-web",
+      "source": {
+        "type": "git",
+        "value": "https://github.com/airbnb/lottie-web"
+      },
+      "revision": {
+        "status": "known",
+        "value": "bede03d"
+      },
+      "license": {
+        "status": "known",
+        "value": "Tests/Fixtures/LottieCorpus/_licenses/airbnb-lottie-web-LICENSE.md"
+      },
+      "purpose": "Browser-engine fixture discovery from the lottie-web repository.",
+      "classifications": [
+        "discovery",
+        "raw-corpus"
+      ],
+      "validation": {
+        "status": "usable",
+        "evidence": [
+          "CorpusSemanticLedgerTests.testCorpusSourceProvenanceIsPinned",
+          "FixtureCorpusTests.testFixtureCorpusFilesAreLottieDocuments"
+        ]
+      },
+      "measurements": {
+        "jsonFiles": 17
+      }
+    },
+    {
+      "id": "raw-lottiefiles-lottie-react",
+      "kind": "raw-corpus-source",
+      "path": "Tests/Fixtures/LottieCorpus/LottieFiles-lottie-react",
+      "source": {
+        "type": "git",
+        "value": "https://github.com/LottieFiles/lottie-react"
+      },
+      "revision": {
+        "status": "known",
+        "value": "0082d3d"
+      },
+      "license": {
+        "status": "known",
+        "value": "Tests/Fixtures/LottieCorpus/_licenses/LottieFiles-lottie-react-LICENSE"
+      },
+      "purpose": "React wrapper fixture discovery for observed public Lottie wrapper examples.",
+      "classifications": [
+        "discovery",
+        "raw-corpus"
+      ],
+      "validation": {
+        "status": "usable",
+        "evidence": [
+          "CorpusSemanticLedgerTests.testCorpusSourceProvenanceIsPinned",
+          "FixtureCorpusTests.testFixtureCorpusFilesAreLottieDocuments"
+        ]
+      },
+      "measurements": {
+        "jsonFiles": 1
+      }
+    },
+    {
+      "id": "curated-oracle-corpus",
+      "kind": "curated-corpus",
+      "path": "Tests/Fixtures/LottieOracle",
+      "source": {
+        "type": "local",
+        "value": "PureLottie-authored regression fixtures tracked by git"
+      },
+      "revision": {
+        "status": "known",
+        "value": "repository history plus Tools/LottieOracle/oracle-fixtures.json ids"
+      },
+      "license": {
+        "status": "known",
+        "value": "PureLottie test fixtures, not copied from the raw external corpus"
+      },
+      "purpose": "Small reviewed source-intent oracle fixtures with selected source frames and frame rationales.",
+      "classifications": [
+        "curated-oracle",
+        "source-intent"
+      ],
+      "validation": {
+        "status": "usable",
+        "evidence": [
+          "LottieOracleCorpusTests.curatedCorpusManifestHasAtLeastThirtyVettedFixtures",
+          "npm --prefix Tools/LottieOracle run validate-fixtures"
+        ]
+      },
+      "measurements": {
+        "jsonFiles": 31
+      }
+    },
+    {
+      "id": "committed-lottie-web-intent-traces",
+      "kind": "numeric-trace-corpus",
+      "path": "Tests/Fixtures/LottieOracle/lottie-web-intent",
+      "source": {
+        "type": "npm",
+        "value": "lottie-web@5.13.0 via Tools/LottieOracle"
+      },
+      "revision": {
+        "status": "known",
+        "value": "lottie-web 5.13.0"
+      },
+      "license": {
+        "status": "known",
+        "value": "Generated PureLottie test data from local source fixtures and pinned lottie-web"
+      },
+      "purpose": "Committed browser-side numeric reference facts used before PNG or APNG inspection.",
+      "classifications": [
+        "numeric-intent",
+        "curated-oracle"
+      ],
+      "validation": {
+        "status": "usable",
+        "evidence": [
+          "LottieOracleCorpusTests.everyCorpusFixtureHasCommittedLottieWebNumericIntentSnapshot",
+          "npm --prefix Tools/LottieOracle run validate-fixtures"
+        ]
+      },
+      "measurements": {
+        "jsonFiles": 31
+      }
+    },
+    {
+      "id": "golden-source-intent-trace",
+      "kind": "golden-trace",
+      "path": "Tests/Fixtures/SourceIntentTrace",
+      "source": {
+        "type": "local",
+        "value": "PureLottie source-intent trace fixture"
+      },
+      "revision": {
+        "status": "known",
+        "value": "repository history"
+      },
+      "license": {
+        "status": "known",
+        "value": "PureLottie test fixture"
+      },
+      "purpose": "Stable v1 source-intent trace fixture used for schema decode and JSON round-trip tests.",
+      "classifications": [
+        "source-intent",
+        "curated-oracle"
+      ],
+      "validation": {
+        "status": "usable",
+        "evidence": [
+          "LottieSourceIntentTraceTests.goldenSourceIntentTraceDecodesWithRequiredProvenance",
+          "LottieSourceIntentTraceTests.goldenTraceModelRoundTripsThroughJSONCoding"
+        ]
+      },
+      "measurements": {
+        "jsonFiles": 1
+      }
+    },
+    {
+      "id": "lottie-oracle-tool",
+      "kind": "tool",
+      "path": "Tools/LottieOracle",
+      "source": {
+        "type": "local",
+        "value": "PureLottie Node reference harness outside Package.swift"
+      },
+      "revision": {
+        "status": "known",
+        "value": "package-lock pins lottie-web 5.13.0, playwright 1.60.0, and pngjs 7.0.0"
+      },
+      "license": {
+        "status": "known",
+        "value": "Tool source is PureLottie; external package licenses remain in npm lock metadata"
+      },
+      "purpose": "Browser reference harness for lottie-web numeric intent, reference rendering, and image comparison.",
+      "classifications": [
+        "tooling",
+        "numeric-intent"
+      ],
+      "validation": {
+        "status": "usable",
+        "evidence": [
+          "npm --prefix Tools/LottieOracle test",
+          "npm --prefix Tools/LottieOracle run validate-fixtures"
+        ]
+      }
+    },
+    {
+      "id": "frame-dump-tools",
+      "kind": "executable-tool",
+      "path": "Tools/LottieFrameDump",
+      "source": {
+        "type": "local",
+        "value": "PureLottie Swift frame dump tool"
+      },
+      "revision": {
+        "status": "known",
+        "value": "repository history"
+      },
+      "license": {
+        "status": "known",
+        "value": "PureLottie tool source"
+      },
+      "purpose": "Emit PureLayer frame PNGs with semantic summaries after source-intent gates.",
+      "classifications": [
+        "tooling",
+        "curated-oracle"
+      ],
+      "validation": {
+        "status": "usable",
+        "evidence": [
+          "swift build",
+          "swift test"
+        ]
+      }
+    },
+    {
+      "id": "apng-dump-tool",
+      "kind": "executable-tool",
+      "path": "Tools/LottieAPNGDump",
+      "source": {
+        "type": "local",
+        "value": "PureLottie Swift APNG dump tool"
+      },
+      "revision": {
+        "status": "known",
+        "value": "repository history"
+      },
+      "license": {
+        "status": "known",
+        "value": "PureLottie tool source"
+      },
+      "purpose": "Export validated PureLayer animation frames as APNG review artifacts after numeric gates.",
+      "classifications": [
+        "tooling",
+        "curated-oracle"
+      ],
+      "validation": {
+        "status": "usable",
+        "evidence": [
+          "swift build",
+          "LottieAPNGExportTests"
+        ]
+      }
+    },
+    {
+      "id": "lottie-format-docs",
+      "kind": "documentation-set",
+      "path": "docs/lottie-format",
+      "source": {
+        "type": "documentation",
+        "value": "Checked-in PureLottie Lottie-format documentation"
+      },
+      "revision": {
+        "status": "known",
+        "value": "repository history"
+      },
+      "license": {
+        "status": "known",
+        "value": "PureLottie documentation"
+      },
+      "purpose": "Human-readable source-intent, conformance, corpus, role, and provenance contracts.",
+      "classifications": [
+        "documentation",
+        "source-intent"
+      ],
+      "validation": {
+        "status": "usable",
+        "evidence": [
+          "ReferenceProvenanceLedgerTests",
+          "CorpusSemanticLedgerTests"
+        ]
+      }
+    },
+    {
+      "id": "purelayer-dependency",
+      "kind": "dependency",
+      "path": "Package.swift",
+      "source": {
+        "type": "swift-package",
+        "value": "https://github.com/mihaelamj/PureLayer.git branch main"
+      },
+      "revision": {
+        "status": "unknown",
+        "followUp": "Record a durable PureLayer/PureDraw resolved revision externally without committing transient build output."
+      },
+      "license": {
+        "status": "known",
+        "value": "Target oracle dependency governed by the PureLayer repository"
+      },
+      "purpose": "Target layer, compositor, and renderer oracle for LottieImport; PureDraw arrives transitively.",
+      "classifications": [
+        "target-oracle",
+        "unknown-tracked"
+      ],
+      "validation": {
+        "status": "usable-with-unknowns",
+        "evidence": [
+          "swift build",
+          "swift test"
+        ]
+      }
+    },
+    {
+      "id": "lottie-spec-documentation-reference",
+      "kind": "documentation-reference",
+      "path": "docs/lottie-format/conformance-matrix.md",
+      "source": {
+        "type": "documentation",
+        "value": "Local lottie-spec source snapshot cited by conformance notes"
+      },
+      "revision": {
+        "status": "unknown",
+        "followUp": "Replace temporary lottie-spec source citations with a durable checked-in revision before promoting them to conformance proof."
+      },
+      "license": {
+        "status": "unknown",
+        "followUp": "Record the lottie-spec license or provenance note beside the durable source revision."
+      },
+      "purpose": "Original source-format contract for conformance matrix and source-format research notes.",
+      "classifications": [
+        "documentation",
+        "unknown-tracked"
+      ],
+      "validation": {
+        "status": "usable-with-unknowns",
+        "evidence": [
+          "ReferenceProvenanceLedgerTests.testReferenceProvenanceLedgerMakesUnknownsExplicit"
+        ]
+      }
+    },
+    {
+      "id": "lottie-web-source-reference",
+      "kind": "documentation-reference",
+      "path": "docs/lottie-format/conformance-matrix.md",
+      "source": {
+        "type": "git",
+        "value": "https://github.com/airbnb/lottie-web"
+      },
+      "revision": {
+        "status": "unknown",
+        "followUp": "Record the source checkout revision used for prose research separately from the npm runtime pin."
+      },
+      "license": {
+        "status": "known",
+        "value": "Tests/Fixtures/LottieCorpus/_licenses/airbnb-lottie-web-LICENSE.md"
+      },
+      "purpose": "Reference implementation source notes for transform, property, shape, trim, and renderer behavior.",
+      "classifications": [
+        "documentation",
+        "numeric-intent",
+        "unknown-tracked"
+      ],
+      "validation": {
+        "status": "usable-with-unknowns",
+        "evidence": [
+          "npm --prefix Tools/LottieOracle run validate-fixtures",
+          "ReferenceProvenanceLedgerTests.testReferenceProvenanceLedgerMakesUnknownsExplicit"
+        ]
+      }
+    },
+    {
+      "id": "openapikit-validation-idiom",
+      "kind": "validation-idiom",
+      "path": "Sources/LottieModel/Validation.swift",
+      "source": {
+        "type": "git",
+        "value": "https://github.com/mattpolzin/OpenAPIKit"
+      },
+      "revision": {
+        "status": "known",
+        "value": "OpenAPIKit upstream main 1d42ea6477, as analyzed by the canonical validation rule"
+      },
+      "license": {
+        "status": "known",
+        "value": "Style reference only; OpenAPIKit source is not vendored in PureLottie"
+      },
+      "purpose": "Validation architecture source for composable positive-rule validators and path-bearing diagnostics.",
+      "classifications": [
+        "validation-idiom",
+        "documentation"
+      ],
+      "validation": {
+        "status": "usable",
+        "evidence": [
+          "LottieValidationTests",
+          "ReferenceProvenanceManifestValidationTests"
+        ]
+      }
+    }
+  ]
+}
