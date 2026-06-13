@@ -14,6 +14,9 @@ Copy-Item -Recurse "Tests/LottieModelTests" (Join-Path $packageRoot "Tests/Lotti
 Copy-Item -Recurse "Tests/Fixtures" (Join-Path $packageRoot "Tests/Fixtures")
 New-Item -ItemType Directory -Force -Path (Join-Path $packageRoot "docs") | Out-Null
 Copy-Item -Recurse "docs/lottie-format" (Join-Path $packageRoot "docs/lottie-format")
+New-Item -ItemType Directory -Force -Path (Join-Path $packageRoot "Tools") | Out-Null
+Copy-Item -Recurse "Tools/LottieAPNGDump" (Join-Path $packageRoot "Tools/LottieAPNGDump")
+Copy-Item -Recurse "Tools/LottieFrameDump" (Join-Path $packageRoot "Tools/LottieFrameDump")
 New-Item -ItemType Directory -Force -Path (Join-Path $packageRoot "Tools/LottieOracle") | Out-Null
 Copy-Item -Recurse "Tools/LottieOracle/scripts" (Join-Path $packageRoot "Tools/LottieOracle/scripts")
 Copy-Item "Tools/LottieOracle/oracle-fixtures.json" (Join-Path $packageRoot "Tools/LottieOracle/oracle-fixtures.json")
