@@ -12,6 +12,11 @@ struct LottieOracleCorpusTests {
         #expect(manifest.count >= 30)
         #expect(Set(manifest.map(\.id)).count == manifest.count)
         #expect(manifest.allSatisfy { !$0.coverage.isEmpty })
+        #expect(manifest.allSatisfy { !$0.evidenceRoles.isEmpty })
+        #expect(manifest.allSatisfy { !$0.purpose.isEmpty })
+        #expect(manifest.allSatisfy { entry in
+            entry.coverage.contains { entry.purpose.contains($0) }
+        })
         #expect(manifest.allSatisfy { $0.frames.count >= 3 })
         #expect(manifest.allSatisfy { $0.validation.status == "usable" })
         #expect(manifest.allSatisfy { $0.validation.sourceJSON == "parses" })
@@ -22,6 +27,24 @@ struct LottieOracleCorpusTests {
         #expect(entriesWithValidationFailures.isEmpty)
 
         let coverage = Set(manifest.flatMap(\.coverage))
+        let evidenceRoles = Set(manifest.flatMap(\.evidenceRoles))
+        let allowedEvidenceRoles: Set = [
+            "conformance",
+            "regression",
+            "unsupported-feature",
+            "visual-inspection",
+            "engine-divergence",
+        ]
+        #expect(evidenceRoles == allowedEvidenceRoles)
+        for entry in manifest {
+            #expect(Set(entry.evidenceRoles).isSubset(of: allowedEvidenceRoles), "\(entry.id) has an unknown evidence role")
+            if entry.semanticStatus == .modeled {
+                #expect(entry.evidenceRoles.contains("conformance"), "\(entry.id) must carry conformance evidence")
+            }
+            if entry.semanticStatus == .diagnosed {
+                #expect(entry.evidenceRoles.contains("unsupported-feature"), "\(entry.id) must carry unsupported-feature evidence")
+            }
+        }
         for required in [
             "animated-position",
             "anchor",
@@ -130,6 +153,8 @@ struct LottieOracleCorpusTests {
 private struct CorpusFixtureManifestEntry: Decodable {
     var id: String
     var coverage: [String]
+    var evidenceRoles: [String]
+    var purpose: String
     var semanticStatus: SemanticStatus
     var lottie: String
     var lottieWebIntent: String

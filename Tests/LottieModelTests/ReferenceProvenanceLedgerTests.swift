@@ -34,12 +34,23 @@ final class ReferenceProvenanceLedgerTests: XCTestCase {
         let intentFixtures = try jsonFiles(in: repositoryRoot().appendingPathComponent("Tests/Fixtures/LottieOracle/lottie-web-intent", isDirectory: true))
         let statuses = Dictionary(grouping: manifest.map(\.semanticStatus), by: { $0 }).mapValues(\.count)
         let validationStatuses = Dictionary(grouping: manifest.map(\.validation.status), by: { $0 }).mapValues(\.count)
+        let roleStatuses = Dictionary(grouping: manifest.flatMap(\.evidenceRoles), by: { $0 }).mapValues(\.count)
 
         XCTAssertEqual(manifest.count, 31)
         XCTAssertEqual(sourceFixtures.count, manifest.count)
         XCTAssertEqual(intentFixtures.count, manifest.count)
         XCTAssertEqual(statuses["modeled"], 30)
         XCTAssertEqual(statuses["diagnosed"], 1)
+        XCTAssertEqual(roleStatuses["conformance"], 30)
+        XCTAssertEqual(roleStatuses["regression"], 31)
+        XCTAssertEqual(roleStatuses["visual-inspection"], 31)
+        XCTAssertEqual(roleStatuses["engine-divergence"], 24)
+        XCTAssertEqual(roleStatuses["unsupported-feature"], 1)
+        XCTAssertTrue(manifest.allSatisfy { !$0.evidenceRoles.isEmpty })
+        XCTAssertTrue(manifest.allSatisfy { !$0.purpose.isEmpty })
+        XCTAssertTrue(manifest.allSatisfy { entry in
+            entry.coverage.contains { entry.purpose.contains($0) }
+        })
         XCTAssertEqual(validationStatuses["usable"], 31)
         XCTAssertTrue(manifest.allSatisfy { $0.validation.sourceJSON == "parses" })
         XCTAssertTrue(manifest.allSatisfy { $0.validation.lottieWeb == "loads" })
@@ -49,6 +60,7 @@ final class ReferenceProvenanceLedgerTests: XCTestCase {
         XCTAssertTrue(ledger.contains("31 source JSON files"))
         XCTAssertTrue(ledger.contains("31 JSON files in `Tests/Fixtures/LottieOracle/lottie-web-intent`"))
         XCTAssertTrue(ledger.contains("30 `modeled`, 1 `diagnosed`"))
+        XCTAssertTrue(ledger.contains("30 `conformance`, 31 `regression`, 31 `visual-inspection`, 24 `engine-divergence`, 1 `unsupported-feature`"))
         XCTAssertTrue(ledger.contains("`validation.status` | `usable` for 31 fixtures"))
         XCTAssertTrue(ledger.contains("`validation.sourceJSON` | `parses` for 31 fixtures"))
         XCTAssertTrue(ledger.contains("`validation.lottieWeb` | `loads` for 31 fixtures"))
@@ -91,7 +103,10 @@ final class ReferenceProvenanceLedgerTests: XCTestCase {
         XCTAssertTrue(ledger.contains("Package.resolved` is not committed"))
         XCTAssertTrue(ledger.contains("#58"))
         XCTAssertTrue(ledger.contains("Reference Update and Audit Workflow"))
-        XCTAssertTrue(ledger.contains("5 checked-in files including this ledger"))
+        XCTAssertTrue(ledger.contains("Fixture Evidence Roles"))
+        XCTAssertTrue(ledger.contains("## Issue #54-#57 Completion Criteria"))
+        XCTAssertTrue(ledger.contains("Issue #58 turns this inventory into stricter machine validation"))
+        XCTAssertTrue(ledger.contains("6 checked-in files including this ledger"))
     }
 
     func testReferenceUpdateWorkflowIsLinkedAndExecutable() throws {
@@ -246,6 +261,9 @@ private let expectedCorpusSources = [
 ]
 
 private struct OracleManifestEntry: Decodable {
+    var coverage: [String]
+    var evidenceRoles: [String]
+    var purpose: String
     var semanticStatus: String
     var validation: FixtureValidation
 

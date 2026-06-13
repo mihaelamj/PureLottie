@@ -10,6 +10,16 @@ const validationStatus = {
   usable: 'usable'
 };
 
+export const evidenceRoleVocabulary = Object.freeze([
+  'conformance',
+  'regression',
+  'unsupported-feature',
+  'visual-inspection',
+  'engine-divergence'
+]);
+
+const evidenceRoleSet = new Set(evidenceRoleVocabulary);
+
 function readArgument(name) {
   const index = process.argv.indexOf(name);
   if (index === -1) {
@@ -61,6 +71,14 @@ function frameList(fixture) {
   return (fixture.frames ?? []).map((entry) => Number(entry.frame));
 }
 
+function unknownEvidenceRoles(fixture) {
+  return (fixture.evidenceRoles ?? []).filter((role) => !evidenceRoleSet.has(role));
+}
+
+function purposeMentionsCoverage(fixture) {
+  return (fixture.coverage ?? []).some((item) => fixture.purpose.includes(item));
+}
+
 function hasVisiblePaint(pathRecord) {
   const style = pathRecord.style ?? {};
   const fillOpacity = Number(style.fillOpacity ?? 1);
@@ -85,15 +103,24 @@ function validateManifestShape(fixture, index) {
     validation('Fixture ids are non-empty strings', ({ fixture }) => typeof fixture.id === 'string' && fixture.id.length > 0),
     validation('Fixture descriptions explain the case', ({ fixture }) => typeof fixture.description === 'string' && fixture.description.length > 30),
     validation('Fixture bug classes explain the protected failure', ({ fixture }) => typeof fixture.bugClass === 'string' && fixture.bugClass.length > 30),
+    validation('Fixture evidence roles contain at least one role', ({ fixture }) => Array.isArray(fixture.evidenceRoles) && fixture.evidenceRoles.length > 0),
+    validation('Fixture evidence roles use stable vocabulary', ({ fixture }) => unknownEvidenceRoles(fixture).length === 0 || unknownEvidenceRoles(fixture)),
+    validation('Fixture purpose explains the evidence role', ({ fixture }) => typeof fixture.purpose === 'string' && fixture.purpose.length > 50),
     validation('Fixture semantic status is modeled or diagnosed', ({ fixture }) => ['modeled', 'diagnosed'].includes(fixture.semanticStatus)),
     validation('Fixture coverage contains at least one family', ({ fixture }) => Array.isArray(fixture.coverage) && fixture.coverage.length > 0),
+    validation('Fixture purpose names at least one coverage family', ({ fixture }) => purposeMentionsCoverage(fixture), ({ fixture }) => Array.isArray(fixture.coverage) && typeof fixture.purpose === 'string'),
     validation('Fixture source path is recorded', ({ fixture }) => typeof fixture.lottie === 'string' && fixture.lottie.endsWith('.json')),
     validation('Fixture lottie-web intent path is recorded', ({ fixture }) => typeof fixture.lottieWebIntent === 'string' && fixture.lottieWebIntent.endsWith('.json')),
     validation('Fixture renderer is svg', ({ fixture }) => fixture.renderer === 'svg'),
     validation('Fixture selected frames carry rationale', ({ fixture }) => Array.isArray(fixture.frames) && fixture.frames.every((frame) => Number.isFinite(Number(frame.frame)) && typeof frame.rationale === 'string' && frame.rationale.length > 20)),
     validation('Fixture reference non-empty expectation is true', ({ fixture }) => fixture.expectReferenceNonEmpty === true),
     validation('Modeled fixtures are source-validation eligible', ({ fixture }) => fixture.expectedValidationEligible === true, ({ fixture }) => fixture.semanticStatus === 'modeled'),
-    validation('Diagnosed fixtures are not source-validation eligible', ({ fixture }) => fixture.expectedValidationEligible === false, ({ fixture }) => fixture.semanticStatus === 'diagnosed')
+    validation('Modeled fixtures carry conformance evidence', ({ fixture }) => fixture.evidenceRoles.includes('conformance'), ({ fixture }) => fixture.semanticStatus === 'modeled' && Array.isArray(fixture.evidenceRoles)),
+    validation('Modeled fixtures do not carry unsupported-feature evidence', ({ fixture }) => !fixture.evidenceRoles.includes('unsupported-feature'), ({ fixture }) => fixture.semanticStatus === 'modeled' && Array.isArray(fixture.evidenceRoles)),
+    validation('Diagnosed fixtures are not source-validation eligible', ({ fixture }) => fixture.expectedValidationEligible === false, ({ fixture }) => fixture.semanticStatus === 'diagnosed'),
+    validation('Diagnosed fixtures carry unsupported-feature evidence', ({ fixture }) => fixture.evidenceRoles.includes('unsupported-feature'), ({ fixture }) => fixture.semanticStatus === 'diagnosed' && Array.isArray(fixture.evidenceRoles)),
+    validation('Diagnosed fixtures do not carry conformance evidence', ({ fixture }) => !fixture.evidenceRoles.includes('conformance'), ({ fixture }) => fixture.semanticStatus === 'diagnosed' && Array.isArray(fixture.evidenceRoles)),
+    validation('Visual-inspection fixtures require non-empty references', ({ fixture }) => fixture.expectReferenceNonEmpty === true, ({ fixture }) => Array.isArray(fixture.evidenceRoles) && fixture.evidenceRoles.includes('visual-inspection'))
   ], context);
 }
 

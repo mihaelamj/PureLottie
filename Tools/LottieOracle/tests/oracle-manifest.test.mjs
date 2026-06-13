@@ -7,6 +7,14 @@ import { fileURLToPath } from 'node:url';
 const oracleRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(oracleRoot));
 
+const evidenceRoleVocabulary = [
+  'conformance',
+  'regression',
+  'unsupported-feature',
+  'visual-inspection',
+  'engine-divergence'
+];
+
 test('oracle dependencies are exact external pins', () => {
   const packageJson = JSON.parse(fs.readFileSync(path.join(oracleRoot, 'package.json'), 'utf8'));
   assert.equal(packageJson.dependencies['lottie-web'], '5.13.0');
@@ -29,9 +37,22 @@ test('curated fixtures declare frame rationale and resolve to committed traces',
     assert.ok(fixture.id.length > 0);
     assert.ok(fixture.description.length > 30);
     assert.ok(fixture.bugClass.length > 30);
+    assert.ok(fixture.purpose.length > 50);
     assert.ok(['modeled', 'diagnosed'].includes(fixture.semanticStatus));
+    assert.ok(Array.isArray(fixture.evidenceRoles));
+    assert.ok(fixture.evidenceRoles.length > 0);
+    for (const role of fixture.evidenceRoles) {
+      assert.ok(evidenceRoleVocabulary.includes(role), `${fixture.id} has unknown role ${role}`);
+    }
     assert.ok(Array.isArray(fixture.coverage));
     assert.ok(fixture.coverage.length > 0);
+    assert.ok(fixture.coverage.some((coverage) => fixture.purpose.includes(coverage)));
+    if (fixture.semanticStatus === 'modeled') {
+      assert.ok(fixture.evidenceRoles.includes('conformance'));
+    }
+    if (fixture.semanticStatus === 'diagnosed') {
+      assert.ok(fixture.evidenceRoles.includes('unsupported-feature'));
+    }
     assert.equal(typeof fixture.expectedValidationEligible, 'boolean');
     assert.equal(fixture.expectReferenceNonEmpty, true);
     assert.deepEqual(fixture.validation, {
@@ -60,6 +81,17 @@ test('curated fixtures declare frame rationale and resolve to committed traces',
       assert.equal(typeof frame.frame, 'number');
       assert.ok(frame.rationale.length > 20);
     }
+  }
+});
+
+test('evidence role vocabulary is documented and exercised', () => {
+  const roleDoc = fs.readFileSync(path.join(repoRoot, 'docs/lottie-format/fixture-evidence-roles.md'), 'utf8');
+  const fixtures = JSON.parse(fs.readFileSync(path.join(oracleRoot, 'oracle-fixtures.json'), 'utf8'));
+  const usedRoles = new Set(fixtures.flatMap((fixture) => fixture.evidenceRoles));
+
+  for (const role of evidenceRoleVocabulary) {
+    assert.match(roleDoc, new RegExp(`\\| \`${role}\` \\|`));
+    assert.ok(usedRoles.has(role), `missing fixture with evidence role ${role}`);
   }
 });
 

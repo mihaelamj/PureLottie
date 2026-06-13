@@ -10,6 +10,31 @@ const fixturesRoot = path.join(repoRoot, 'Tests/Fixtures/LottieOracle');
 const intentRoot = path.join(fixturesRoot, 'lottie-web-intent');
 const skipIntent = process.argv.includes('--skip-intent');
 
+const engineDivergenceCoverage = new Set([
+  'animated-position',
+  'split-position',
+  'anchor',
+  'scale',
+  'rotation',
+  'shape-transform',
+  'group-opacity',
+  'parent-transform',
+  'direction',
+  'roundness',
+  'polygon',
+  'star',
+  'fill-rule',
+  'dash',
+  'animated-width',
+  'trim',
+  'animated-trim',
+  'frame-window',
+  'mask',
+  'matte',
+  'precomp',
+  'time-remap'
+]);
+
 const colors = {
   blue: [0.1, 0.4, 1, 1],
   red: [0.95, 0.15, 0.2, 1],
@@ -312,20 +337,47 @@ function selectedFrames(kind = 'standard') {
   ];
 }
 
+function defaultEvidenceRoles(coverage, semanticStatus = 'modeled') {
+  if (semanticStatus === 'diagnosed') {
+    return ['unsupported-feature', 'regression', 'engine-divergence', 'visual-inspection'];
+  }
+
+  const roles = ['conformance', 'regression', 'visual-inspection'];
+  if (coverage.some((item) => engineDivergenceCoverage.has(item))) {
+    roles.push('engine-divergence');
+  }
+  return roles;
+}
+
+function defaultPurpose(coverage, bugClass) {
+  return `Proves ${coverage.join(', ')} source-intent coverage and protects: ${bugClass}`;
+}
+
 function fixture(id, description, bugClass, coverage, document, options = {}) {
+  const semanticStatus = options.semanticStatus ?? 'modeled';
   return {
     id,
     description,
     bugClass,
+    evidenceRoles: options.evidenceRoles ?? defaultEvidenceRoles(coverage, semanticStatus),
+    purpose: options.purpose ?? defaultPurpose(coverage, bugClass),
     coverage,
-    semanticStatus: options.semanticStatus ?? 'modeled',
+    semanticStatus,
     lottie: `../../Tests/Fixtures/LottieOracle/${id}.json`,
     lottieWebIntent: `../../Tests/Fixtures/LottieOracle/lottie-web-intent/${id}.json`,
     frames: options.frames ?? selectedFrames(),
     scale: 1,
     renderer: 'svg',
     expectReferenceNonEmpty: options.expectReferenceNonEmpty ?? true,
-    expectedValidationEligible: options.expectedValidationEligible ?? options.semanticStatus !== 'diagnosed',
+    expectedValidationEligible: options.expectedValidationEligible ?? semanticStatus !== 'diagnosed',
+    validation: options.validation ?? {
+      status: 'usable',
+      sourceJSON: 'parses',
+      lottieWeb: 'loads',
+      numericIntent: 'committed',
+      referenceNonEmpty: 'passed',
+      failureReasons: []
+    },
     document
   };
 }
@@ -715,7 +767,7 @@ function manifestEntry(entry) {
 }
 
 function tableRow(entry) {
-  return `| \`${entry.id}\` | ${entry.semanticStatus} | ${entry.coverage.map((item) => `\`${item}\``).join(', ')} | ${entry.bugClass} | ${entry.frames.map((frame) => frame.frame).join(', ')} |`;
+  return `| \`${entry.id}\` | ${entry.semanticStatus} | ${entry.evidenceRoles.map((item) => `\`${item}\``).join(', ')} | ${entry.coverage.map((item) => `\`${item}\``).join(', ')} | ${entry.purpose} | ${entry.frames.map((frame) => frame.frame).join(', ')} |`;
 }
 
 function readme(entries) {
@@ -729,11 +781,14 @@ Every fixture is intentionally small enough for review and has a committed
 
 The large raw corpus under \`Tests/Fixtures/LottieCorpus\` is discovery material.
 The files in this directory are the vetted regression set: each one isolates a
-specific semantic bug class, selected source frames, and the numeric browser
-trace used before any PNG comparison.
+specific semantic bug class, evidence roles, selected source frames, and the
+numeric browser trace used before any PNG comparison.
 
-| Fixture | Status | Coverage | Bug class protected | Frames |
-| --- | --- | --- | --- | --- |
+Evidence role definitions live in
+\`docs/lottie-format/fixture-evidence-roles.md\`.
+
+| Fixture | Status | Roles | Coverage | Purpose | Frames |
+| --- | --- | --- | --- | --- | --- |
 ${entries.map(tableRow).join('\n')}
 `;
 }

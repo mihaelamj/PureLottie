@@ -74,13 +74,16 @@ vetted fixtures from `Tests/Fixtures/LottieOracle`. Each fixture has:
 
 - a small source Lottie JSON file;
 - selected source frames with rationale;
-- coverage tags and a bug-class explanation;
+- coverage tags, evidence roles, purpose, and a bug-class explanation;
 - a machine-readable validation record stating that the JSON parses, pinned
   lottie-web loads it, the numeric intent trace is committed, and selected
   reference frames are non-empty;
 - a committed `purelottie.lottie-web-intent` snapshot under
   `Tests/Fixtures/LottieOracle/lottie-web-intent`;
 - a semantic status of `modeled` or `diagnosed`.
+
+Evidence role definitions live in
+`docs/lottie-format/fixture-evidence-roles.md`.
 
 The validation command reports failures with manifest paths and fixture ids. A
 failing fixture is not evidence until the manifest records the failure reason or
