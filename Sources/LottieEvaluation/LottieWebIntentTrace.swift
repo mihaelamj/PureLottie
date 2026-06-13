@@ -33,8 +33,17 @@ public struct LottieWebIntentTrace: Codable, Equatable, Sendable, Validatable {
         public var svgViewBox: String
         public var layerCount: Int
         public var pathCount: Int
+        public var maskCount: Int
+        public var matteCount: Int
+        public var precompositionCount: Int
+        public var trimCount: Int
         public var layers: [Layer]
         public var paths: [Path]
+        public var masks: [Mask]
+        public var mattes: [Matte]
+        public var precompositions: [Precomposition]
+        public var trims: [Trim]
+        public var diagnostics: [Diagnostic]
     }
 
     public struct Layer: Codable, Equatable, Sendable, Validatable {
@@ -114,6 +123,73 @@ public struct LottieWebIntentTrace: Codable, Equatable, Sendable, Validatable {
         public var transform: String?
         public var opacity: String?
         public var style: String?
+    }
+
+    public struct Mask: Codable, Equatable, Sendable, Validatable {
+        public var renderElementIndex: Int
+        public var layerInd: Int
+        public var layerName: String
+        public var maskIndex: Int
+        public var name: String?
+        public var mode: String
+        public var inverted: Bool
+        public var closed: Bool
+        public var opacity: Double
+        public var expansion: Double
+        public var pathD: String
+        public var localBBox: Bounds
+        public var vertexCount: Int
+    }
+
+    public struct Matte: Codable, Equatable, Sendable, Validatable {
+        public var targetRenderElementIndex: Int
+        public var targetLayerInd: Int
+        public var targetLayerName: String
+        public var mode: Int
+        public var explicitSourceLayerIndex: Int?
+        public var sourceRenderElementIndex: Int?
+        public var sourceLayerInd: Int?
+        public var sourceLayerName: String?
+        public var sourceLayerType: Int?
+        public var sourceHidden: Bool
+        public var sourceResolved: Bool
+        public var sourceIsMarker: Bool
+    }
+
+    public struct Precomposition: Codable, Equatable, Sendable, Validatable {
+        public var renderElementIndex: Int
+        public var layerInd: Int
+        public var layerName: String
+        public var refId: String
+        public var startTime: Double
+        public var stretch: Double
+        public var inPoint: Double
+        public var outPoint: Double
+        public var renderedFrame: Double
+        public var timeRemapped: Bool
+        public var timeRemapValue: Double?
+        public var childLayerCount: Int
+        public var builtChildElementCount: Int
+    }
+
+    public struct Trim: Codable, Equatable, Sendable, Validatable {
+        public var renderElementIndex: Int
+        public var layerInd: Int
+        public var layerName: String
+        public var trimIndex: Int
+        public var startFraction: Double
+        public var endFraction: Double
+        public var offsetTurns: Double
+        public var mode: Int
+        public var shapeCount: Int
+        public var animated: Bool
+    }
+
+    public struct Diagnostic: Codable, Equatable, Sendable, Validatable {
+        public var feature: String
+        public var reason: String
+        public var renderElementIndex: Int?
+        public var layerInd: Int?
     }
 }
 
@@ -239,6 +315,53 @@ public final class LottieWebIntentTraceValidator {
                     )
                 }
             }
+            for maskIndex in frame.masks.indices {
+                let maskPath = framePath
+                    .appending(.key("masks"))
+                    .appending(.index(maskIndex))
+                visit(frame.masks[maskIndex], at: maskPath, in: trace, errors: &errors)
+                visit(frame.masks[maskIndex].localBBox, at: maskPath.appending(.key("localBBox")), in: trace, errors: &errors)
+            }
+            for matteIndex in frame.mattes.indices {
+                visit(
+                    frame.mattes[matteIndex],
+                    at: framePath
+                        .appending(.key("mattes"))
+                        .appending(.index(matteIndex)),
+                    in: trace,
+                    errors: &errors
+                )
+            }
+            for precompositionIndex in frame.precompositions.indices {
+                visit(
+                    frame.precompositions[precompositionIndex],
+                    at: framePath
+                        .appending(.key("precompositions"))
+                        .appending(.index(precompositionIndex)),
+                    in: trace,
+                    errors: &errors
+                )
+            }
+            for trimIndex in frame.trims.indices {
+                visit(
+                    frame.trims[trimIndex],
+                    at: framePath
+                        .appending(.key("trims"))
+                        .appending(.index(trimIndex)),
+                    in: trace,
+                    errors: &errors
+                )
+            }
+            for diagnosticIndex in frame.diagnostics.indices {
+                visit(
+                    frame.diagnostics[diagnosticIndex],
+                    at: framePath
+                        .appending(.key("diagnostics"))
+                        .appending(.index(diagnosticIndex)),
+                    in: trace,
+                    errors: &errors
+                )
+            }
         }
         return errors
     }
@@ -345,6 +468,11 @@ public enum LottieWebIntentBuiltinValidation {
             LottieWebIntentAnyValidation(layersHaveValidOpacityAndWindow),
             LottieWebIntentAnyValidation(layerMatricesAreValid4x4Payloads),
             LottieWebIntentAnyValidation(pathsHaveGeometryAndStyleFacts),
+            LottieWebIntentAnyValidation(masksHavePathAndOpacityFacts),
+            LottieWebIntentAnyValidation(mattesHaveSourceTargetFacts),
+            LottieWebIntentAnyValidation(precompositionsHaveLocalFrameFacts),
+            LottieWebIntentAnyValidation(trimsHaveNormalizedFractionFacts),
+            LottieWebIntentAnyValidation(diagnosticsHaveReasons),
             LottieWebIntentAnyValidation(boundsContainFiniteOrderedValues),
             LottieWebIntentAnyValidation(affineMatricesContainFiniteValues),
             LottieWebIntentAnyValidation(stylesContainVisiblePaintFacts),
@@ -495,21 +623,49 @@ public enum LottieWebIntentBuiltinValidation {
     public static var framesHaveValidCounts: Validation<LottieWebIntentTrace, LottieWebIntentTrace.Frame> {
         Validation(
             ruleID: "lottie-web-intent.frame.counts",
-            description: "Lottie-web intent frame counts match decoded layer and path arrays"
+            description: "Lottie-web intent frame counts match decoded feature arrays"
         ) { context in
             var errors: [ValidationError] = []
             if context.subject.layerCount != context.subject.layers.count {
                 errors.append(error(
                     ruleID: "lottie-web-intent.frame.layer-count",
-                    description: "Lottie-web intent frame counts match decoded layer and path arrays",
+                    description: "Lottie-web intent frame counts match decoded feature arrays",
                     path: context.codingPath.appending(.key("layerCount"))
                 ))
             }
             if context.subject.pathCount != context.subject.paths.count {
                 errors.append(error(
                     ruleID: "lottie-web-intent.frame.path-count",
-                    description: "Lottie-web intent frame counts match decoded layer and path arrays",
+                    description: "Lottie-web intent frame counts match decoded feature arrays",
                     path: context.codingPath.appending(.key("pathCount"))
+                ))
+            }
+            if context.subject.maskCount != context.subject.masks.count {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.frame.mask-count",
+                    description: "Lottie-web intent frame counts match decoded feature arrays",
+                    path: context.codingPath.appending(.key("maskCount"))
+                ))
+            }
+            if context.subject.matteCount != context.subject.mattes.count {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.frame.matte-count",
+                    description: "Lottie-web intent frame counts match decoded feature arrays",
+                    path: context.codingPath.appending(.key("matteCount"))
+                ))
+            }
+            if context.subject.precompositionCount != context.subject.precompositions.count {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.frame.precomposition-count",
+                    description: "Lottie-web intent frame counts match decoded feature arrays",
+                    path: context.codingPath.appending(.key("precompositionCount"))
+                ))
+            }
+            if context.subject.trimCount != context.subject.trims.count {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.frame.trim-count",
+                    description: "Lottie-web intent frame counts match decoded feature arrays",
+                    path: context.codingPath.appending(.key("trimCount"))
                 ))
             }
             return errors
@@ -630,6 +786,276 @@ public enum LottieWebIntentBuiltinValidation {
                 ))
             }
             return errors
+        }
+    }
+
+    public static var masksHavePathAndOpacityFacts: Validation<LottieWebIntentTrace, LottieWebIntentTrace.Mask> {
+        Validation(
+            ruleID: "lottie-web-intent.mask.facts",
+            description: "Lottie-web intent mask records contain path mode opacity and layer-local geometry facts"
+        ) { context in
+            var errors = stringErrors(
+                [
+                    ("layerName", context.subject.layerName),
+                    ("mode", context.subject.mode),
+                    ("pathD", context.subject.pathD),
+                ],
+                at: context.codingPath,
+                ruleID: "lottie-web-intent.mask.string",
+                description: "Lottie-web intent mask records contain path mode opacity and layer-local geometry facts"
+            )
+            errors.append(contentsOf: numericErrors(
+                [
+                    ("opacity", context.subject.opacity),
+                ],
+                at: context.codingPath,
+                ruleID: "lottie-web-intent.mask.opacity",
+                description: "Lottie-web intent mask records contain path mode opacity and layer-local geometry facts"
+            ) { $0.isFinite && (0 ... 1).contains($0) })
+            errors.append(contentsOf: numericErrors(
+                [
+                    ("expansion", context.subject.expansion),
+                ],
+                at: context.codingPath,
+                ruleID: "lottie-web-intent.mask.expansion",
+                description: "Lottie-web intent mask records contain path mode opacity and layer-local geometry facts"
+            ) { $0.isFinite })
+            if context.subject.renderElementIndex < 0 {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.mask.render-element-index",
+                    description: "Lottie-web intent mask records contain path mode opacity and layer-local geometry facts",
+                    path: context.codingPath.appending(.key("renderElementIndex"))
+                ))
+            }
+            if context.subject.layerInd < 0 {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.mask.layer-ind",
+                    description: "Lottie-web intent mask records contain path mode opacity and layer-local geometry facts",
+                    path: context.codingPath.appending(.key("layerInd"))
+                ))
+            }
+            if context.subject.maskIndex < 0 {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.mask.index",
+                    description: "Lottie-web intent mask records contain path mode opacity and layer-local geometry facts",
+                    path: context.codingPath.appending(.key("maskIndex"))
+                ))
+            }
+            if context.subject.vertexCount <= 0 {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.mask.vertex-count",
+                    description: "Lottie-web intent mask records contain path mode opacity and layer-local geometry facts",
+                    path: context.codingPath.appending(.key("vertexCount"))
+                ))
+            }
+            return errors
+        }
+    }
+
+    public static var mattesHaveSourceTargetFacts: Validation<LottieWebIntentTrace, LottieWebIntentTrace.Matte> {
+        Validation(
+            ruleID: "lottie-web-intent.matte.facts",
+            description: "Lottie-web intent matte records contain source target layer and mode facts"
+        ) { context in
+            var errors = stringErrors(
+                [
+                    ("targetLayerName", context.subject.targetLayerName),
+                ],
+                at: context.codingPath,
+                ruleID: "lottie-web-intent.matte.target-name",
+                description: "Lottie-web intent matte records contain source target layer and mode facts"
+            )
+            if context.subject.targetRenderElementIndex < 0 {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.matte.target-render-index",
+                    description: "Lottie-web intent matte records contain source target layer and mode facts",
+                    path: context.codingPath.appending(.key("targetRenderElementIndex"))
+                ))
+            }
+            if context.subject.targetLayerInd < 0 {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.matte.target-layer-ind",
+                    description: "Lottie-web intent matte records contain source target layer and mode facts",
+                    path: context.codingPath.appending(.key("targetLayerInd"))
+                ))
+            }
+            if context.subject.mode <= 0 {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.matte.mode",
+                    description: "Lottie-web intent matte records contain source target layer and mode facts",
+                    path: context.codingPath.appending(.key("mode"))
+                ))
+            }
+            if context.subject.sourceResolved {
+                if context.subject.sourceRenderElementIndex == nil {
+                    errors.append(error(
+                        ruleID: "lottie-web-intent.matte.source-render-index",
+                        description: "Lottie-web intent matte records contain source target layer and mode facts",
+                        path: context.codingPath.appending(.key("sourceRenderElementIndex"))
+                    ))
+                }
+                if context.subject.sourceLayerInd == nil {
+                    errors.append(error(
+                        ruleID: "lottie-web-intent.matte.source-layer-ind",
+                        description: "Lottie-web intent matte records contain source target layer and mode facts",
+                        path: context.codingPath.appending(.key("sourceLayerInd"))
+                    ))
+                }
+                if context.subject.sourceLayerName?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false {
+                    errors.append(error(
+                        ruleID: "lottie-web-intent.matte.source-layer-name",
+                        description: "Lottie-web intent matte records contain source target layer and mode facts",
+                        path: context.codingPath.appending(.key("sourceLayerName"))
+                    ))
+                }
+            }
+            return errors
+        }
+    }
+
+    public static var precompositionsHaveLocalFrameFacts:
+        Validation<LottieWebIntentTrace, LottieWebIntentTrace.Precomposition>
+    {
+        Validation(
+            ruleID: "lottie-web-intent.precomposition.facts",
+            description: "Lottie-web intent precomposition records contain local rendered frame and child layer facts"
+        ) { context in
+            var errors = stringErrors(
+                [
+                    ("layerName", context.subject.layerName),
+                    ("refId", context.subject.refId),
+                ],
+                at: context.codingPath,
+                ruleID: "lottie-web-intent.precomposition.string",
+                description: "Lottie-web intent precomposition records contain local rendered frame and child layer facts"
+            )
+            errors.append(contentsOf: numericErrors(
+                [
+                    ("startTime", context.subject.startTime),
+                    ("stretch", context.subject.stretch),
+                    ("inPoint", context.subject.inPoint),
+                    ("outPoint", context.subject.outPoint),
+                    ("renderedFrame", context.subject.renderedFrame),
+                ],
+                at: context.codingPath,
+                ruleID: "lottie-web-intent.precomposition.number",
+                description: "Lottie-web intent precomposition records contain local rendered frame and child layer facts"
+            ) { $0.isFinite })
+            if context.subject.renderElementIndex < 0 {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.precomposition.render-index",
+                    description: "Lottie-web intent precomposition records contain local rendered frame and child layer facts",
+                    path: context.codingPath.appending(.key("renderElementIndex"))
+                ))
+            }
+            if context.subject.layerInd < 0 {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.precomposition.layer-ind",
+                    description: "Lottie-web intent precomposition records contain local rendered frame and child layer facts",
+                    path: context.codingPath.appending(.key("layerInd"))
+                ))
+            }
+            if context.subject.childLayerCount < 0 {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.precomposition.child-count",
+                    description: "Lottie-web intent precomposition records contain local rendered frame and child layer facts",
+                    path: context.codingPath.appending(.key("childLayerCount"))
+                ))
+            }
+            if context.subject.builtChildElementCount < 0 {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.precomposition.built-child-count",
+                    description: "Lottie-web intent precomposition records contain local rendered frame and child layer facts",
+                    path: context.codingPath.appending(.key("builtChildElementCount"))
+                ))
+            }
+            return errors
+        }
+    }
+
+    public static var trimsHaveNormalizedFractionFacts: Validation<LottieWebIntentTrace, LottieWebIntentTrace.Trim> {
+        Validation(
+            ruleID: "lottie-web-intent.trim.facts",
+            description: "Lottie-web intent trim records contain normalized start end offset and mode facts"
+        ) { context in
+            var errors = stringErrors(
+                [
+                    ("layerName", context.subject.layerName),
+                ],
+                at: context.codingPath,
+                ruleID: "lottie-web-intent.trim.layer-name",
+                description: "Lottie-web intent trim records contain normalized start end offset and mode facts"
+            )
+            errors.append(contentsOf: numericErrors(
+                [
+                    ("startFraction", context.subject.startFraction),
+                    ("endFraction", context.subject.endFraction),
+                ],
+                at: context.codingPath,
+                ruleID: "lottie-web-intent.trim.fraction",
+                description: "Lottie-web intent trim records contain normalized start end offset and mode facts"
+            ) { $0.isFinite && (0 ... 1).contains($0) })
+            errors.append(contentsOf: numericErrors(
+                [
+                    ("offsetTurns", context.subject.offsetTurns),
+                ],
+                at: context.codingPath,
+                ruleID: "lottie-web-intent.trim.offset",
+                description: "Lottie-web intent trim records contain normalized start end offset and mode facts"
+            ) { $0.isFinite })
+            if context.subject.renderElementIndex < 0 {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.trim.render-element-index",
+                    description: "Lottie-web intent trim records contain normalized start end offset and mode facts",
+                    path: context.codingPath.appending(.key("renderElementIndex"))
+                ))
+            }
+            if context.subject.layerInd < 0 {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.trim.layer-ind",
+                    description: "Lottie-web intent trim records contain normalized start end offset and mode facts",
+                    path: context.codingPath.appending(.key("layerInd"))
+                ))
+            }
+            if context.subject.trimIndex < 0 {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.trim.index",
+                    description: "Lottie-web intent trim records contain normalized start end offset and mode facts",
+                    path: context.codingPath.appending(.key("trimIndex"))
+                ))
+            }
+            if context.subject.mode <= 0 {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.trim.mode",
+                    description: "Lottie-web intent trim records contain normalized start end offset and mode facts",
+                    path: context.codingPath.appending(.key("mode"))
+                ))
+            }
+            if context.subject.shapeCount <= 0 {
+                errors.append(error(
+                    ruleID: "lottie-web-intent.trim.shape-count",
+                    description: "Lottie-web intent trim records contain normalized start end offset and mode facts",
+                    path: context.codingPath.appending(.key("shapeCount"))
+                ))
+            }
+            return errors
+        }
+    }
+
+    public static var diagnosticsHaveReasons: Validation<LottieWebIntentTrace, LottieWebIntentTrace.Diagnostic> {
+        Validation(
+            ruleID: "lottie-web-intent.diagnostic.reason",
+            description: "Lottie-web intent diagnostics contain feature names and reasons"
+        ) { context in
+            stringErrors(
+                [
+                    ("feature", context.subject.feature),
+                    ("reason", context.subject.reason),
+                ],
+                at: context.codingPath,
+                ruleID: "lottie-web-intent.diagnostic.string",
+                description: "Lottie-web intent diagnostics contain feature names and reasons"
+            )
         }
     }
 

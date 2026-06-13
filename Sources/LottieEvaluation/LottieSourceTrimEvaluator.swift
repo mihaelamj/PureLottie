@@ -325,8 +325,6 @@ public struct LottieSourceTrimEvaluator: Sendable {
             swap(&normalizedStart, &normalizedEnd)
             swapped = true
         }
-        normalizedStart = rounded(normalizedStart, places: 4)
-        normalizedEnd = rounded(normalizedEnd, places: 4)
         return LottieSourceTrimNormalizationTrace(
             authoredStartPercent: start,
             authoredEndPercent: end,
@@ -350,11 +348,6 @@ public struct LottieSourceTrimEvaluator: Sendable {
             return offset
         }
         return value + offset
-    }
-
-    private static func rounded(_ value: Double, places: Int) -> Double {
-        let scale = pow(10, Double(places))
-        return (value * scale).rounded() / scale
     }
 
     private func resolvedMode(for trim: LottieRenderTrim, diagnostics: inout [ValidationError]) -> LottieSourceTrimMode {

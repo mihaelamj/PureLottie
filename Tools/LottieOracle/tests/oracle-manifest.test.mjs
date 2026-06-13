@@ -15,6 +15,20 @@ const evidenceRoleVocabulary = [
   'engine-divergence'
 ];
 
+function committedIntent(name) {
+  return JSON.parse(fs.readFileSync(
+    path.join(repoRoot, 'Tests/Fixtures/LottieOracle/lottie-web-intent', `${name}.json`),
+    'utf8'
+  ));
+}
+
+function committedFrame(name, sourceFrame) {
+  const intent = committedIntent(name);
+  const frame = intent.frames.find((candidate) => candidate.frame === sourceFrame);
+  assert.ok(frame, `missing frame ${sourceFrame} in ${name}`);
+  return frame;
+}
+
 test('oracle dependencies are exact external pins', () => {
   const packageJson = JSON.parse(fs.readFileSync(path.join(oracleRoot, 'package.json'), 'utf8'));
   assert.equal(packageJson.dependencies['lottie-web'], '5.13.0');
@@ -82,6 +96,45 @@ test('curated fixtures declare frame rationale and resolve to committed traces',
       assert.ok(frame.rationale.length > 20);
     }
   }
+});
+
+test('committed lottie-web traces expose feature reference facts', () => {
+  const maskFrame = committedFrame('mask-add-rectangle', 5);
+  assert.equal(maskFrame.maskCount, 1);
+  assert.equal(maskFrame.masks[0].layerName, 'Masked Box');
+  assert.equal(maskFrame.masks[0].mode, 'a');
+  assert.equal(maskFrame.masks[0].opacity, 1);
+  assert.equal(maskFrame.masks[0].vertexCount, 4);
+  assert.ok(maskFrame.masks[0].pathD.length > 0);
+
+  const matteFrame = committedFrame('alpha-matte-rectangle', 5);
+  assert.equal(matteFrame.matteCount, 1);
+  assert.equal(matteFrame.mattes[0].targetLayerName, 'Matted Box');
+  assert.equal(matteFrame.mattes[0].sourceLayerName, 'Matte Circle');
+  assert.equal(matteFrame.mattes[0].sourceResolved, true);
+  assert.equal(matteFrame.mattes[0].sourceIsMarker, true);
+
+  const precompFrames = committedIntent('precomp-static-child').frames;
+  assert.deepEqual(precompFrames.map((frame) => frame.precompositions[0].renderedFrame), [0, 5, 9]);
+  assert.equal(precompFrames[1].precompositions[0].refId, 'box_precomp');
+
+  const remappedFrames = committedIntent('time-remap-precomp-diagnosed').frames;
+  assert.deepEqual(remappedFrames.map((frame) => frame.precompositions[0].renderedFrame), [5, 5, 5]);
+  assert.ok(remappedFrames.every((frame) => frame.precompositions[0].timeRemapped === true));
+  assert.ok(remappedFrames.every((frame) => frame.precompositions[0].timeRemapValue === 5));
+
+  const trimFrame = committedFrame('trim-rectangle-half', 5);
+  assert.equal(trimFrame.trimCount, 1);
+  assert.equal(trimFrame.trims[0].startFraction, 0);
+  assert.equal(trimFrame.trims[0].endFraction, 0.5);
+  assert.equal(trimFrame.trims[0].mode, 1);
+  assert.ok(trimFrame.diagnostics.some((diagnostic) => diagnostic.feature === 'trim.selectedSegments'));
+
+  const animatedTrimFrames = committedIntent('animated-trim-path').frames;
+  assert.deepEqual(animatedTrimFrames.map((frame) => frame.trims[0].endFraction), [0, 5 / 9, 1]);
+  assert.ok(animatedTrimFrames.every((frame) => {
+    return frame.diagnostics.some((diagnostic) => diagnostic.feature === 'trim.selectedSegments');
+  }));
 });
 
 test('evidence role vocabulary is documented and exercised', () => {
