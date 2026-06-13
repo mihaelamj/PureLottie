@@ -1,11 +1,22 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { chromium } from 'playwright';
 
 const require = createRequire(import.meta.url);
 const lottieBundle = require.resolve('lottie-web/build/player/lottie.js');
 const lottiePackage = require('lottie-web/package.json');
+const playwrightPackage = require('playwright/package.json');
+const playwrightCorePath = require.resolve('playwright-core/package.json');
+const browsersPath = path.join(path.dirname(playwrightCorePath), 'browsers.json');
+const browsersData = JSON.parse(fs.readFileSync(browsersPath, 'utf8'));
+const chromiumInfo = browsersData.browsers.find((b) => b.name === 'chromium');
+const chromiumRevision = chromiumInfo ? chromiumInfo.revision : 'unknown';
+
+const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(moduleDir, '../../..');
 
 function readArgument(name) {
   const index = process.argv.indexOf(name);
@@ -141,6 +152,30 @@ export async function extractLottieIntent({
         'trim.selectedSegments are not exposed as stable lottie-web SVG runtime objects; compare normalized trim facts with the rendered SVG path records and diagnostics.'
       ],
       frames: extractedFrames
+    };
+
+    const canonicalString = JSON.stringify(result);
+    const contentHash = crypto.createHash('sha256').update(canonicalString).digest('hex');
+
+    const cleanedArgv = process.argv.map((arg, idx) => {
+      if (idx === 0) return 'node';
+      if (idx === 1) return path.relative(repoRoot, arg);
+      if (path.isAbsolute(arg) && arg.startsWith(repoRoot)) {
+        return path.relative(repoRoot, arg);
+      }
+      return arg;
+    });
+
+    result.provenance = {
+      lottieWeb: `npm:lottie-web@${lottiePackage.version}`,
+      playwright: `npm:playwright@${playwrightPackage.version}`,
+      chromiumRevision: chromiumRevision,
+      renderer,
+      scale,
+      sampleCount,
+      frames,
+      command: cleanedArgv.join(' '),
+      contentHash: `sha256:${contentHash}`
     };
 
     if (output) {

@@ -11,20 +11,6 @@ The files in this directory are the vetted regression set: each one isolates a
 specific semantic bug class, evidence roles, selected source frames, and the
 numeric browser trace used before any PNG comparison.
 
-`lowering-gate/report.json` is the committed RenderIR-to-PureLayer lowering
-gate snapshot for this corpus. It records 31 covered fixtures, 94 selected
-frames, each frame rationale, lowered node/draw/match counts, diagnostics, and
-backend findings so changes are reviewed as data before PNG/APNG inspection.
-
-`reversibility-gate/report.json` is the committed source-intent reversibility
-snapshot for this corpus. It records 31 covered fixtures, 94 selected frames,
-0 exclusions, 0 source-intent mismatches, 105 explicit path-bearing loss
-records, 1,308 reconstructed facts, and 48 unique source paths before any
-PureLayer/PureDraw lowering.
-
-The phase boundary and loss taxonomy used by that report are documented in
-`docs/lottie-format/reversibility-compiler-contract.md`.
-
 Evidence role definitions live in
 `docs/lottie-format/fixture-evidence-roles.md`.
 

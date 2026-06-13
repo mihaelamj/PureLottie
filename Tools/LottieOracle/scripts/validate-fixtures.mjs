@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { extractLottieIntent } from './extract-intent.mjs';
 
@@ -186,6 +187,29 @@ function validateCommittedIntent({ fixture, index, intentPath, sourcePath }) {
     return [failure('Committed lottie-web intent trace parses', fixture, manifestPath(index, 'lottieWebIntent'), error.message)];
   }
 
+  const hasProvenance = typeof intent.provenance === 'object' && intent.provenance !== null;
+  const verifyHash = () => {
+    if (!hasProvenance || typeof intent.provenance.contentHash !== 'string') return false;
+    const intentWithoutProvenance = { ...intent };
+    delete intentWithoutProvenance.provenance;
+    const canonicalString = JSON.stringify(intentWithoutProvenance);
+    const calculatedHash = crypto.createHash('sha256').update(canonicalString).digest('hex');
+    return intent.provenance.contentHash === `sha256:${calculatedHash}`;
+  };
+
+  const verifyProvenanceFields = () => {
+    if (!hasProvenance) return false;
+    const p = intent.provenance;
+    return typeof p.lottieWeb === 'string' && p.lottieWeb.length > 0 &&
+           typeof p.playwright === 'string' && p.playwright.startsWith('npm:playwright@') &&
+           typeof p.chromiumRevision === 'string' && p.chromiumRevision.length > 0 &&
+           p.renderer === fixture.renderer &&
+           p.scale === (fixture.scale ?? 1) &&
+           typeof p.sampleCount === 'number' &&
+           JSON.stringify(p.frames) === JSON.stringify(frameList(fixture)) &&
+           typeof p.command === 'string' && p.command.length > 0;
+  };
+
   const sourceRelativeToRepo = fixture.lottie;
   return applyValidations([
     validation('Committed intent trace has schema name purelottie.lottie-web-intent', ({ intent }) => intent.schema?.name === 'purelottie.lottie-web-intent'),
@@ -195,7 +219,9 @@ function validateCommittedIntent({ fixture, index, intentPath, sourcePath }) {
     validation('Committed intent trace uses lottie-web 5.13.0', ({ intent }) => intent.lottieWeb?.version === '5.13.0'),
     validation('Committed intent trace frame list matches the manifest', ({ intent }) => JSON.stringify((intent.frames ?? []).map((frame) => frame.frame)) === JSON.stringify(frameList(fixture))),
     validation('Committed intent trace has feature fact arrays for every selected frame', ({ intent }) => (intent.frames ?? []).every(hasFeatureFactArrays)),
-    validation('Committed intent trace has visible painted paths for every selected frame', ({ intent }) => (intent.frames ?? []).every((frame) => Number(frame.pathCount) > 0 && visiblePaintPathCount(frame) > 0))
+    validation('Committed intent trace has visible painted paths for every selected frame', ({ intent }) => (intent.frames ?? []).every((frame) => Number(frame.pathCount) > 0 && visiblePaintPathCount(frame) > 0)),
+    validation('Committed intent trace carries complete generation provenance', () => verifyProvenanceFields()),
+    validation('Committed intent trace content hash matches its actual content', () => verifyHash())
   ], {
     fixture,
     intent,
@@ -212,18 +238,29 @@ async function validateLiveLottieWeb({ fixture, index, sourcePath, intentPath, s
     return [failure('Committed lottie-web intent trace parses before live validation', fixture, manifestPath(index, 'lottieWebIntent'), error.message)];
   }
 
+  const targetSampleCount = committedIntent.provenance?.sampleCount ?? sampleCount;
+
   let liveIntent;
   try {
     liveIntent = await extractLottieIntent({
       input: sourcePath,
+      source: fixture.lottie,
       frames: frameList(fixture),
       scale: Number(fixture.scale ?? 1),
       renderer: fixture.renderer ?? 'svg',
-      sampleCount
+      sampleCount: targetSampleCount
     });
   } catch (error) {
     return [failure('Fixture loads in pinned lottie-web', fixture, manifestPath(index, 'lottie'), error.message)];
   }
+
+  const verifyLiveHash = () => {
+    const liveWithoutProvenance = { ...liveIntent };
+    delete liveWithoutProvenance.provenance;
+    const canonicalString = JSON.stringify(liveWithoutProvenance);
+    const liveHash = crypto.createHash('sha256').update(canonicalString).digest('hex');
+    return `sha256:${liveHash}` === committedIntent.provenance?.contentHash;
+  };
 
   return applyValidations([
     validation('Live lottie-web version matches the pinned package', ({ liveIntent }) => liveIntent.lottieWeb?.version === '5.13.0'),
@@ -232,7 +269,8 @@ async function validateLiveLottieWeb({ fixture, index, sourcePath, intentPath, s
     validation('Live lottie-web layer counts match committed trace', ({ liveIntent }) => JSON.stringify(liveIntent.frames.map((frame) => frame.layerCount)) === JSON.stringify(committedIntent.frames.map((frame) => frame.layerCount))),
     validation('Live lottie-web path counts match committed trace', ({ liveIntent }) => JSON.stringify(liveIntent.frames.map((frame) => frame.pathCount)) === JSON.stringify(committedIntent.frames.map((frame) => frame.pathCount))),
     validation('Live lottie-web feature counts match committed trace', ({ liveIntent }) => JSON.stringify(featureCounts(liveIntent.frames)) === JSON.stringify(featureCounts(committedIntent.frames))),
-    validation('Live lottie-web selected frames have visible painted paths when required', ({ liveIntent }) => liveIntent.frames.every((frame) => Number(frame.pathCount) > 0 && visiblePaintPathCount(frame) > 0), ({ fixture }) => fixture.expectReferenceNonEmpty === true)
+    validation('Live lottie-web selected frames have visible painted paths when required', ({ liveIntent }) => liveIntent.frames.every((frame) => Number(frame.pathCount) > 0 && visiblePaintPathCount(frame) > 0), ({ fixture }) => fixture.expectReferenceNonEmpty === true),
+    validation('Live regenerated intent content hash matches the committed content hash', () => verifyLiveHash())
   ], { fixture, liveIntent, path: manifestPath(index, 'lottie') });
 }
 

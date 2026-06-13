@@ -41465,5 +41465,22 @@
       "trims": [],
       "diagnostics": []
     }
-  ]
+  ],
+  "provenance": {
+    "lottieWeb": "npm:lottie-web@5.13.0",
+    "playwright": "npm:playwright@1.60.0",
+    "chromiumRevision": "1223",
+    "renderer": "svg",
+    "scale": 1,
+    "sampleCount": 1024,
+    "frames": [
+      0,
+      58,
+      116,
+      174,
+      232
+    ],
+    "command": "node Tools/LottieOracle/scripts/build-witness-corpus.mjs",
+    "contentHash": "sha256:d6bf94ee1439b4f5d3ef108c32f53f38f4d94d2de5f35d0ebd2fbf9c1250ff23"
+  }
 }
