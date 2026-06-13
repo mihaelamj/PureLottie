@@ -104,6 +104,26 @@ struct LottieRenderOracleTests {
         #expect(abs(box.maxY - 47) <= margin, "bottom \(box.maxY) vs intersection 47")
     }
 
+    @Test("rounded rectangle renders at the rect bounding box (corners do not change the bbox)")
+    func roundedRectangleCoversRectBounds() throws {
+        // rc p=[32,32] s=[34,22] r=6 -> x[15,49] y[21,43]. Rounding cuts the corners
+        // but does not change the bounding box. (#134 flagged a ~1.5% divergence vs
+        // lottie-web; that is corner anti-aliasing, not a misplaced or wrong-size box.)
+        let json = """
+        {"v":"5.7.4","fr":10,"ip":0,"op":10,"w":64,"h":64,"layers":[{"ty":4,"ind":1,"ip":0,"op":10,"ks":{},"shapes":[
+          {"ty":"rc","p":{"a":0,"k":[32,32]},"s":{"a":0,"k":[34,22]},"r":{"a":0,"k":6}},
+          {"ty":"fl","c":{"a":0,"k":[0,0.5,1,1]},"o":{"a":0,"k":100}}
+        ]}]}
+        """
+        let box = try coveredBoundingBox(json)
+        #expect(box.maxX >= 0, "nothing painted")
+        let margin = 2
+        #expect(abs(box.minX - 15) <= margin, "left \(box.minX) vs 15")
+        #expect(abs(box.maxX - 49) <= margin, "right \(box.maxX) vs 49")
+        #expect(abs(box.minY - 21) <= margin, "top \(box.minY) vs 21")
+        #expect(abs(box.maxY - 43) <= margin, "bottom \(box.maxY) vs 43")
+    }
+
     /// Render an imported single-layer Lottie through the real engine and return
     /// the bounding box of pixels that differ from the (background) corner pixel.
     private func coveredBoundingBox(_ json: String) throws -> (minX: Int, minY: Int, maxX: Int, maxY: Int) {
