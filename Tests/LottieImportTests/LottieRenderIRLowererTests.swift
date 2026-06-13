@@ -106,6 +106,54 @@ struct LottieRenderIRLowererTests {
         #expect(wrapper.sublayers.first?.name == target.id.description)
     }
 
+    @Test("Lottie st stroke style lowers cap/join/miter/dash onto ShapeLayer (PureLayer#157)")
+    func strokeStyleLowersOntoShapeLayer() throws {
+        // lc:2->round, lj:3->bevel, ml2:6 takes precedence over ml:4, dash d=4/g=3 with
+        // offset o=1 -> lineDashPattern [4,3] phase 1. None of these are reported as gaps now.
+        let frame = try renderFrame(from: """
+        {"v":"5.7.4","fr":10,"ip":0,"op":10,"w":64,"h":64,"layers":[{"ty":4,"nm":"L","ind":1,"ip":0,"op":10,"st":0,"ks":{},"shapes":[
+          {"ty":"rc","nm":"Box","p":{"a":0,"k":[32,32]},"s":{"a":0,"k":[20,20]},"r":{"a":0,"k":0}},
+          {"ty":"st","nm":"S","c":{"a":0,"k":[0,0,1,1]},"o":{"a":0,"k":100},"w":{"a":0,"k":3},
+           "lc":2,"lj":3,"ml":4,"ml2":{"a":0,"k":6},
+           "d":[{"n":"d","v":{"a":0,"k":4}},{"n":"g","v":{"a":0,"k":3}},{"n":"o","v":{"a":0,"k":1}}]}
+        ]}]}
+        """, at: 0)
+
+        let tree = LottieRenderIRLowerer().lower(frame)
+
+        let shape = try #require(allShapeLayers(in: tree.root).first { $0.strokeColor != nil })
+        #expect(shape.lineCap == .round)
+        #expect(shape.lineJoin == .bevel)
+        #expect(abs(shape.miterLimit - 6) < 0.0001, "ml2 should win over ml")
+        #expect(shape.lineDashPattern == [4, 3])
+        #expect(abs(shape.lineDashPhase - 1) < 0.0001)
+        #expect(abs(shape.lineWidth - 3) < 0.0001)
+        // The style fields are rendered now, so none are reported as backend gaps.
+        for gap in ["stroke line cap", "stroke line join", "stroke miter limit", "secondary stroke miter limit", "stroke dash pattern"] {
+            #expect(!tree.report.findings.contains { $0.feature == gap }, "\(gap) must not be reported")
+        }
+    }
+
+    @Test("Lottie st maps the other cap/join codes and falls back to ml without ml2")
+    func strokeStyleMapsRemainingCodes() throws {
+        // lc:3->square, lj:2->round, no ml2 so ml:7 is the miter limit, no dash -> solid.
+        let frame = try renderFrame(from: """
+        {"v":"5.7.4","fr":10,"ip":0,"op":10,"w":64,"h":64,"layers":[{"ty":4,"nm":"L","ind":1,"ip":0,"op":10,"st":0,"ks":{},"shapes":[
+          {"ty":"rc","nm":"Box","p":{"a":0,"k":[32,32]},"s":{"a":0,"k":[20,20]},"r":{"a":0,"k":0}},
+          {"ty":"st","nm":"S","c":{"a":0,"k":[0,0,1,1]},"o":{"a":0,"k":100},"w":{"a":0,"k":2},"lc":3,"lj":2,"ml":7}
+        ]}]}
+        """, at: 0)
+
+        let tree = LottieRenderIRLowerer().lower(frame)
+
+        let shape = try #require(allShapeLayers(in: tree.root).first { $0.strokeColor != nil })
+        #expect(shape.lineCap == .square)
+        #expect(shape.lineJoin == .round)
+        #expect(abs(shape.miterLimit - 7) < 0.0001)
+        #expect(shape.lineDashPattern.isEmpty, "no dash -> solid line")
+        #expect(abs(shape.lineDashPhase) < 0.0001)
+    }
+
     @Test("precomposition backend evidence preserves time remap frame mapping")
     func precompositionBackendEvidencePreservesTimeRemapFrameMapping() throws {
         let frame = try renderFrame(fixture: "time-remap-precomp-diagnosed.json", at: 0)
@@ -270,12 +318,15 @@ struct LottieRenderIRLowererTests {
             owner: .backendCapability
         )
         try assertFinding(findings, "mask mode 's'", path: "root > layer 'Shapes' > mask 'Subtract'", owner: .backendCapability)
+        // Stroke cap/join/miter/dash now render through ShapeLayer (PureLayer#157), so
+        // they are no longer reported as gaps. Only the shape blend mode remains a gap
+        // (the default standard compositor does not apply it; faithful Core Animation).
         try assertFinding(findings, "stroke blend mode", path: "root > layer 'Shapes' > stroke 'Fancy'", owner: .backendCapability)
-        try assertFinding(findings, "stroke line cap", path: "root > layer 'Shapes' > stroke 'Fancy'", owner: .backendCapability)
-        try assertFinding(findings, "stroke line join", path: "root > layer 'Shapes' > stroke 'Fancy'", owner: .backendCapability)
-        try assertFinding(findings, "stroke miter limit", path: "root > layer 'Shapes' > stroke 'Fancy'", owner: .backendCapability)
-        try assertFinding(findings, "secondary stroke miter limit", path: "root > layer 'Shapes' > stroke 'Fancy'", owner: .backendCapability)
-        try assertFinding(findings, "stroke dash pattern", path: "root > layer 'Shapes' > stroke 'Fancy'", owner: .backendCapability)
+        #expect(!findings.contains { $0.feature == "stroke line cap" }, "line cap renders, must not be reported")
+        #expect(!findings.contains { $0.feature == "stroke line join" }, "line join renders, must not be reported")
+        #expect(!findings.contains { $0.feature == "stroke miter limit" }, "miter limit renders, must not be reported")
+        #expect(!findings.contains { $0.feature == "secondary stroke miter limit" }, "ml2 renders, must not be reported")
+        #expect(!findings.contains { $0.feature == "stroke dash pattern" }, "dash renders, must not be reported")
         try assertFinding(findings, "trim offset", path: "root > layer 'Shapes' > trim 'Individual Trim'", owner: .backendCapability)
         try assertFinding(
             findings,

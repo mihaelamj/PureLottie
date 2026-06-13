@@ -124,6 +124,29 @@ struct LottieRenderOracleTests {
         #expect(abs(box.maxY - 43) <= margin, "bottom \(box.maxY) vs 43")
     }
 
+    @Test("split-position ellipse renders the full shape (PureLayer#160 masksToBounds fix verified)")
+    func splitPositionEllipseRendersFullShape() throws {
+        // Ellipse shape p=[0,0] s=[16,16] under a split layer position (x animated, frame-0
+        // value 18; y static 32). The shape sits at its local origin and the layer transform
+        // places it; full ellipse centred at (18,32), radius 8 -> x[10,26] y[24,40], entirely
+        // inside the 64x64 canvas. Before the PureLayer#160 fix the canvas masksToBounds clip
+        // was offset by the layer translation and ate the negative-local half, rendering only
+        // the +x,+y quadrant (~x[18,25] y[32,39]). This asserts the full shape now renders.
+        let url = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Tests/Fixtures/LottieOracle/split-position-ellipse.json")
+        let json = try String(contentsOf: url, encoding: .utf8)
+        let box = try coveredBoundingBox(json)
+        #expect(box.maxX >= 0, "nothing painted")
+        let margin = 2
+        #expect(abs(box.minX - 10) <= margin, "left \(box.minX) vs 10 (was clipped to 18)")
+        #expect(abs(box.maxX - 26) <= margin, "right \(box.maxX) vs 26")
+        #expect(abs(box.minY - 24) <= margin, "top \(box.minY) vs 24 (was clipped to 32)")
+        #expect(abs(box.maxY - 40) <= margin, "bottom \(box.maxY) vs 40")
+    }
+
     /// Render an imported single-layer Lottie through the real engine and return
     /// the bounding box of pixels that differ from the (background) corner pixel.
     private func coveredBoundingBox(_ json: String) throws -> (minX: Int, minY: Int, maxX: Int, maxY: Int) {
