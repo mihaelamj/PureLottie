@@ -56,4 +56,58 @@ struct LottieFeatureCoverageTests {
     func pinnedKeyCount() throws {
         #expect(try Self.schemaKeys().count == 70)
     }
+
+    /// The JSON keys the model actually decodes, extracted from the `CodingKeys`
+    /// enums in the LottieModel sources. Handles `case a = "x"` (raw value) and
+    /// comma-separated bare cases (`case x, y`, where the key equals the case
+    /// name). The model is Decodable-only with private CodingKeys, so this reads
+    /// source: a key with no CodingKey is not decoded. Extra (non-key) identifiers
+    /// only enlarge this set, so they cannot make a genuinely-undecoded `.modeled`
+    /// key pass the subset check below.
+    static func decodedCodingKeys() throws -> Set<String> {
+        let modelDir = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Sources/LottieModel")
+        let files = try FileManager.default
+            .contentsOfDirectory(at: modelDir, includingPropertiesForKeys: nil)
+            .filter { $0.pathExtension == "swift" }
+        var keys: Set<String> = []
+        for file in files {
+            let text = try String(contentsOf: file, encoding: .utf8)
+            var inBlock = false
+            for rawLine in text.split(whereSeparator: \.isNewline) {
+                let line = rawLine.trimmingCharacters(in: .whitespaces)
+                if line.contains("enum CodingKeys") { inBlock = true
+                    continue
+                }
+                if inBlock, line == "}" { inBlock = false
+                    continue
+                }
+                guard inBlock, line.hasPrefix("case ") else { continue }
+                for token in line.dropFirst("case ".count).split(separator: ",") {
+                    let trimmed = token.trimmingCharacters(in: .whitespaces)
+                    if let eq = trimmed.range(of: "=") {
+                        let raw = trimmed[eq.upperBound...]
+                            .trimmingCharacters(in: CharacterSet(charactersIn: " \""))
+                        if !raw.isEmpty { keys.insert(raw) }
+                    } else if !trimmed.isEmpty {
+                        keys.insert(trimmed)
+                    }
+                }
+            }
+        }
+        return keys
+    }
+
+    @Test("every .modeled key is actually decoded by a CodingKey (no modeled lie)")
+    func modeledKeysAreDecoded() throws {
+        let decoded = try Self.decodedCodingKeys()
+        let modeled = LottieFeatureCoverage.registry
+            .filter { $0.value == .modeled }
+            .map(\.key)
+        let undecoded = Set(modeled).subtracting(decoded)
+        #expect(undecoded.isEmpty, ".modeled keys with no CodingKey (silently dropped): \(undecoded.sorted())")
+    }
 }

@@ -27,14 +27,16 @@ public enum LottieFeatureCoverage {
     /// (`LottieFeatureCoverageTests`) checks this set against the pinned schema.
     public static let registry: [String: Disposition] = [
         // Document / animation
-        "v": .modeled, "ver": .modeled, "fr": .modeled, "ip": .modeled,
+        // ver: the model reads only `v`; `ver` is recognized but not decoded.
+        "v": .modeled, "ver": .reported, "fr": .modeled, "ip": .modeled,
         "op": .modeled, "w": .modeled, "h": .modeled, "nm": .modeled,
         "assets": .modeled, "layers": .modeled, "markers": .reported,
         "meta": .reported, "custom": .reported,
         // Slots are not yet implemented: recognized and reported, not dropped.
         "slots": .reported, "sid": .reported,
         // Assets
-        "id": .modeled, "refId": .modeled, "u": .modeled, "e": .modeled,
+        // u: image file path is not decoded (image layers are reported-unsupported).
+        "id": .modeled, "refId": .modeled, "u": .reported, "e": .modeled,
         // Layers
         "ty": .modeled, "hd": .modeled, "ind": .modeled, "parent": .modeled,
         "ks": .modeled, "ao": .modeled, "tt": .modeled, "tp": .modeled,
@@ -46,7 +48,9 @@ public enum LottieFeatureCoverage {
         "o": .modeled, "sk": .modeled, "sa": .modeled,
         // Shapes (styles, geometry, modifiers)
         "c": .modeled, "lc": .modeled, "lj": .modeled, "ml": .modeled,
-        "ml2": .modeled, "d": .modeled, "g": .modeled, "np": .modeled,
+        // g (gradient colors) and np (group property count) are not decoded:
+        // gradient fill/stroke is reported-unsupported, np is ignored.
+        "ml2": .modeled, "d": .modeled, "g": .reported, "np": .reported,
         "it": .modeled, "pt": .modeled, "ir": .modeled, "is": .modeled,
         "or": .modeled, "os": .modeled, "sy": .modeled, "m": .modeled,
         // Stroke dash
