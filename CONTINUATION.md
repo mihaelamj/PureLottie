@@ -53,9 +53,9 @@ tests, the tree is clean except the intended files, and the commit is pushed.
 ## 3. Current state and resume point
 
 - `main` is the single integration branch; begin from it.
-- #103 (witnessed vs asserted): landed on `main`.
-- #104 (derive tolerance bounds): the derivations and the matrix-translation `< 64` CSS-px domain enforcement are on `main`; the issue is still open. Verify every tolerance has a derivation or is explicitly `assumed`, confirm the domain test stays green, then close it.
-- #105, #106, #107, #108, #113, #114, #115, #117, #118 are not started.
+- #103, #104, #105, #106, #107, #108, #113, #114, #115 are landed on `main`.
+- #117 (totality/fuzzing) is implemented and verified on the issue branch.
+- #118 is the next and final open child issue.
 - #102 is the epic; close it only when all children are closed.
 
 ## 4. Codified rules: compiler-correctness, first principles, Knuth
