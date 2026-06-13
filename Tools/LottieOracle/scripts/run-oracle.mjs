@@ -121,6 +121,14 @@ async function runFixture(fixture, options) {
   const renderer = fixture.renderer ?? 'svg';
 
   fs.mkdirSync(outputRoot, { recursive: true });
+  const lottieWebIntentFile = path.join(outputRoot, 'lottie-web-intent.json');
+  const lottieWebIntent = await extractLottieIntent({
+    input: fixturePath,
+    output: lottieWebIntentFile,
+    frames,
+    scale,
+    renderer
+  });
   execFileSync(
     'swift',
     [
@@ -133,7 +141,9 @@ async function runFixture(fixture, options) {
       '--frames',
       framesArgument,
       '--scale',
-      String(scale)
+      String(scale),
+      '--lottie-web-intent',
+      lottieWebIntentFile
     ],
     { cwd: repoRoot, stdio: 'inherit' }
   );
@@ -141,14 +151,6 @@ async function runFixture(fixture, options) {
   const reference = await renderReferenceFrames({
     input: fixturePath,
     output: referenceDir,
-    frames,
-    scale,
-    renderer
-  });
-  const lottieWebIntentFile = path.join(outputRoot, 'lottie-web-intent.json');
-  const lottieWebIntent = await extractLottieIntent({
-    input: fixturePath,
-    output: lottieWebIntentFile,
     frames,
     scale,
     renderer

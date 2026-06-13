@@ -105,13 +105,50 @@ public struct LottieRenderedArtifactManifest: Codable, Equatable, Sendable, Vali
         public var frameIndex: Int?
         public var sourceFrame: Double?
         public var timeSeconds: Double?
+        public var evidenceLinks: [EvidenceLink]?
 
-        public init(kind: String, path: String, frameIndex: Int?, sourceFrame: Double?, timeSeconds: Double?) {
+        public init(
+            kind: String,
+            path: String,
+            frameIndex: Int?,
+            sourceFrame: Double?,
+            timeSeconds: Double?,
+            evidenceLinks: [EvidenceLink]? = nil
+        ) {
             self.kind = kind
             self.path = path
             self.frameIndex = frameIndex
             self.sourceFrame = sourceFrame
             self.timeSeconds = timeSeconds
+            self.evidenceLinks = evidenceLinks
+        }
+
+        public struct EvidenceLink: Codable, Equatable, Sendable, Validatable {
+            public var kind: String
+            public var path: String
+            public var frameIndex: Int?
+            public var sourceFrame: Double?
+            public var timeSeconds: Double?
+            public var rowAddress: String?
+            public var note: String
+
+            public init(
+                kind: String,
+                path: String,
+                frameIndex: Int?,
+                sourceFrame: Double?,
+                timeSeconds: Double?,
+                rowAddress: String?,
+                note: String
+            ) {
+                self.kind = kind
+                self.path = path
+                self.frameIndex = frameIndex
+                self.sourceFrame = sourceFrame
+                self.timeSeconds = timeSeconds
+                self.rowAddress = rowAddress
+                self.note = note
+            }
         }
     }
 
@@ -225,6 +262,16 @@ public final class LottieRenderedArtifactManifestValidator {
                 in: manifest,
                 errors: &errors
             )
+            if let evidenceLinks = manifest.artifacts[artifactIndex].evidenceLinks {
+                for linkIndex in evidenceLinks.indices {
+                    visit(
+                        evidenceLinks[linkIndex],
+                        at: JSONPath([.key("artifacts"), .index(artifactIndex), .key("evidenceLinks"), .index(linkIndex)]),
+                        in: manifest,
+                        errors: &errors
+                    )
+                }
+            }
         }
         visit(manifest.evidence, at: JSONPath([.key("evidence")]), in: manifest, errors: &errors)
         for referenceIndex in manifest.evidence.references.indices {
@@ -351,13 +398,17 @@ public enum LottieRenderedArtifactManifestBuiltinValidation {
 
     public static let supportedEvidenceKinds: Set<String> = [
         "apng-report",
+        "backend-evidence",
         "geometry-csv",
         "geometry-json",
         "import-report",
         "lottie-web-intent",
         "oracle-summary",
         "render-ir",
+        "validation-report",
     ]
+
+    public static let supportedEvidenceLinkKinds: Set<String> = supportedEvidenceKinds
 
     public static let geometryEvidenceKinds: Set<String> = [
         "geometry-csv",
@@ -384,6 +435,8 @@ public enum LottieRenderedArtifactManifestBuiltinValidation {
             LottieRenderedArtifactManifestAnyValidation(rendererIdentityIsPresent),
             LottieRenderedArtifactManifestAnyValidation(exportPolicyIsComplete),
             LottieRenderedArtifactManifestAnyValidation(artifactRecordsArePathBearingAndUnique),
+            LottieRenderedArtifactManifestAnyValidation(artifactEvidenceLinksArePathBearing),
+            LottieRenderedArtifactManifestAnyValidation(frameArtifactsLinkSourceIntentAndGeometry),
             LottieRenderedArtifactManifestAnyValidation(evidenceReferencesArePathBearing),
             LottieRenderedArtifactManifestAnyValidation(evidenceContainsSourceIntentAndGeometry),
             LottieRenderedArtifactManifestAnyValidation(findingsArePathBearing),
@@ -543,6 +596,93 @@ public enum LottieRenderedArtifactManifestBuiltinValidation {
                     if artifact.timeSeconds.map({ isFinite($0) && $0 >= 0 }) != true {
                         errors.append(frameArtifactError("timeSeconds", artifactPath))
                     }
+                    if artifact.evidenceLinks?.isEmpty != false {
+                        errors.append(frameArtifactError("evidenceLinks", artifactPath))
+                    }
+                }
+            }
+            return errors
+        }
+    }
+
+    public static var artifactEvidenceLinksArePathBearing:
+        Validation<LottieRenderedArtifactManifest, LottieRenderedArtifactManifest.Artifact.EvidenceLink>
+    {
+        Validation(
+            ruleID: "rendered-artifact-manifest.artifact-evidence.path-bearing",
+            description: "Rendered artifact evidence links use stable kinds paths frame addresses and notes"
+        ) { context in
+            var errors: [ValidationError] = []
+            if !supportedEvidenceLinkKinds.contains(context.subject.kind) {
+                errors.append(artifactEvidenceLinkError("kind", context))
+            }
+            if isBlank(context.subject.path) {
+                errors.append(artifactEvidenceLinkError("path", context))
+            }
+            if let frameIndex = context.subject.frameIndex, frameIndex < 0 {
+                errors.append(artifactEvidenceLinkError("frameIndex", context))
+            }
+            if let sourceFrame = context.subject.sourceFrame, !isFinite(sourceFrame) {
+                errors.append(artifactEvidenceLinkError("sourceFrame", context))
+            }
+            if let timeSeconds = context.subject.timeSeconds, !isFinite(timeSeconds) || timeSeconds < 0 {
+                errors.append(artifactEvidenceLinkError("timeSeconds", context))
+            }
+            if evidenceLinkRequiresRowAddress(context.subject.kind) {
+                if context.subject.rowAddress.map(isBlank) != false {
+                    errors.append(artifactEvidenceLinkError("rowAddress", context))
+                } else if evidenceLinkRequiresJSONFrameAddress(context.subject.kind),
+                          context.subject.rowAddress.map(isJSONFrameRowAddress) != true
+                {
+                    errors.append(artifactEvidenceLinkError("rowAddress", context))
+                }
+            }
+            if context.subject.note.trimmingCharacters(in: .whitespacesAndNewlines).count < 20 {
+                errors.append(artifactEvidenceLinkError("note", context))
+            }
+            return errors
+        }
+    }
+
+    public static var frameArtifactsLinkSourceIntentAndGeometry:
+        Validation<LottieRenderedArtifactManifest, LottieRenderedArtifactManifest>
+    {
+        Validation(
+            ruleID: "rendered-artifact-manifest.artifact-evidence.required",
+            description: "Rendered frame artifacts link to source-intent and geometry evidence for the same frame"
+        ) { context in
+            var errors: [ValidationError] = []
+            let evidenceKeys = Set(context.subject.evidence.references.map(evidenceKey))
+            for artifactIndex in context.subject.artifacts.indices {
+                let artifact = context.subject.artifacts[artifactIndex]
+                guard artifact.kind == "png-frame" else { continue }
+                let artifactPath = context.codingPath.appending(.key("artifacts")).appending(.index(artifactIndex))
+                let links = artifact.evidenceLinks ?? []
+                if !links.contains(where: { $0.kind == "lottie-web-intent" }) {
+                    errors.append(frameArtifactError("evidenceLinks", artifactPath))
+                }
+                if !links.contains(where: { geometryEvidenceKinds.contains($0.kind) }) {
+                    errors.append(frameArtifactError("evidenceLinks", artifactPath))
+                }
+                for linkIndex in links.indices {
+                    let link = links[linkIndex]
+                    let linkPath = artifactPath.appending(.key("evidenceLinks")).appending(.index(linkIndex))
+                    if !evidenceKeys.contains(evidenceKey(link)) {
+                        errors.append(error(
+                            ruleID: "rendered-artifact-manifest.artifact-evidence.reference",
+                            description: "Rendered frame artifacts link to source-intent and geometry evidence for the same frame",
+                            at: linkPath.appending(.key("path"))
+                        ))
+                    }
+                    if link.frameIndex != artifact.frameIndex {
+                        errors.append(frameArtifactEvidenceAddressError("frameIndex", linkPath))
+                    }
+                    if !optionalDoublesMatch(link.sourceFrame, artifact.sourceFrame) {
+                        errors.append(frameArtifactEvidenceAddressError("sourceFrame", linkPath))
+                    }
+                    if !optionalDoublesMatch(link.timeSeconds, artifact.timeSeconds) {
+                        errors.append(frameArtifactEvidenceAddressError("timeSeconds", linkPath))
+                    }
                 }
             }
             return errors
@@ -688,6 +828,25 @@ public enum LottieRenderedArtifactManifestBuiltinValidation {
         )
     }
 
+    private static func artifactEvidenceLinkError(
+        _ key: String,
+        _ context: ValidationContext<LottieRenderedArtifactManifest, LottieRenderedArtifactManifest.Artifact.EvidenceLink>
+    ) -> ValidationError {
+        error(
+            ruleID: "rendered-artifact-manifest.artifact-evidence.path-bearing",
+            description: "Rendered artifact evidence links use stable kinds paths frame addresses and notes",
+            at: context.codingPath.appending(.key(key))
+        )
+    }
+
+    private static func frameArtifactEvidenceAddressError(_ key: String, _ linkPath: JSONPath) -> ValidationError {
+        error(
+            ruleID: "rendered-artifact-manifest.artifact-evidence.address",
+            description: "Rendered frame artifacts link to source-intent and geometry evidence for the same frame",
+            at: linkPath.appending(.key(key))
+        )
+    }
+
     private static func findingError(
         _ key: String,
         _ context: ValidationContext<LottieRenderedArtifactManifest, LottieRenderedArtifactManifest.Finding>
@@ -709,6 +868,42 @@ public enum LottieRenderedArtifactManifestBuiltinValidation {
 
     private static func isFinite(_ value: Double) -> Bool {
         value.isFinite
+    }
+
+    private static func evidenceLinkRequiresRowAddress(_ kind: String) -> Bool {
+        kind == "lottie-web-intent" || geometryEvidenceKinds.contains(kind)
+    }
+
+    private static func evidenceLinkRequiresJSONFrameAddress(_ kind: String) -> Bool {
+        kind == "lottie-web-intent" || kind == "geometry-json"
+    }
+
+    private static func isJSONFrameRowAddress(_ value: String) -> Bool {
+        let prefix = "$.frames["
+        guard value.hasPrefix(prefix), value.hasSuffix("]") else { return false }
+        let start = value.index(value.startIndex, offsetBy: prefix.count)
+        let end = value.index(before: value.endIndex)
+        let index = value[start ..< end]
+        return !index.isEmpty && index.allSatisfy(\.isNumber)
+    }
+
+    private static func evidenceKey(_ reference: LottieRenderedArtifactManifest.Evidence.Reference) -> String {
+        "\(reference.kind)\u{1F}\(reference.path)"
+    }
+
+    private static func evidenceKey(_ link: LottieRenderedArtifactManifest.Artifact.EvidenceLink) -> String {
+        "\(link.kind)\u{1F}\(link.path)"
+    }
+
+    private static func optionalDoublesMatch(_ lhs: Double?, _ rhs: Double?) -> Bool {
+        switch (lhs, rhs) {
+        case let (.some(lhs), .some(rhs)):
+            isFinite(lhs) && isFinite(rhs) && abs(lhs - rhs) <= 0.000_001
+        case (.none, .none):
+            true
+        default:
+            false
+        }
     }
 
     private static func error(ruleID: String, description: String, at path: JSONPath) -> ValidationError {

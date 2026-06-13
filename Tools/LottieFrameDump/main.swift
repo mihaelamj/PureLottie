@@ -75,6 +75,19 @@ struct LottieFrameDump {
             frameTiming: frameTiming,
             geometryTraceFiles: geometryTraceFiles
         )
+        try writeRenderedArtifactManifest(
+            animation: animation,
+            input: options.input,
+            output: options.output,
+            command: CommandLine.arguments.joined(separator: " "),
+            scale: options.scale,
+            validationErrors: validationErrors,
+            importFindings: importFindings,
+            dumpedFrames: dumpedFrames,
+            frameTiming: frameTiming,
+            geometryTraceFiles: geometryTraceFiles,
+            lottieWebIntent: options.lottieWebIntent
+        )
     }
 
     private static func fileName(for frame: Double) -> String {
@@ -134,6 +147,234 @@ struct LottieFrameDump {
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
         let data = try encoder.encode(summary)
         try data.write(to: output.appendingPathComponent("oracle-summary.json"))
+    }
+
+    private static func writeRenderedArtifactManifest(
+        animation: LottieAnimation,
+        input: URL,
+        output: URL,
+        command: String,
+        scale: Double,
+        validationErrors: [ValidationError],
+        importFindings: [ImportReport.Finding],
+        dumpedFrames: [DumpFrameSummary],
+        frameTiming: LottieArtifactFrameTiming,
+        geometryTraceFiles: GeometryTraceFiles,
+        lottieWebIntent: URL
+    ) throws {
+        let intentTrace = try LottieWebIntentTrace.decodeValidated(from: Data(contentsOf: lottieWebIntent))
+        try validateIntentTrace(intentTrace, animation: animation, scale: scale, dumpedFrames: dumpedFrames)
+        let intentPath = manifestPath(from: output, to: lottieWebIntent)
+        let manifest = LottieRenderedArtifactManifest(
+            schema: .init(name: "purelottie.rendered-artifact-manifest", version: 1),
+            source: .init(
+                fixtureID: input.deletingPathExtension().lastPathComponent,
+                path: input.path,
+                animationName: animation.name,
+                width: animation.width,
+                height: animation.height,
+                frameRate: animation.frameRate,
+                inPoint: animation.inPoint,
+                outPoint: animation.outPoint
+            ),
+            renderer: .init(
+                name: "LottieFrameDump",
+                backend: "PureLayer",
+                version: "local",
+                command: command
+            ),
+            export: .init(
+                kind: "png-sequence",
+                policy: frameTiming.policy.rawValue,
+                scale: scale,
+                requestedFPS: animation.frameRate,
+                generatedFrameCount: dumpedFrames.count
+            ),
+            artifacts: renderedArtifacts(
+                dumpedFrames: dumpedFrames,
+                intentPath: intentPath,
+                geometryPath: geometryTraceFiles.json
+            ),
+            evidence: .init(references: evidenceReferences(
+                intentPath: intentPath,
+                geometryTraceFiles: geometryTraceFiles
+            )),
+            findings: manifestFindings(validationErrors: validationErrors, importFindings: importFindings)
+        )
+        try manifest.validate()
+
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        try encoder.encode(manifest).write(to: output.appendingPathComponent("rendered-artifact-manifest.json"))
+    }
+
+    private static func validateIntentTrace(
+        _ trace: LottieWebIntentTrace,
+        animation: LottieAnimation,
+        scale: Double,
+        dumpedFrames: [DumpFrameSummary]
+    ) throws {
+        guard trace.width == animation.width, trace.height == animation.height else {
+            throw UsageError("Lottie-web intent dimensions do not match the source animation.")
+        }
+        guard abs(trace.scale - scale) <= 0.000_001 else {
+            throw UsageError("Lottie-web intent scale \(trace.scale) does not match requested scale \(scale).")
+        }
+        guard trace.frames.count == dumpedFrames.count else {
+            throw UsageError("Lottie-web intent frame count \(trace.frames.count) does not match rendered frame count \(dumpedFrames.count).")
+        }
+        for index in dumpedFrames.indices {
+            let expected = dumpedFrames[index].frame
+            let actual = trace.frames[index].frame
+            guard abs(expected - actual) <= 0.000_001 else {
+                throw UsageError("Lottie-web intent row \(index) is frame \(actual), expected rendered source frame \(expected).")
+            }
+        }
+    }
+
+    private static func renderedArtifacts(
+        dumpedFrames: [DumpFrameSummary],
+        intentPath: String,
+        geometryPath: String
+    ) -> [LottieRenderedArtifactManifest.Artifact] {
+        dumpedFrames.enumerated().map { index, frame in
+            LottieRenderedArtifactManifest.Artifact(
+                kind: "png-frame",
+                path: frame.file,
+                frameIndex: index,
+                sourceFrame: frame.frame,
+                timeSeconds: frame.timeSeconds,
+                evidenceLinks: frameEvidenceLinks(
+                    index: index,
+                    sourceFrame: frame.frame,
+                    timeSeconds: frame.timeSeconds,
+                    intentPath: intentPath,
+                    geometryPath: geometryPath
+                )
+            )
+        }
+    }
+
+    private static func frameEvidenceLinks(
+        index: Int,
+        sourceFrame: Double,
+        timeSeconds: Double,
+        intentPath: String,
+        geometryPath: String
+    ) -> [LottieRenderedArtifactManifest.Artifact.EvidenceLink] {
+        [
+            .init(
+                kind: "lottie-web-intent",
+                path: intentPath,
+                frameIndex: index,
+                sourceFrame: sourceFrame,
+                timeSeconds: timeSeconds,
+                rowAddress: "$.frames[\(index)]",
+                note: "Browser source-intent row for this rendered source frame."
+            ),
+            .init(
+                kind: "geometry-json",
+                path: geometryPath,
+                frameIndex: index,
+                sourceFrame: sourceFrame,
+                timeSeconds: timeSeconds,
+                rowAddress: "$.frames[\(index)]",
+                note: "PureLayer geometry trace row for this rendered source frame."
+            ),
+            .init(
+                kind: "oracle-summary",
+                path: "oracle-summary.json",
+                frameIndex: index,
+                sourceFrame: sourceFrame,
+                timeSeconds: timeSeconds,
+                rowAddress: "$.frames[\(index)]",
+                note: "Frame dump summary row for this rendered source frame."
+            ),
+        ]
+    }
+
+    private static func evidenceReferences(
+        intentPath: String,
+        geometryTraceFiles: GeometryTraceFiles
+    ) -> [LottieRenderedArtifactManifest.Evidence.Reference] {
+        [
+            .init(
+                kind: "lottie-web-intent",
+                path: intentPath,
+                frameIndex: nil,
+                sourceFrame: nil,
+                note: "Measured browser source-intent rows for the exported source frames."
+            ),
+            .init(
+                kind: "geometry-json",
+                path: geometryTraceFiles.json,
+                frameIndex: nil,
+                sourceFrame: nil,
+                note: "PureLayer geometry trace rows for the exported frame set."
+            ),
+            .init(
+                kind: "geometry-csv",
+                path: geometryTraceFiles.csv,
+                frameIndex: nil,
+                sourceFrame: nil,
+                note: "CSV projection of PureLayer geometry trace rows for inspection."
+            ),
+            .init(
+                kind: "import-report",
+                path: "purelayer-import-report.tsv",
+                frameIndex: nil,
+                sourceFrame: nil,
+                note: "Importer findings preserved beside the rendered artifact set."
+            ),
+            .init(
+                kind: "oracle-summary",
+                path: "oracle-summary.json",
+                frameIndex: nil,
+                sourceFrame: nil,
+                note: "Frame dump summary with timing and RenderIR backend evidence."
+            ),
+        ]
+    }
+
+    private static func manifestFindings(
+        validationErrors: [ValidationError],
+        importFindings: [ImportReport.Finding]
+    ) -> [LottieRenderedArtifactManifest.Finding] {
+        validationErrors.map { error in
+            LottieRenderedArtifactManifest.Finding(
+                phase: "validation",
+                ruleID: error.ruleID,
+                path: error.codingPath.description,
+                sourcePath: nil,
+                reason: error.reason,
+                severity: error.severity.rawValue
+            )
+        } + importFindings.map { finding in
+            LottieRenderedArtifactManifest.Finding(
+                phase: "import",
+                ruleID: "lottie.import.\(finding.feature)",
+                path: finding.path,
+                sourcePath: finding.sourcePath,
+                reason: "\(finding.disposition.rawValue): \(finding.feature)",
+                severity: "warning"
+            )
+        }
+    }
+
+    private static func manifestPath(from baseDirectory: URL, to file: URL) -> String {
+        let baseComponents = baseDirectory.standardizedFileURL.pathComponents
+        let fileComponents = file.standardizedFileURL.pathComponents
+        var commonCount = 0
+        while commonCount < baseComponents.count,
+              commonCount < fileComponents.count,
+              baseComponents[commonCount] == fileComponents[commonCount]
+        {
+            commonCount += 1
+        }
+        let parents = Array(repeating: "..", count: max(0, baseComponents.count - commonCount))
+        let children = Array(fileComponents.dropFirst(commonCount))
+        let components = parents + children
+        return components.isEmpty ? "." : components.joined(separator: "/")
     }
 
     private static func writeGeometryTrace(_ trace: LottieGeometryTrace, output: URL) throws -> GeometryTraceFiles {
@@ -242,12 +483,14 @@ private struct Options {
     var output: URL
     var frames: [Double]
     var scale: Double
+    var lottieWebIntent: URL
 
     init(arguments: [String]) throws {
         var input: URL?
         var output: URL?
         var frames: [Double] = [0]
         var scale = 1.0
+        var lottieWebIntent: URL?
 
         var index = 0
         while index < arguments.count {
@@ -275,6 +518,9 @@ private struct Options {
                     throw UsageError("Invalid scale")
                 }
                 scale = parsed
+            case "--lottie-web-intent":
+                index += 1
+                lottieWebIntent = try URL(fileURLWithPath: Self.value(arguments, at: index, for: argument))
             default:
                 throw UsageError("Unknown argument '\(argument)'")
             }
@@ -283,10 +529,12 @@ private struct Options {
 
         guard let input else { throw UsageError("Missing --input") }
         guard let output else { throw UsageError("Missing --output") }
+        guard let lottieWebIntent else { throw UsageError("Missing --lottie-web-intent") }
         self.input = input
         self.output = output
         self.frames = frames
         self.scale = scale
+        self.lottieWebIntent = lottieWebIntent
     }
 
     private static func value(_ arguments: [String], at index: Int, for name: String) throws -> String {
