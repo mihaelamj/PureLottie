@@ -96,6 +96,28 @@ function visiblePaintPathCount(frame) {
   return (frame.paths ?? []).filter(hasVisiblePaint).length;
 }
 
+function hasFeatureFactArrays(frame) {
+  return Array.isArray(frame.masks)
+    && Array.isArray(frame.mattes)
+    && Array.isArray(frame.precompositions)
+    && Array.isArray(frame.trims)
+    && Array.isArray(frame.diagnostics)
+    && Number(frame.maskCount) === frame.masks.length
+    && Number(frame.matteCount) === frame.mattes.length
+    && Number(frame.precompositionCount) === frame.precompositions.length
+    && Number(frame.trimCount) === frame.trims.length;
+}
+
+function featureCounts(frames) {
+  return (frames ?? []).map((frame) => ({
+    maskCount: Number(frame.maskCount),
+    matteCount: Number(frame.matteCount),
+    precompositionCount: Number(frame.precompositionCount),
+    trimCount: Number(frame.trimCount),
+    diagnosticCount: (frame.diagnostics ?? []).length
+  }));
+}
+
 function manifestPath(index, field) {
   return `oracle-fixtures.json[${index}]${field ? `.${field}` : ''}`;
 }
@@ -172,6 +194,7 @@ function validateCommittedIntent({ fixture, index, intentPath, sourcePath }) {
     validation('Committed intent trace uses the manifest renderer', ({ intent }) => intent.renderer === fixture.renderer),
     validation('Committed intent trace uses lottie-web 5.13.0', ({ intent }) => intent.lottieWeb?.version === '5.13.0'),
     validation('Committed intent trace frame list matches the manifest', ({ intent }) => JSON.stringify((intent.frames ?? []).map((frame) => frame.frame)) === JSON.stringify(frameList(fixture))),
+    validation('Committed intent trace has feature fact arrays for every selected frame', ({ intent }) => (intent.frames ?? []).every(hasFeatureFactArrays)),
     validation('Committed intent trace has visible painted paths for every selected frame', ({ intent }) => (intent.frames ?? []).every((frame) => Number(frame.pathCount) > 0 && visiblePaintPathCount(frame) > 0))
   ], {
     fixture,
@@ -208,6 +231,7 @@ async function validateLiveLottieWeb({ fixture, index, sourcePath, intentPath, s
     validation('Live lottie-web dimensions match the committed trace', ({ liveIntent }) => liveIntent.width === committedIntent.width && liveIntent.height === committedIntent.height),
     validation('Live lottie-web layer counts match committed trace', ({ liveIntent }) => JSON.stringify(liveIntent.frames.map((frame) => frame.layerCount)) === JSON.stringify(committedIntent.frames.map((frame) => frame.layerCount))),
     validation('Live lottie-web path counts match committed trace', ({ liveIntent }) => JSON.stringify(liveIntent.frames.map((frame) => frame.pathCount)) === JSON.stringify(committedIntent.frames.map((frame) => frame.pathCount))),
+    validation('Live lottie-web feature counts match committed trace', ({ liveIntent }) => JSON.stringify(featureCounts(liveIntent.frames)) === JSON.stringify(featureCounts(committedIntent.frames))),
     validation('Live lottie-web selected frames have visible painted paths when required', ({ liveIntent }) => liveIntent.frames.every((frame) => Number(frame.pathCount) > 0 && visiblePaintPathCount(frame) > 0), ({ fixture }) => fixture.expectReferenceNonEmpty === true)
   ], { fixture, liveIntent, path: manifestPath(index, 'lottie') });
 }

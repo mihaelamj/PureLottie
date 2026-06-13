@@ -132,7 +132,12 @@ export async function extractLottieIntent({
         'sampledOutputBounds equals sampledCompositionBounds multiplied by deviceScaleFactor.',
         'path.sampledCompositionBounds uses getTotalLength/getPointAtLength and getScreenCTM, not raster pixels.',
         'path.strokeExpandedCompositionBounds expands sampled path bounds by half the computed stroke width when a stroke is visible.',
-        'layer.matrix is lottie-web finalTransform.mat.props and uses lottie-web internal matrix order.'
+        'layer.matrix is lottie-web finalTransform.mat.props and uses lottie-web internal matrix order.',
+        'mask.pathD is lottie-web generated SVG mask path data in the target layer local coordinate space; mask opacity is normalized to 0...1.',
+        'matte.sourceRenderElementIndex and matte.targetRenderElementIndex use lottie-web renderer element order; implicit mattes resolve to the previous renderer element.',
+        'precomposition.renderedFrame is lottie-web precomp element renderedFrame after start-time, stretch, and time-remap handling in the child composition frame domain.',
+        'trim.startFraction, trim.endFraction, and trim.offsetTurns are lottie-web shape modifier values after percentage and degree normalization.',
+        'trim.selectedSegments are not exposed as stable lottie-web SVG runtime objects; compare normalized trim facts with the rendered SVG path records and diagnostics.'
       ],
       frames: extractedFrames
     };
@@ -381,13 +386,121 @@ function collectFrameIntent({ frame, scale, sampleCount }) {
     };
   }
 
+  function collectMasks(element, renderElementIndex) {
+    const manager = element?.maskManager;
+    if (!manager) {
+      return [];
+    }
+    return Array.from(manager.masksProperties || []).map((mask, maskIndex) => {
+      const view = manager.viewData?.[maskIndex];
+      const pathValue = view?.prop?.v;
+      return {
+        renderElementIndex,
+        layerInd: element?.data?.ind ?? null,
+        layerName: element?.data?.nm ?? null,
+        maskIndex,
+        name: mask?.nm ?? null,
+        mode: mask?.mode ?? null,
+        inverted: Boolean(mask?.inv),
+        closed: pathValue?.c ?? null,
+        opacity: numberOrNull(view?.op?.v),
+        expansion: numberOrNull(view?.x?.v ?? mask?.x?.k ?? 0),
+        pathD: view?.elem?.getAttribute?.('d') ?? null,
+        localBBox: view?.elem ? safeBBox(view.elem) : null,
+        vertexCount: pathValue?._length ?? null
+      };
+    });
+  }
+
+  function collectMattes(elements) {
+    return elements.flatMap((element, targetRenderElementIndex) => {
+      const matteMode = element?.data?.tt;
+      if (matteMode === undefined || matteMode === null) {
+        return [];
+      }
+      const explicitSourceLayerIndex = element?.data?.tp ?? null;
+      const sourceRenderElementIndex = explicitSourceLayerIndex === null
+        ? targetRenderElementIndex - 1
+        : elements.findIndex((candidate) => candidate?.data?.ind === explicitSourceLayerIndex);
+      const source = sourceRenderElementIndex >= 0 ? elements[sourceRenderElementIndex] : null;
+      return [{
+        targetRenderElementIndex,
+        targetLayerInd: element?.data?.ind ?? null,
+        targetLayerName: element?.data?.nm ?? null,
+        mode: matteMode,
+        explicitSourceLayerIndex,
+        sourceRenderElementIndex: sourceRenderElementIndex >= 0 ? sourceRenderElementIndex : null,
+        sourceLayerInd: source?.data?.ind ?? null,
+        sourceLayerName: source?.data?.nm ?? null,
+        sourceLayerType: source?.data?.ty ?? null,
+        sourceHidden: Boolean(source?.data?.hd),
+        sourceResolved: Boolean(source),
+        sourceIsMarker: Boolean(source?.data?.td)
+      }];
+    });
+  }
+
+  function collectPrecompositions(element, renderElementIndex) {
+    if (element?.data?.ty !== 0) {
+      return [];
+    }
+    return [{
+      renderElementIndex,
+      layerInd: element?.data?.ind ?? null,
+      layerName: element?.data?.nm ?? null,
+      refId: element?.data?.refId ?? null,
+      startTime: numberOrNull(element?.data?.st),
+      stretch: numberOrNull(element?.data?.sr),
+      inPoint: numberOrNull(element?.data?.ip),
+      outPoint: numberOrNull(element?.data?.op),
+      renderedFrame: numberOrNull(element?.renderedFrame),
+      timeRemapped: Boolean(element?.data?.tm),
+      timeRemapValue: numberOrNull(element?.tm?.v),
+      childLayerCount: Array.isArray(element?.layers) ? element.layers.length : null,
+      builtChildElementCount: Array.isArray(element?.elements) ? element.elements.filter(Boolean).length : null
+    }];
+  }
+
+  function collectTrims(element, renderElementIndex) {
+    return Array.from(element?.shapeModifiers || []).flatMap((modifier, trimIndex) => {
+      if (modifier?.s === undefined || modifier?.e === undefined || modifier?.o === undefined) {
+        return [];
+      }
+      return [{
+        renderElementIndex,
+        layerInd: element?.data?.ind ?? null,
+        layerName: element?.data?.nm ?? null,
+        trimIndex,
+        startFraction: numberOrNull(modifier.s?.v),
+        endFraction: numberOrNull(modifier.e?.v),
+        offsetTurns: numberOrNull(modifier.o?.v),
+        mode: modifier.m ?? null,
+        shapeCount: Array.isArray(modifier.shapes) ? modifier.shapes.length : null,
+        animated: Boolean(modifier._isAnimated)
+      }];
+    });
+  }
+
+  function collectTrimDiagnostics(trims) {
+    return trims.map((trim) => ({
+      feature: 'trim.selectedSegments',
+      reason: 'lottie-web SVG exposes normalized trim values and rendered path output, but not stable per-cubic selected segment internals.',
+      renderElementIndex: trim.renderElementIndex,
+      layerInd: trim.layerInd
+    }));
+  }
+
   const animation = window.__purelottieOracleAnimation;
   const svg = document.querySelector('#stage svg');
   const paths = Array.from(document.querySelectorAll('#stage svg path'))
     .map((element, index) => collectPath(element, index));
-  const layers = Array.from(animation?.renderer?.elements || [])
-    .filter(Boolean)
-    .map((element, index) => collectLayer(element, index));
+  const rendererElements = Array.from(animation?.renderer?.elements || []).filter(Boolean);
+  const layers = rendererElements.map((element, index) => collectLayer(element, index));
+  const masks = rendererElements.flatMap((element, index) => collectMasks(element, index));
+  const mattes = collectMattes(rendererElements);
+  const precompositions = rendererElements.flatMap((element, index) => collectPrecompositions(element, index));
+  const trims = rendererElements.flatMap((element, index) => collectTrims(element, index));
+  const diagnostics = collectTrimDiagnostics(trims);
 
   return {
     frame,
@@ -400,8 +513,17 @@ function collectFrameIntent({ frame, scale, sampleCount }) {
     svgViewBox: svg?.getAttribute('viewBox') ?? null,
     layerCount: layers.length,
     pathCount: paths.length,
+    maskCount: masks.length,
+    matteCount: mattes.length,
+    precompositionCount: precompositions.length,
+    trimCount: trims.length,
     layers,
-    paths
+    paths,
+    masks,
+    mattes,
+    precompositions,
+    trims,
+    diagnostics
   };
 }
 

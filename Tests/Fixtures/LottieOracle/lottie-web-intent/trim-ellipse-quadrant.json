@@ -17,7 +17,12 @@
     "sampledOutputBounds equals sampledCompositionBounds multiplied by deviceScaleFactor.",
     "path.sampledCompositionBounds uses getTotalLength/getPointAtLength and getScreenCTM, not raster pixels.",
     "path.strokeExpandedCompositionBounds expands sampled path bounds by half the computed stroke width when a stroke is visible.",
-    "layer.matrix is lottie-web finalTransform.mat.props and uses lottie-web internal matrix order."
+    "layer.matrix is lottie-web finalTransform.mat.props and uses lottie-web internal matrix order.",
+    "mask.pathD is lottie-web generated SVG mask path data in the target layer local coordinate space; mask opacity is normalized to 0...1.",
+    "matte.sourceRenderElementIndex and matte.targetRenderElementIndex use lottie-web renderer element order; implicit mattes resolve to the previous renderer element.",
+    "precomposition.renderedFrame is lottie-web precomp element renderedFrame after start-time, stretch, and time-remap handling in the child composition frame domain.",
+    "trim.startFraction, trim.endFraction, and trim.offsetTurns are lottie-web shape modifier values after percentage and degree normalization.",
+    "trim.selectedSegments are not exposed as stable lottie-web SVG runtime objects; compare normalized trim facts with the rendered SVG path records and diagnostics."
   ],
   "frames": [
     {
@@ -45,6 +50,10 @@
       "svgViewBox": "0 0 64 64",
       "layerCount": 1,
       "pathCount": 1,
+      "maskCount": 0,
+      "matteCount": 0,
+      "precompositionCount": 0,
+      "trimCount": 1,
       "layers": [
         {
           "index": 0,
@@ -217,6 +226,31 @@
             }
           ]
         }
+      ],
+      "masks": [],
+      "mattes": [],
+      "precompositions": [],
+      "trims": [
+        {
+          "renderElementIndex": 0,
+          "layerInd": 1,
+          "layerName": "Trimmed Ellipse",
+          "trimIndex": 0,
+          "startFraction": 0,
+          "endFraction": 0.25,
+          "offsetTurns": 0,
+          "mode": 1,
+          "shapeCount": 1,
+          "animated": false
+        }
+      ],
+      "diagnostics": [
+        {
+          "feature": "trim.selectedSegments",
+          "reason": "lottie-web SVG exposes normalized trim values and rendered path output, but not stable per-cubic selected segment internals.",
+          "renderElementIndex": 0,
+          "layerInd": 1
+        }
       ]
     },
     {
@@ -244,6 +278,10 @@
       "svgViewBox": "0 0 64 64",
       "layerCount": 1,
       "pathCount": 1,
+      "maskCount": 0,
+      "matteCount": 0,
+      "precompositionCount": 0,
+      "trimCount": 1,
       "layers": [
         {
           "index": 0,
@@ -416,6 +454,31 @@
             }
           ]
         }
+      ],
+      "masks": [],
+      "mattes": [],
+      "precompositions": [],
+      "trims": [
+        {
+          "renderElementIndex": 0,
+          "layerInd": 1,
+          "layerName": "Trimmed Ellipse",
+          "trimIndex": 0,
+          "startFraction": 0,
+          "endFraction": 0.25,
+          "offsetTurns": 0,
+          "mode": 1,
+          "shapeCount": 1,
+          "animated": false
+        }
+      ],
+      "diagnostics": [
+        {
+          "feature": "trim.selectedSegments",
+          "reason": "lottie-web SVG exposes normalized trim values and rendered path output, but not stable per-cubic selected segment internals.",
+          "renderElementIndex": 0,
+          "layerInd": 1
+        }
       ]
     },
     {
@@ -443,6 +506,10 @@
       "svgViewBox": "0 0 64 64",
       "layerCount": 1,
       "pathCount": 1,
+      "maskCount": 0,
+      "matteCount": 0,
+      "precompositionCount": 0,
+      "trimCount": 1,
       "layers": [
         {
           "index": 0,
@@ -614,6 +681,31 @@
               "style": "width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px); content-visibility: visible;"
             }
           ]
+        }
+      ],
+      "masks": [],
+      "mattes": [],
+      "precompositions": [],
+      "trims": [
+        {
+          "renderElementIndex": 0,
+          "layerInd": 1,
+          "layerName": "Trimmed Ellipse",
+          "trimIndex": 0,
+          "startFraction": 0,
+          "endFraction": 0.25,
+          "offsetTurns": 0,
+          "mode": 1,
+          "shapeCount": 1,
+          "animated": false
+        }
+      ],
+      "diagnostics": [
+        {
+          "feature": "trim.selectedSegments",
+          "reason": "lottie-web SVG exposes normalized trim values and rendered path output, but not stable per-cubic selected segment internals.",
+          "renderElementIndex": 0,
+          "layerInd": 1
         }
       ]
     }

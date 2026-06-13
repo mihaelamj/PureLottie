@@ -134,7 +134,8 @@ The JSON decodes through the production `LottieWebIntentTrace` model in
 `LottieWebIntentTraceValidator` uses the same positive-rule validation idiom as
 the source and provenance validators: schema, source, renderer, lottie-web
 version, dimensions, selected frames, layer matrices, bounds, CTM values, SVG
-style facts, and ancestor tags are validated with path-bearing diagnostics.
+style facts, mask/matte/precomp/trim feature records, diagnostics, and ancestor
+tags are validated with path-bearing diagnostics.
 
 Each trace records:
 
@@ -143,9 +144,33 @@ Each trace records:
 | `schema` | Trace name and version. |
 | `lottieWeb` | Exact npm package and version. |
 | `renderer` | Renderer used for extraction; currently `svg`. |
+| `coordinateSemantics` | Human-readable coordinate and timing laws recorded by the extractor. |
 | `frames` | Selected source frames extracted with `goToAndStop(frame, true)`. |
+| `frames[].maskCount`, `frames[].matteCount`, `frames[].precompositionCount`, `frames[].trimCount` | Per-frame counts that must match the decoded feature arrays. |
 | `frames[].layers` | lottie-web renderer layer internals: authored name/type/index/window, rendered frame, opacity, final transform matrix, and layer element bounds. |
 | `frames[].paths` | SVG path facts: `d`, path length, local and sampled composition bounds, computed fill/stroke style, CTM, and ancestor transform chain. |
+| `frames[].masks` | SVG mask facts: renderer element index, authored layer index/name, mask name/mode/inversion/closed flag, normalized opacity, expansion, generated mask `d`, layer-local SVG bbox, and vertex count. |
+| `frames[].mattes` | Track-matte edge facts: target renderer/layer identity, matte mode, optional explicit source index, resolved source renderer/layer identity, source hidden flag, and matte-source marker flag. |
+| `frames[].precompositions` | Precomp layer facts: renderer/layer identity, `refId`, `st`, `sr`, `ip`, `op`, lottie-web child-composition `renderedFrame`, time-remap flag/value, and child layer/build counts. |
+| `frames[].trims` | Trim modifier facts: renderer/layer identity, trim index, normalized start/end fractions, offset in turns, mode, shape count, and animation flag. |
+| `frames[].diagnostics` | Explicit extractor diagnostics for feature facts lottie-web does not expose as stable runtime objects. |
+
+The feature records use these conventions:
+
+- Mask `pathD` and `localBBox` come from lottie-web's generated SVG mask path in
+  the target layer's local SVG coordinate space. Mask opacity is normalized to
+  `[0, 1]`.
+- Matte `sourceRenderElementIndex` and `targetRenderElementIndex` use
+  lottie-web renderer element order. If the Lottie layer has no explicit `tp`,
+  the source resolves to the previous renderer element.
+- Precomposition `renderedFrame` is the lottie-web precomp element frame after
+  `st`, `sr`, and `tm` handling, expressed in the child composition frame
+  domain. `timeRemapValue` is lottie-web's evaluated time-remap frame value.
+- Trim `startFraction`, `endFraction`, and `offsetTurns` are lottie-web shape
+  modifier values after percentage and degree normalization. The selected
+  rendered SVG path is still recorded in `frames[].paths`; lottie-web does not
+  expose a stable per-cubic selected-segment object through the SVG runtime, so
+  `frames[].diagnostics` records `trim.selectedSegments` for that gap.
 
 An empty SVG `d` string is allowed only as a measured lottie-web fact when the
 same path record carries zero path length and zero bounds. For example, a hidden

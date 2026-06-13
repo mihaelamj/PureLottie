@@ -25,6 +25,12 @@ struct LottieLoweringSourceIntentGateTests {
             for webFrame in intent.frames {
                 let renderFrame = builder.frame(at: webFrame.frame)
                 assertMeasuredSourceIntent(renderFrame, entry: entry)
+                try assertReferenceFeatureFacts(
+                    webFrame: webFrame,
+                    frame: renderFrame,
+                    entry: entry,
+                    tolerances: tolerances
+                )
                 trimTraceCount += renderFrame.trimTraceCount
 
                 let tree = LottieRenderIRLowerer().lower(
@@ -91,6 +97,127 @@ struct LottieLoweringSourceIntentGateTests {
 
         expectClose(shapeLayer.strokeStart, trace.normalization.normalizedStartFraction, tolerance: trimSegmentTolerance)
         expectClose(shapeLayer.strokeEnd, trace.normalization.normalizedEndFraction, tolerance: trimSegmentTolerance)
+    }
+
+    private func assertReferenceFeatureFacts(
+        webFrame: LottieWebIntentTrace.Frame,
+        frame: LottieRenderFrame,
+        entry: CorpusFixtureManifestEntry,
+        tolerances: LottieOracleToleranceLedger
+    ) throws {
+        let coverage = Set(entry.coverage)
+        if coverage.contains("mask") {
+            try assertMaskReferenceFacts(webFrame: webFrame, frame: frame, tolerances: tolerances)
+        }
+        if coverage.contains("matte") {
+            try assertMatteReferenceFacts(webFrame: webFrame, frame: frame)
+        }
+        if coverage.contains("precomp") {
+            try assertPrecompositionReferenceFacts(webFrame: webFrame, frame: frame)
+        }
+        if coverage.contains("trim") {
+            try assertTrimReferenceFacts(webFrame: webFrame, frame: frame, tolerances: tolerances)
+        }
+    }
+
+    private func assertMaskReferenceFacts(
+        webFrame: LottieWebIntentTrace.Frame,
+        frame: LottieRenderFrame,
+        tolerances: LottieOracleToleranceLedger
+    ) throws {
+        let opacityTolerance = try tolerances.threshold(id: "opacity.unit-interval.absolute")
+
+        for webMask in webFrame.masks {
+            let node = try #require(frame.nodes.first { $0.layerIndex == webMask.layerInd })
+            let mask = try #require(node.masks.first { $0.name == webMask.name && $0.mode == webMask.mode })
+            let path = try #require(mask.path)
+
+            #expect(mask.isInverted == webMask.inverted)
+            #expect(path.isClosed == webMask.closed)
+            #expect(path.vertices.count == webMask.vertexCount)
+            #expect(webMask.pathD.isEmpty == false)
+            expectClose(mask.opacity, webMask.opacity, tolerance: opacityTolerance, label: "mask opacity")
+        }
+    }
+
+    private func assertMatteReferenceFacts(webFrame: LottieWebIntentTrace.Frame, frame: LottieRenderFrame) throws {
+        for webMatte in webFrame.mattes {
+            let target = try #require(frame.nodes.first { $0.layerIndex == webMatte.targetLayerInd })
+            let matte = try #require(target.matte)
+
+            #expect(matte.mode == webMatte.mode)
+            #expect(matte.sourceLayerIndex == webMatte.sourceLayerInd)
+            #expect(matte.isExplicitSource == (webMatte.explicitSourceLayerIndex != nil))
+            if let sourceLayerName = webMatte.sourceLayerName {
+                #expect(matte.sourcePath?.contains(sourceLayerName) == true)
+            }
+            if let sourceLayerInd = webMatte.sourceLayerInd {
+                let source = try #require(frame.nodes.first { $0.layerIndex == sourceLayerInd })
+                #expect((source.matteSourceMarker != nil) == webMatte.sourceIsMarker)
+            }
+        }
+    }
+
+    private func assertPrecompositionReferenceFacts(
+        webFrame: LottieWebIntentTrace.Frame,
+        frame: LottieRenderFrame
+    ) throws {
+        for webPrecomposition in webFrame.precompositions {
+            let boundary = try #require(frame.nodes.first { node in
+                guard node.layerIndex == webPrecomposition.layerInd else { return false }
+                if case .precompositionBoundary = node.kind { return true }
+                return false
+            })
+            guard case let .precompositionBoundary(precomposition) = boundary.kind else {
+                Issue.record("Expected precomposition boundary for \(webPrecomposition.layerName).")
+                return
+            }
+
+            #expect(precomposition.assetID == webPrecomposition.refId)
+            #expect(webPrecomposition.childLayerCount >= 0)
+            #expect(webPrecomposition.builtChildElementCount >= 0)
+            expectClose(
+                webPrecomposition.renderedFrame,
+                boundary.localFrame,
+                label: "precomposition renderedFrame"
+            )
+        }
+    }
+
+    private func assertTrimReferenceFacts(
+        webFrame: LottieWebIntentTrace.Frame,
+        frame: LottieRenderFrame,
+        tolerances: LottieOracleToleranceLedger
+    ) throws {
+        let trimTolerance = try tolerances.threshold(id: "trim.segment.unit-interval.absolute")
+
+        for webTrim in webFrame.trims {
+            let trimTrace = try #require(frame.trimTraces.first { $0.sourcePath.contains(webTrim.layerName) })
+
+            #expect(trimTrace.authoredMultiple == webTrim.mode)
+            expectClose(
+                webTrim.startFraction,
+                trimTrace.normalization.normalizedStartFraction,
+                tolerance: trimTolerance,
+                label: "trim startFraction"
+            )
+            expectClose(
+                webTrim.endFraction,
+                trimTrace.normalization.normalizedEndFraction,
+                tolerance: trimTolerance,
+                label: "trim endFraction"
+            )
+            expectClose(
+                webTrim.offsetTurns,
+                trimTrace.normalization.offsetTurns,
+                tolerance: trimTolerance,
+                label: "trim offsetTurns"
+            )
+            #expect(webTrim.shapeCount == trimTrace.inputPaths.count)
+            #expect(webFrame.diagnostics.contains { diagnostic in
+                diagnostic.feature == "trim.selectedSegments" && diagnostic.layerInd == webTrim.layerInd
+            })
+        }
     }
 
     private func assertMeasuredSourceIntent(_ frame: LottieRenderFrame, entry: CorpusFixtureManifestEntry) {
@@ -457,9 +584,10 @@ struct LottieLoweringSourceIntentGateTests {
     private func expectClose(
         _ actual: Double,
         _ expected: Double,
-        tolerance: Double = 0.000_001
+        tolerance: Double = 0.000_001,
+        label: String = ""
     ) {
-        #expect(abs(actual - expected) <= tolerance)
+        #expect(abs(actual - expected) <= tolerance, "\(label): actual \(actual), expected \(expected)")
     }
 }
 
@@ -564,11 +692,15 @@ private struct CorpusFixtureManifestEntry: Decodable {
 }
 
 private extension LottieRenderFrame {
-    var trimTraceCount: Int {
-        nodes.reduce(0) { partial, node in
-            guard case let .shape(shape) = node.kind else { return partial }
-            return partial + shape.draws.reduce(0) { $0 + $1.trimTraces.count }
+    var trimTraces: [LottieSourceTrimTrace] {
+        nodes.flatMap { node -> [LottieSourceTrimTrace] in
+            guard case let .shape(shape) = node.kind else { return [] }
+            return shape.draws.flatMap(\.trimTraces)
         }
+    }
+
+    var trimTraceCount: Int {
+        trimTraces.count
     }
 }
 
