@@ -6,6 +6,10 @@ import assert from 'node:assert/strict';
 import { PNG } from 'pngjs';
 import { comparePngFiles, frameFileName } from '../scripts/compare-images.mjs';
 
+const oracleRoot = path.resolve(import.meta.dirname, '..');
+const toleranceLedger = JSON.parse(fs.readFileSync(path.join(oracleRoot, 'oracle-tolerances.json'), 'utf8'));
+const pixelTolerance = toleranceLedger.tolerances.find((entry) => entry.id === 'pixel.max-channel.exact');
+
 function writePng(file, pixels) {
   const png = new PNG({ width: 1, height: 1 });
   png.data[0] = pixels[0];
@@ -23,6 +27,10 @@ test('frame file names match LottieFrameDump output', () => {
 });
 
 test('PNG comparison records exact matches and mismatches', () => {
+  assert.equal(pixelTolerance.threshold, 0);
+  assert.equal(pixelTolerance.derivation.status, 'derived');
+  assert.equal(pixelTolerance.derivation.counterexampleOffset, 1);
+
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'purelottie-oracle-'));
   const reference = path.join(directory, 'reference.png');
   const actual = path.join(directory, 'actual.png');
@@ -30,10 +38,10 @@ test('PNG comparison records exact matches and mismatches', () => {
 
   writePng(reference, [10, 20, 30, 255]);
   writePng(actual, [10, 20, 30, 255]);
-  assert.equal(comparePngFiles(reference, actual, diff).status, 'match');
+  assert.equal(comparePngFiles(reference, actual, diff, pixelTolerance.threshold).status, 'match');
 
-  writePng(actual, [11, 20, 30, 255]);
-  const result = comparePngFiles(reference, actual, diff);
+  writePng(actual, [10 + pixelTolerance.derivation.counterexampleOffset, 20, 30, 255]);
+  const result = comparePngFiles(reference, actual, diff, pixelTolerance.threshold);
   assert.equal(result.status, 'mismatch');
   assert.equal(result.referenceAlphaPixels, 1);
   assert.equal(result.actualAlphaPixels, 1);

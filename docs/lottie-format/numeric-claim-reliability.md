@@ -1,6 +1,7 @@
 # Numeric Claim Reliability
 
-Status: issue #103 witness classification report.
+Status: issue #103 witness classification report, updated by issue #104
+tolerance-bound ledger.
 
 PureLottie separates three different claims that used to be easy to conflate:
 
@@ -12,13 +13,15 @@ PureLottie separates three different claims that used to be easy to conflate:
 
 ## Current Counts
 
-MEASURED on 2026-06-13 from `swift run LottieNumericOracleDiff --all --output /tmp/purelottie-issue103-numeric-diff`:
+MEASURED on 2026-06-13 from
+`swift run LottieNumericOracleDiff --all --output /tmp/purelottie-issue104-numeric-diff`
+and `Tools/LottieOracle/oracle-tolerances.json`:
 
 | Surface | Witnessed | Asserted | Blocked | Total | Meaning |
 | --- | ---: | ---: | ---: | ---: | --- |
 | Curated numeric diff comparisons | 346 | 0 | 0 | 346 | Every compared expected value is read from a committed lottie-web intent trace. |
 | Reference divergence ledger records | 17 | 0 | 0 | 17 | Every divergence record cites one or more committed lottie-web intent traces. |
-| Oracle tolerance thresholds | 0 | 7 | 0 | 7 | Threshold numbers are author assertions until issue #104 derives arithmetic bounds. |
+| Oracle tolerance thresholds | 5 | 2 | 0 | 7 | Five thresholds are derived arithmetic bounds; browser SVG bounds and path-length thresholds remain explicit assumptions. |
 
 MEASURED on 2026-06-13 from repository files:
 
@@ -39,8 +42,11 @@ MEASURED on 2026-06-13 from repository files:
 
 - `Sources/LottieEvaluation/LottieClaimWitness.swift` defines the typed witness
   object shared by ledgers and reports.
-- `Tools/LottieOracle/oracle-tolerances.json` records all tolerance thresholds
-  as `asserted`.
+- `Tools/LottieOracle/oracle-tolerances.json` records all tolerance thresholds,
+  derivation status, arithmetic model, bound, proof, evidence, and
+  counterexample offset.
+- `docs/lottie-format/tolerance-derivations.md` explains which tolerance
+  thresholds are DERIVED and which remain ASSUMED.
 - `Tools/LottieOracle/reference-divergences.json` records all divergence facts
   as `witnessed` and names the lottie-web trace files.
 - `Tools/LottieOracle/witness-corpus.json` records the wider corpus witness set.
@@ -86,8 +92,15 @@ The curated numeric diff can currently say:
 > value is witnessed by a committed lottie-web trace, and PureLottie matches all
 > 346 fields under the current tolerance ledger.
 
-It cannot yet say:
+It can now say:
 
-> The tolerance thresholds are derived bounds.
+> Five of the seven tolerance thresholds are derived arithmetic bounds, and
+> every threshold has a counterexample test outside the accepted interval.
 
-That is why all 7 tolerance thresholds remain `asserted` and issue #104 exists.
+It still cannot say:
+
+> Chromium SVG `getBBox()` and `getTotalLength()` have a proven portable
+> numeric error bound across every supported runner.
+
+That is why `bounds.css-pixel.absolute` and
+`path-length.css-pixel.absolute` remain `asserted` assumptions in the ledger.

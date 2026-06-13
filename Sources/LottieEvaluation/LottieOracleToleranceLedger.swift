@@ -17,7 +17,24 @@ public struct LottieOracleToleranceLedger: Codable, Equatable, Sendable, Validat
         public var comparison: String
         public var threshold: Double
         public var reason: String
+        public var derivation: Derivation
         public var witness: LottieClaimWitness
+
+        public struct Derivation: Codable, Equatable, Sendable, Validatable {
+            public var status: Status
+            public var arithmeticModel: String
+            public var derivedBound: Double
+            public var formula: String
+            public var proof: String
+            public var evidence: [String]
+            public var counterexampleOffset: Double
+            public var assumption: String?
+
+            public enum Status: String, Codable, Equatable, Sendable, Validatable {
+                case derived
+                case assumed
+            }
+        }
     }
 
     public func tolerance(id: String) throws -> Tolerance {
@@ -90,6 +107,12 @@ public final class LottieOracleToleranceLedgerValidator {
             visit(
                 ledger.tolerances[index].witness,
                 at: tolerancePath.appending(.key("witness")),
+                in: ledger,
+                errors: &errors
+            )
+            visit(
+                ledger.tolerances[index].derivation,
+                at: tolerancePath.appending(.key("derivation")),
                 in: ledger,
                 errors: &errors
             )
@@ -233,6 +256,10 @@ public enum LottieOracleToleranceBuiltinValidation {
             LottieOracleToleranceAnyValidation(toleranceVocabularyIsStable),
             LottieOracleToleranceAnyValidation(toleranceThresholdsAreFiniteAndNonNegative),
             LottieOracleToleranceAnyValidation(toleranceReasonsAreSpecific),
+            LottieOracleToleranceAnyValidation(toleranceDerivationsAreExplicit),
+            LottieOracleToleranceAnyValidation(toleranceDerivationBoundsMatchThresholds),
+            LottieOracleToleranceAnyValidation(toleranceCounterexampleOffsetsExceedThresholds),
+            LottieOracleToleranceAnyValidation(toleranceWitnessMatchesDerivationStatus),
             LottieOracleToleranceAnyValidation(toleranceWitnessClassificationsAreExplicit),
         ]
     }
@@ -240,21 +267,21 @@ public enum LottieOracleToleranceBuiltinValidation {
     public static var schemaNameAndVersionAreSupported: Validation<LottieOracleToleranceLedger, LottieOracleToleranceLedger.Schema> {
         Validation(
             ruleID: "oracle-tolerance.schema.supported",
-            description: "Oracle tolerance schema name is purelottie.oracle-tolerances and version is 1",
+            description: "Oracle tolerance schema name is purelottie.oracle-tolerances and version is 2",
             phase: .source
         ) { context in
             var errors: [ValidationError] = []
             if context.subject.name != "purelottie.oracle-tolerances" {
                 errors.append(error(
                     ruleID: "oracle-tolerance.schema.name",
-                    description: "Oracle tolerance schema name is purelottie.oracle-tolerances and version is 1",
+                    description: "Oracle tolerance schema name is purelottie.oracle-tolerances and version is 2",
                     path: context.codingPath.appending(.key("name"))
                 ))
             }
-            if context.subject.version != 1 {
+            if context.subject.version != 2 {
                 errors.append(error(
                     ruleID: "oracle-tolerance.schema.version",
-                    description: "Oracle tolerance schema name is purelottie.oracle-tolerances and version is 1",
+                    description: "Oracle tolerance schema name is purelottie.oracle-tolerances and version is 2",
                     path: context.codingPath.appending(.key("version"))
                 ))
             }
@@ -373,6 +400,136 @@ public enum LottieOracleToleranceBuiltinValidation {
                         ruleID: "oracle-tolerance.reason",
                         description: "Oracle tolerance reasons explain the measured unit and error source",
                         path: context.codingPath.appending(.key("reason"))
+                    ),
+                ]
+        }
+    }
+
+    public static var toleranceDerivationsAreExplicit:
+        Validation<LottieOracleToleranceLedger, LottieOracleToleranceLedger.Tolerance.Derivation>
+    {
+        Validation(
+            ruleID: "oracle-tolerance.derivation.explicit",
+            description: "Oracle tolerance derivations state arithmetic model bound formula proof evidence and rejection offset"
+        ) { context in
+            var errors: [ValidationError] = []
+            if context.subject.arithmeticModel.trimmingCharacters(in: .whitespacesAndNewlines).count < 40 {
+                errors.append(error(
+                    ruleID: "oracle-tolerance.derivation.model",
+                    description: "Oracle tolerance derivations state arithmetic model bound formula proof evidence and rejection offset",
+                    path: context.codingPath.appending(.key("arithmeticModel"))
+                ))
+            }
+            if !context.subject.derivedBound.isFinite || context.subject.derivedBound < 0 {
+                errors.append(error(
+                    ruleID: "oracle-tolerance.derivation.bound",
+                    description: "Oracle tolerance derivations state arithmetic model bound formula proof evidence and rejection offset",
+                    path: context.codingPath.appending(.key("derivedBound"))
+                ))
+            }
+            if context.subject.formula.trimmingCharacters(in: .whitespacesAndNewlines).count < 10 {
+                errors.append(error(
+                    ruleID: "oracle-tolerance.derivation.formula",
+                    description: "Oracle tolerance derivations state arithmetic model bound formula proof evidence and rejection offset",
+                    path: context.codingPath.appending(.key("formula"))
+                ))
+            }
+            if context.subject.proof.trimmingCharacters(in: .whitespacesAndNewlines).count < 40 {
+                errors.append(error(
+                    ruleID: "oracle-tolerance.derivation.proof",
+                    description: "Oracle tolerance derivations state arithmetic model bound formula proof evidence and rejection offset",
+                    path: context.codingPath.appending(.key("proof"))
+                ))
+            }
+            if context.subject.evidence.isEmpty || context.subject.evidence.contains(where: { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) {
+                errors.append(error(
+                    ruleID: "oracle-tolerance.derivation.evidence",
+                    description: "Oracle tolerance derivations state arithmetic model bound formula proof evidence and rejection offset",
+                    path: context.codingPath.appending(.key("evidence"))
+                ))
+            }
+            if !context.subject.counterexampleOffset.isFinite || context.subject.counterexampleOffset <= context.subject.derivedBound {
+                errors.append(error(
+                    ruleID: "oracle-tolerance.derivation.counterexample-offset",
+                    description: "Oracle tolerance derivations state arithmetic model bound formula proof evidence and rejection offset",
+                    path: context.codingPath.appending(.key("counterexampleOffset"))
+                ))
+            }
+            if context.subject.status == .assumed {
+                let assumption = context.subject.assumption?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                if assumption.count < 40 {
+                    errors.append(error(
+                        ruleID: "oracle-tolerance.derivation.assumption",
+                        description: "Oracle tolerance derivations state arithmetic model bound formula proof evidence and rejection offset",
+                        path: context.codingPath.appending(.key("assumption"))
+                    ))
+                }
+            }
+            return errors
+        }
+    }
+
+    public static var toleranceDerivationBoundsMatchThresholds:
+        Validation<LottieOracleToleranceLedger, LottieOracleToleranceLedger.Tolerance>
+    {
+        Validation(
+            ruleID: "oracle-tolerance.derivation.bound-matches-threshold",
+            description: "Derived oracle tolerance thresholds equal their proven arithmetic bounds"
+        ) { context in
+            guard context.subject.derivation.status == .derived else { return [] }
+            return context.subject.threshold == context.subject.derivation.derivedBound
+                ? []
+                : [
+                    error(
+                        ruleID: "oracle-tolerance.threshold.loose",
+                        description: "Derived oracle tolerance thresholds equal their proven arithmetic bounds",
+                        path: context.codingPath.appending(.key("threshold")),
+                        evidence: context.subject.id
+                    ),
+                ]
+        }
+    }
+
+    public static var toleranceCounterexampleOffsetsExceedThresholds:
+        Validation<LottieOracleToleranceLedger, LottieOracleToleranceLedger.Tolerance>
+    {
+        Validation(
+            ruleID: "oracle-tolerance.derivation.counterexample-exceeds-threshold",
+            description: "Oracle tolerance counterexample offsets are outside the accepted threshold"
+        ) { context in
+            context.subject.derivation.counterexampleOffset > context.subject.threshold
+                ? []
+                : [
+                    error(
+                        ruleID: "oracle-tolerance.derivation.counterexample-threshold",
+                        description: "Oracle tolerance counterexample offsets are outside the accepted threshold",
+                        path: context.codingPath
+                            .appending(.key("derivation"))
+                            .appending(.key("counterexampleOffset")),
+                        evidence: context.subject.id
+                    ),
+                ]
+        }
+    }
+
+    public static var toleranceWitnessMatchesDerivationStatus:
+        Validation<LottieOracleToleranceLedger, LottieOracleToleranceLedger.Tolerance>
+    {
+        Validation(
+            ruleID: "oracle-tolerance.derivation.witness-status",
+            description: "Oracle tolerance witness status matches derived or assumed derivation status"
+        ) { context in
+            let expectedStatus: LottieClaimWitnessStatus = context.subject.derivation.status == .derived ? .witnessed : .asserted
+            return context.subject.witness.status == expectedStatus
+                ? []
+                : [
+                    error(
+                        ruleID: "oracle-tolerance.witness.status",
+                        description: "Oracle tolerance witness status matches derived or assumed derivation status",
+                        path: context.codingPath
+                            .appending(.key("witness"))
+                            .appending(.key("status")),
+                        evidence: context.subject.id
                     ),
                 ]
         }

@@ -53,7 +53,8 @@ Numeric comparison tolerances are recorded in
 by id for opacity, matrix translation, source-frame, bounds, path length, and
 trim segment comparisons; the Node oracle tests pin the exact pixel-diff
 tolerance. Do not introduce a new comparison threshold without adding a ledger
-entry that names the feature, unit, comparison, threshold, and reason.
+entry that names the feature, unit, comparison, threshold, reason, derivation
+status, arithmetic model, proof, evidence, and counterexample offset.
 
 `diff-intent` writes deterministic machine and human reports:
 
@@ -68,11 +69,12 @@ gate before PNG or APNG inspection: rendered artifacts are only useful after the
 source-intent numbers say what Lottie expected.
 
 Numeric claim reliability is summarized in
-`docs/lottie-format/numeric-claim-reliability.md`. The curated source-intent
-diff currently has 346 witnessed comparison rows and no asserted or blocked
-comparison rows. Tolerance thresholds are intentionally separate: their ledger
-entries are asserted until #104 replaces the policy values with derived
-arithmetic bounds.
+`docs/lottie-format/numeric-claim-reliability.md`. Tolerance-bound derivations
+are stated in `docs/lottie-format/tolerance-derivations.md`. The curated
+source-intent diff currently has 346 witnessed comparison rows and no asserted
+or blocked comparison rows. Five tolerance thresholds are derived arithmetic
+bounds; the SVG `getBBox()` and `getTotalLength()` thresholds remain explicit
+assumptions until a portable browser geometry error bound is proven.
 
 Reference-engine divergences are recorded in
 `Tools/LottieOracle/reference-divergences.json`. Any fixture with the

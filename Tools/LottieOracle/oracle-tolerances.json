@@ -1,7 +1,7 @@
 {
   "schema": {
     "name": "purelottie.oracle-tolerances",
-    "version": 1
+    "version": 2
   },
   "tolerances": [
     {
@@ -9,14 +9,28 @@
       "feature": "opacity",
       "unit": "unitInterval",
       "comparison": "absolute-difference",
-      "threshold": 0.000001,
-      "reason": "Opacity comparisons use normalized unit-interval values from lottie-web and PureLottie; this threshold only absorbs floating-point representation noise.",
-      "witness": {
-        "status": "asserted",
+      "threshold": 0.000000000001,
+      "reason": "Opacity comparisons use lottie-web's 0.01 authored-percent multiplier and PureLottie's same unit-interval normalization; the bound covers binary64 arithmetic noise only.",
+      "derivation": {
+        "status": "derived",
+        "arithmeticModel": "Lottie opacity is sampled as a JavaScript Number, multiplied by lottie-web TransformProperty's 0.01 multiplier, then compared with PureLottie's Double value after the same division by 100.",
+        "derivedBound": 0.000000000001,
+        "formula": "max(16 * binary64 epsilon, 1e-12) = 1e-12",
+        "proof": "A unit-interval opacity sample performs one scale by 0.01 and one subtraction in binary64 on both sides of the comparison. Sixteen ulps at magnitude 1 are below 4e-15, so 1e-12 is the minimal ledger granularity that remains above arithmetic noise while rejecting authored-percent drift.",
         "evidence": [
-          "Tools/LottieOracle/oracle-tolerances.json"
+          "docs/lottie-format/tolerance-derivations.md",
+          "Tools/LottieOracle/package-lock.json",
+          "lottie-web@5.13.0 player/js/utils/TransformProperty.js opacity multiplier 0.01"
         ],
-        "reason": "This threshold is an asserted PureLottie tolerance pending the derived arithmetic bound required by issue #104."
+        "counterexampleOffset": 0.000000000001001
+      },
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "docs/lottie-format/tolerance-derivations.md",
+          "Tests/LottieOracleDiffTests/LottieNumericOracleDiffTests.swift"
+        ],
+        "reason": "The threshold is derived from the stated opacity arithmetic model and is exercised by a counterexample test just outside the bound."
       }
     },
     {
@@ -24,14 +38,29 @@
       "feature": "matrix-translation",
       "unit": "cssPixel",
       "comparison": "absolute-difference",
-      "threshold": 0.05,
-      "reason": "Translation is compared after lottie-web SVG matrix extraction and PureLottie source evaluation; five hundredths of a CSS pixel separates numeric intent from raster inspection noise.",
-      "witness": {
-        "status": "asserted",
+      "threshold": 0.000003814697265625,
+      "reason": "Direct translation comparisons are bounded by lottie-web's Float32 multidimensional property storage before fixed-order row-vector matrix composition.",
+      "derivation": {
+        "status": "derived",
+        "arithmeticModel": "Direct translation oracle rows compare lottie-web finalTransform.mat.props[12...13] against PureLottie worldMatrix[12...13] only for fixtures without anchor, rotation, parent, precomp, shape-transform, or time-remap coverage. Animated multidimensional position values are stored in lottie-web Float32 arrays before matrix composition.",
+        "derivedBound": 0.000003814697265625,
+        "formula": "Float32 ulp for |x| < 64 = 2^(5 - 23) = 2^-18",
+        "proof": "The direct translation comparison admits only direct position samples in the curated oracle. lottie-web stores multidimensional animated property values in Float32 arrays, so any source coordinate with magnitude below 64 CSS pixels can differ from the Double evaluator by at most one Float32 ulp before translation is copied into matrix slots 12 and 13. The matrix composition adds only binary64 operations below this ulp for the admitted direct-translation fixtures.",
         "evidence": [
-          "Tools/LottieOracle/oracle-tolerances.json"
+          "docs/lottie-format/tolerance-derivations.md",
+          "Tools/LottieOracle/package-lock.json",
+          "lottie-web@5.13.0 player/js/utils/PropertyFactory.js createTypedArray('float32')",
+          "lottie-web@5.13.0 player/js/3rd_party/transformation-matrix.js fixed matrix multiplication"
         ],
-        "reason": "This threshold is an asserted PureLottie tolerance pending the derived arithmetic bound required by issue #104."
+        "counterexampleOffset": 0.000003814697265626
+      },
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "docs/lottie-format/tolerance-derivations.md",
+          "Tests/LottieOracleDiffTests/LottieNumericOracleDiffTests.swift"
+        ],
+        "reason": "The threshold is derived from lottie-web Float32 property storage and a counterexample test proves drift outside the bound fails."
       }
     },
     {
@@ -39,14 +68,28 @@
       "feature": "frame",
       "unit": "sourceFrame",
       "comparison": "absolute-difference",
-      "threshold": 0.000001,
-      "reason": "Precomposition and time-remap comparisons use Lottie source-frame coordinates before seconds conversion or backend rendering, so only floating-point representation noise is tolerated.",
-      "witness": {
-        "status": "asserted",
+      "threshold": 0.000000000001,
+      "reason": "Precomposition frame comparisons stay in Lottie source-frame units before seconds conversion; the bound covers binary64 arithmetic noise only.",
+      "derivation": {
+        "status": "derived",
+        "arithmeticModel": "The compared value is lottie-web's renderedFrame in child composition source-frame coordinates and PureLottie's localFrame computed from the same start-time and stretch arithmetic as binary64 Double values.",
+        "derivedBound": 0.000000000001,
+        "formula": "max(16 * binary64 epsilon, 1e-12) = 1e-12",
+        "proof": "The compared curated precomposition fixtures do not use time-remap as a successful conformance claim. The arithmetic path is subtraction and division in source-frame units, so binary64 accumulated error is below 1e-12 for the committed frame magnitudes.",
         "evidence": [
-          "Tools/LottieOracle/oracle-tolerances.json"
+          "docs/lottie-format/tolerance-derivations.md",
+          "Tools/LottieOracle/scripts/extract-intent.mjs",
+          "Sources/LottieEvaluation/LottieFrameEvaluator.swift"
         ],
-        "reason": "This threshold is an asserted PureLottie tolerance pending the derived arithmetic bound required by issue #104."
+        "counterexampleOffset": 0.000000000001001
+      },
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "docs/lottie-format/tolerance-derivations.md",
+          "Tests/LottieOracleDiffTests/LottieNumericOracleDiffTests.swift"
+        ],
+        "reason": "The threshold is derived from source-frame binary64 arithmetic and a counterexample test proves drift outside the bound fails."
       }
     },
     {
@@ -55,13 +98,27 @@
       "unit": "cssPixel",
       "comparison": "absolute-difference",
       "threshold": 0.00001,
-      "reason": "Bounds compare geometric source facts, not pixels; this threshold covers SVG floating-point serialization while still rejecting visible coordinate drift.",
+      "reason": "Bounds currently compare committed SVG getBBox and composition-size facts; the browser API does not publish a portable subpixel error contract, so this remains an explicit assumption.",
+      "derivation": {
+        "status": "assumed",
+        "arithmeticModel": "Composition width and height are exact Lottie source numbers, but path local bounds are read through browser SVGGeometryElement getBBox in Chromium before comparing with PureLottie's Double source geometry.",
+        "derivedBound": 0,
+        "formula": "assumed-browser-svg-bbox-bound = 1e-5",
+        "proof": "No lottie-web source constant derives Chromium's SVG getBBox rounding behavior. The ledger therefore records the missing browser geometry bound instead of claiming this number is proven.",
+        "evidence": [
+          "docs/lottie-format/tolerance-derivations.md",
+          "Tools/LottieOracle/scripts/extract-intent.mjs"
+        ],
+        "counterexampleOffset": 0.000010001,
+        "assumption": "Missing portable Chromium SVG getBBox numeric error bound for all local path bounds compared by the oracle."
+      },
       "witness": {
         "status": "asserted",
         "evidence": [
+          "docs/lottie-format/tolerance-derivations.md",
           "Tools/LottieOracle/oracle-tolerances.json"
         ],
-        "reason": "This threshold is an asserted PureLottie tolerance pending the derived arithmetic bound required by issue #104."
+        "reason": "The threshold is deliberately marked assumed because browser SVG getBBox does not expose a proven portable numeric error bound here."
       }
     },
     {
@@ -70,13 +127,28 @@
       "unit": "cssPixel",
       "comparison": "absolute-difference",
       "threshold": 0.000001,
-      "reason": "Path length comparisons are numeric geometry checks produced by lottie-web getTotalLength and PureLottie source geometry, so only floating-point noise is tolerated.",
+      "reason": "Path length currently compares browser SVG getTotalLength output against source-geometry expectations; this remains assumed until a portable browser length bound is proven.",
+      "derivation": {
+        "status": "assumed",
+        "arithmeticModel": "The reference value is read from SVGGeometryElement.getTotalLength in Chromium, while PureLottie source geometry uses explicit Lottie Bezier data and Double arithmetic.",
+        "derivedBound": 0,
+        "formula": "assumed-browser-svg-length-bound = 1e-6",
+        "proof": "lottie-web's internal bezier length sampler uses 150 segments, but this oracle path-length field is read from the browser SVG API. Because Chromium does not state the exact numeric bound in lottie-web source, the tolerance is named as an assumption.",
+        "evidence": [
+          "docs/lottie-format/tolerance-derivations.md",
+          "Tools/LottieOracle/scripts/extract-intent.mjs",
+          "lottie-web@5.13.0 player/js/utils/common.js defaultCurveSegments = 150"
+        ],
+        "counterexampleOffset": 0.000001001,
+        "assumption": "Missing portable Chromium SVG getTotalLength numeric error bound for arbitrary path-length comparisons."
+      },
       "witness": {
         "status": "asserted",
         "evidence": [
+          "docs/lottie-format/tolerance-derivations.md",
           "Tools/LottieOracle/oracle-tolerances.json"
         ],
-        "reason": "This threshold is an asserted PureLottie tolerance pending the derived arithmetic bound required by issue #104."
+        "reason": "The threshold is deliberately marked assumed because browser SVG getTotalLength does not expose a proven portable numeric error bound here."
       }
     },
     {
@@ -84,14 +156,29 @@
       "feature": "trim-segment",
       "unit": "unitInterval",
       "comparison": "absolute-difference",
-      "threshold": 0.000001,
-      "reason": "Trim segment comparisons use normalized start and end fractions before backend rasterization; this threshold covers only floating-point fraction representation noise.",
-      "witness": {
-        "status": "asserted",
+      "threshold": 0.000000000001,
+      "reason": "Trim normalized start, end, and offset-turn values use lottie-web's 0.01 percent scale and 1/360 offset scale before any path-cut rounding.",
+      "derivation": {
+        "status": "derived",
+        "arithmeticModel": "The compared trim fields are normalized scalar modifier values from lottie-web shape modifiers and PureLottie source traces: start and end are divided by 100, offset is reduced modulo 360 and divided by 360, all in binary64.",
+        "derivedBound": 0.000000000001,
+        "formula": "max(32 * binary64 epsilon, 1e-12) = 1e-12",
+        "proof": "The compared trim fields are normalized fractions, not generated cubic control points. lottie-web's later getNewSegment 0.001 control-point rounding and 150-segment path-length sampling are recorded for selected path evidence, but they do not enter the startFraction, endFraction, or offsetTurns scalar comparison.",
         "evidence": [
-          "Tools/LottieOracle/oracle-tolerances.json"
+          "docs/lottie-format/tolerance-derivations.md",
+          "Tools/LottieOracle/scripts/extract-intent.mjs",
+          "Sources/LottieEvaluation/LottieSourceTrimEvaluator.swift",
+          "lottie-web@5.13.0 player/js/utils/bez.js getNewSegment rounds to 0.001"
         ],
-        "reason": "This threshold is an asserted PureLottie tolerance pending the derived arithmetic bound required by issue #104."
+        "counterexampleOffset": 0.000000000001001
+      },
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "docs/lottie-format/tolerance-derivations.md",
+          "Tests/LottieOracleDiffTests/LottieNumericOracleDiffTests.swift"
+        ],
+        "reason": "The threshold is derived from trim scalar normalization and a counterexample test proves drift outside the bound fails."
       }
     },
     {
@@ -100,13 +187,27 @@
       "unit": "rgbaChannelValue",
       "comparison": "max-channel-difference",
       "threshold": 0,
-      "reason": "Pixel comparison defaults to exact RGBA channel equality; any non-zero threshold must be deliberately requested and recorded separately before visual artifacts are trusted.",
-      "witness": {
-        "status": "asserted",
+      "reason": "Pixel comparison uses exact RGBA channel equality by default; any nonzero channel delta is a mismatch unless a separate threshold is deliberately introduced.",
+      "derivation": {
+        "status": "derived",
+        "arithmeticModel": "PNG comparison reads decoded 8-bit RGBA channel values and compares each channel by integer absolute difference against a zero max-channel threshold.",
+        "derivedBound": 0,
+        "formula": "maxChannelDelta == 0",
+        "proof": "The comparator performs integer subtraction on decoded byte channels. With the default threshold set to zero, the only accepted state is byte-for-byte channel equality for every pixel; a one-channel delta of 1 must fail.",
         "evidence": [
-          "Tools/LottieOracle/oracle-tolerances.json"
+          "docs/lottie-format/tolerance-derivations.md",
+          "Tools/LottieOracle/scripts/compare-images.mjs",
+          "Tools/LottieOracle/tests/compare-images.test.mjs"
         ],
-        "reason": "This threshold is an asserted PureLottie tolerance pending the derived arithmetic bound required by issue #104."
+        "counterexampleOffset": 1
+      },
+      "witness": {
+        "status": "witnessed",
+        "evidence": [
+          "docs/lottie-format/tolerance-derivations.md",
+          "Tools/LottieOracle/tests/compare-images.test.mjs"
+        ],
+        "reason": "The exact pixel threshold is derived from integer channel comparison and the Node test proves a one-channel delta fails."
       }
     }
   ]

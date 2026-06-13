@@ -75,6 +75,20 @@ struct LottieWebIntentOracleTests {
         }
     }
 
+    @Test("path length tolerance rejects controlled value outside threshold")
+    func pathLengthToleranceRejectsControlledValueOutsideThreshold() throws {
+        let oracle = try LottieWebIntentTrace.decodeValidated(
+            from: Data(contentsOf: fixture("lottie-web-intent/eligible-shape-position.json"))
+        )
+        let tolerance = try loadTolerances().tolerance(id: "path-length.css-pixel.absolute")
+        let webPath = try #require(oracle.frames.first?.paths.first)
+        let correctLength = 96.0
+        let controlledWrongLength = correctLength + tolerance.derivation.counterexampleOffset
+
+        #expect(abs(webPath.pathLength - correctLength) <= tolerance.threshold)
+        #expect(abs(controlledWrongLength - correctLength) > tolerance.threshold)
+    }
+
     private func fixture(_ name: String) -> URL {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
