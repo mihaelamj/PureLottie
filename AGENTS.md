@@ -1,5 +1,7 @@
 # PureLottie
 
+> **Read [`CONTINUATION.md`](CONTINUATION.md) first, and re-read it at the start of every work cycle (every issue, every PR or critic pass) and after any context reset or compaction.** It is the authoritative, self-contained procedure: the gate to run before each commit, the non-negotiable rules, the current work queue, and the correctness standard. Its §0 rules are binding on every cycle, not just the first. Do exactly what it says.
+
 A typed Lottie document model (`LottieModel`) and an importer (`LottieImport`)
 that maps it onto the [PureLayer](https://github.com/mihaelamj/PureLayer)
 engine.

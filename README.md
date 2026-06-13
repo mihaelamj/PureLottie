@@ -1,5 +1,7 @@
 # PureLottie
 
+> **Continuing this work?** Read [`CONTINUATION.md`](CONTINUATION.md) first and re-read it every work cycle. It defines the build and test gate, the non-negotiable rules, and the current work queue.
+
 [![macOS CI](https://github.com/mihaelamj/PureLottie/actions/workflows/macos-ci.yml/badge.svg)](https://github.com/mihaelamj/PureLottie/actions/workflows/macos-ci.yml)
 [![Linux CI](https://github.com/mihaelamj/PureLottie/actions/workflows/linux-ci.yml/badge.svg)](https://github.com/mihaelamj/PureLottie/actions/workflows/linux-ci.yml)
 [![Windows CI](https://github.com/mihaelamj/PureLottie/actions/workflows/windows-ci.yml/badge.svg)](https://github.com/mihaelamj/PureLottie/actions/workflows/windows-ci.yml)
