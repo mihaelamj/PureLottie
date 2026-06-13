@@ -22,17 +22,15 @@ struct LottieFrameDump {
             : nil
 
         var dumpedFrames: [DumpFrameSummary] = []
-        if let scene {
-            let size = PixelSize(
-                width: max(1, Int((scene.width * options.scale).rounded())),
-                height: max(1, Int((scene.height * options.scale).rounded()))
-            )
+        if scene != nil {
+            let size = LottieRenderSurface.pixelSize(width: animation.width, height: animation.height, scale: options.scale)
             let exporter = MovieExporter()
             for frame in options.frames {
                 let time = max(0, (frame - animation.inPoint) / animation.frameRate)
                 let fileName = Self.fileName(for: frame)
                 let url = options.output.appendingPathComponent(fileName)
-                try exporter.writeScreenshot(of: scene.root, size: size, at: time, to: url)
+                let root = renderRoot(animation: animation, sourceFrame: frame, scale: options.scale)
+                try exporter.writeScreenshot(of: root, size: size, at: 0, to: url)
                 dumpedFrames.append(DumpFrameSummary(
                     frame: frame,
                     timeSeconds: time,
@@ -52,6 +50,16 @@ struct LottieFrameDump {
         }
 
         let importFindings = scene?.report.findings ?? []
+        let geometryTraceFiles = try scene.map { _ in
+            let trace = LottieGeometryTraceBuilder().trace(
+                animation: animation,
+                sourceFrames: options.frames,
+                scale: options.scale
+            ) { sourceFrame, _ in
+                renderRoot(animation: animation, sourceFrame: sourceFrame, scale: options.scale)
+            }
+            return try writeGeometryTrace(trace, output: options.output)
+        }
         let report = importFindings.map { finding in
             "\(finding.disposition.rawValue)\t\(finding.feature)\t\(finding.path)"
         }
@@ -69,12 +77,19 @@ struct LottieFrameDump {
             validationEligible: validationEligible,
             validationErrors: validationErrors,
             importFindings: importFindings,
-            dumpedFrames: dumpedFrames
+            dumpedFrames: dumpedFrames,
+            geometryTraceFiles: geometryTraceFiles
         )
     }
 
     private static func fileName(for frame: Double) -> String {
         "frame_\(String(format: "%07.2f", frame)).png"
+    }
+
+    private static func renderRoot(animation: LottieAnimation, sourceFrame: Double, scale: Double) -> Layer {
+        let frame = LottieRenderIRBuilder(animation: animation).frame(at: sourceFrame)
+        let tree = LottieRenderIRLowerer().lower(frame)
+        return LottieRenderSurface.root(tree.root, width: animation.width, height: animation.height, scale: scale)
     }
 
     private static func writeSummary(
@@ -85,12 +100,15 @@ struct LottieFrameDump {
         validationEligible: Bool,
         validationErrors: [ValidationError],
         importFindings: [ImportReport.Finding],
-        dumpedFrames: [DumpFrameSummary]
+        dumpedFrames: [DumpFrameSummary],
+        geometryTraceFiles: GeometryTraceFiles?
     ) throws {
         let renderFrames = optionsRenderFrames(animation: animation, input: input, dumpedFrames: dumpedFrames)
         let summary = DumpSummary(
             input: input.path,
             scale: scale,
+            geometryTrace: geometryTraceFiles?.json,
+            geometryCSV: geometryTraceFiles?.csv,
             composition: CompositionSummary(
                 name: animation.name,
                 width: animation.width,
@@ -119,6 +137,86 @@ struct LottieFrameDump {
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
         let data = try encoder.encode(summary)
         try data.write(to: output.appendingPathComponent("oracle-summary.json"))
+    }
+
+    private static func writeGeometryTrace(_ trace: LottieGeometryTrace, output: URL) throws -> GeometryTraceFiles {
+        let jsonFile = "purelayer-geometry.json"
+        let csvFile = "purelayer-geometry.csv"
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        let json = try encoder.encode(trace)
+        try json.write(to: output.appendingPathComponent(jsonFile))
+        try geometryCSV(trace).write(
+            to: output.appendingPathComponent(csvFile),
+            atomically: true,
+            encoding: .utf8
+        )
+        return GeometryTraceFiles(json: jsonFile, csv: csvFile)
+    }
+
+    private static func geometryCSV(_ trace: LottieGeometryTrace) -> String {
+        var rows = [
+            [
+                "sourceFrame",
+                "timeSeconds",
+                "index",
+                "sourcePath",
+                "expectedMinX",
+                "expectedMinY",
+                "expectedMaxX",
+                "expectedMaxY",
+                "expectedOutputMinX",
+                "expectedOutputMinY",
+                "expectedOutputMaxX",
+                "expectedOutputMaxY",
+                "actualMinX",
+                "actualMinY",
+                "actualMaxX",
+                "actualMaxY",
+                "deltaOutputMinX",
+                "deltaOutputMinY",
+                "deltaOutputMaxX",
+                "deltaOutputMaxY",
+                "matchesExpectedOutput",
+            ].joined(separator: ","),
+        ]
+        for frame in trace.frames {
+            for comparison in frame.comparisons {
+                rows.append([
+                    number(frame.sourceFrame),
+                    number(frame.timeSeconds),
+                    "\(comparison.index)",
+                    csv(comparison.sourcePath),
+                    number(comparison.expectedCompositionBounds.minX),
+                    number(comparison.expectedCompositionBounds.minY),
+                    number(comparison.expectedCompositionBounds.maxX),
+                    number(comparison.expectedCompositionBounds.maxY),
+                    number(comparison.expectedOutputBounds.minX),
+                    number(comparison.expectedOutputBounds.minY),
+                    number(comparison.expectedOutputBounds.maxX),
+                    number(comparison.expectedOutputBounds.maxY),
+                    number(comparison.actualPureLayerBounds?.minX),
+                    number(comparison.actualPureLayerBounds?.minY),
+                    number(comparison.actualPureLayerBounds?.maxX),
+                    number(comparison.actualPureLayerBounds?.maxY),
+                    number(comparison.deltaToExpectedOutputBounds?.minX),
+                    number(comparison.deltaToExpectedOutputBounds?.minY),
+                    number(comparison.deltaToExpectedOutputBounds?.maxX),
+                    number(comparison.deltaToExpectedOutputBounds?.maxY),
+                    "\(comparison.matchesExpectedOutputBounds)",
+                ].joined(separator: ","))
+            }
+        }
+        return rows.joined(separator: "\n") + "\n"
+    }
+
+    private static func number(_ value: Double?) -> String {
+        guard let value else { return "" }
+        return String(format: "%.6f", value)
+    }
+
+    private static func csv(_ value: String) -> String {
+        "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
     }
 
     private static func optionsRenderFrames(
@@ -213,11 +311,18 @@ private struct UsageError: Error, CustomStringConvertible {
 private struct DumpSummary: Encodable {
     var input: String
     var scale: Double
+    var geometryTrace: String?
+    var geometryCSV: String?
     var composition: CompositionSummary
     var validation: ValidationSummary
     var importReport: ImportReportSummary
     var frames: [DumpFrameSummary]
     var renderIR: [RenderFrameSummary]
+}
+
+private struct GeometryTraceFiles {
+    var json: String
+    var csv: String
 }
 
 private struct CompositionSummary: Encodable {

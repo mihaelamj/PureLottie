@@ -131,8 +131,9 @@ tree.
 
 ## APNG Export
 
-`LottieAPNGDump` imports a validated Lottie file into PureLayer and writes an
-animated PNG using PureLayer's `MovieExporter`.
+`LottieAPNGDump` evaluates each sampled Lottie source frame into `RenderIR`,
+lowers that frame into PureLayer, renders it through PureLayer/PureDraw at time
+zero, and packages those exact rendered frames as an animated PNG.
 
 ```sh
 swift run LottieAPNGDump \
@@ -143,6 +144,23 @@ swift run LottieAPNGDump \
 ```
 
 The command writes a sibling `.report.json` with frame count, timing, pixel
-size, and import findings. A clean report plus APNG chunks (`acTL`, `fdAT`) is
-the direct proof that Lottie imported through PureLayer into a playable
-animation.
+size, import findings, and RenderIR lowering findings. It also writes sibling
+`.geometry.json` and `.geometry.csv` files that compare evaluated Lottie
+composition coordinates, scale-adjusted expected output coordinates, and
+PureLayer draw-list coordinates for every generated APNG sample.
+
+APNG chunks (`acTL`, `fdAT`) prove that a playable animation was written. A
+geometry trace whose `deltaToExpectedOutputBounds` values are zero proves that
+the frame was placed at the expected coordinates before visual inspection. A
+clean import report is not required for export, but every approximation or
+unsupported feature must appear in `ImportReport`.
+
+`LottieFrameDump` writes the same geometry evidence next to still-frame dumps:
+
+```sh
+swift run LottieFrameDump \
+  --input Tests/Fixtures/LottieOracle/eligible-shape-position.json \
+  --output .build/exports/lottie-frames/eligible-shape-position \
+  --frames 0,5,9 \
+  --scale 2
+```
