@@ -34,19 +34,23 @@ The checks bit, which is why this is trusted: they caught four registry lies
 (`g`, `np`, `u`, `ver` falsely marked modeled) and the typed-decode fuzz gap that
 the parse-layer fuzz had left open.
 
-### Numeric translation is exact for the definitional layer (theorem, bounded)
+### Numeric translation matches an exact closed form (closed form is a theorem; the implementation is sampled)
 
-The geometry evaluator's contours and the layer transform matrix equal
-independent closed forms derived from the documented bodymovin/AE math, to
-floating-point epsilon, over pinned grids, with lottie-web consulted in none of
-them:
+The closed forms are exact for all inputs by construction (algebraic
+vertex/matrix formulas with the documented constants). The geometry evaluator's
+contours and the layer transform matrix are checked against those closed forms,
+to floating-point epsilon, at a pinned grid of sampled points, lottie-web
+consulted in none. The grids sample a continuous parameter space rather than
+enumerate it, so the implementation's agreement is `sampled`, not a
+bounded-exhaustive theorem:
 - ellipse (`LottieEllipseExactnessTests`), polygon + star
   (`LottiePolystarExactnessTests`), rectangle (`LottieRectangleExactnessTests`),
   transform matrix (`LottieTransformExactnessTests`).
 - The `0.5519` round-corner constant, the `floor(pt)*2` star divisor, the `-pi/2`
   start offset, and the row-vector `translate(-anchor) . scale . rotateZ(-r) .
   translate(position)` order are all locked to the documented values.
-- Status: `theorem (bounded grids, to FP epsilon)`. (Closed #139.)
+- Status: closed form `theorem` (exact by construction); implementation
+  `sampled` at the pinned grids, to FP epsilon. (Closed #139.)
 
 The transform check bit hardest: it failed all 96 cases first, forcing a real
 row-vector-handedness reconciliation rather than a copied (and silently wrong)
@@ -90,10 +94,14 @@ numeric *bounds* are still to be measured (the remainder of #141).
 ## Bottom line
 
 We can prove, to 100% and bounded to the pinned schema, that PureLottie
-faithfully **reads, maps-or-reports, and exactly computes the geometry and
-transforms of the Lottie format, with every loss explicit.** That is "we can
-translate the Lottie format" in the read/map/account/compute sense, and it is a
-set of theorems, not assertions.
+faithfully **reads and maps-or-reports every field** (a coverage theorem) and
+**accounts for every loss explicitly** (a corpus theorem); and that its
+**geometry and transforms match closed forms that are exact by construction**,
+verified at sampled grid points. That is "we can translate the Lottie format" in
+the read/map/account/compute sense: coverage and loss are theorems, and the
+numeric agreement is `sampled` against forms that are themselves exact. None of
+it is bare assertion, and none of it is overclaimed as a bounded-exhaustive
+numeric theorem.
 
 We cannot prove, and do not claim, **render-equivalent** translation: we have
 proven the opposite for at least six features, and the path to closing that gap

@@ -15,7 +15,10 @@ import Testing
 /// witness elsewhere; here the documented math is the spec, computed twice and
 /// required to agree.
 ///
-/// Status: theorem (bounded to the enumerated grid, to floating-point epsilon).
+/// Status: sampled (a pinned grid of points, to floating-point epsilon). The
+/// closed form is exact for all inputs by construction; this samples the
+/// implementation's agreement with it at the enumerated points, it does not
+/// exhaustively enumerate the continuous parameter space.
 @Suite("Lottie ellipse geometry exactness")
 struct LottieEllipseExactnessTests {
     private struct ExtractionFailure: Error {}
