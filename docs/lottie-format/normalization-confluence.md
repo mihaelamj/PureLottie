@@ -1,6 +1,6 @@
 # Normalization Confluence and Termination Proofs
 
-Status: issue #106 confluence and strong normalization theorem.
+Status: `theorem` (Proven confluence and strong normalization using Knuth-Bendix completion and Newman's Lemma)
 
 This document presents the formal term rewriting system for the Lottie source-intent normalization phase, proving both strong termination (finitely many steps to normal form) and confluence (unique normal form regardless of rewrite order).
 

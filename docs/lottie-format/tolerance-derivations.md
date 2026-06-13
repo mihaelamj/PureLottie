@@ -1,6 +1,6 @@
 # Numeric Oracle Tolerance Derivations
 
-Status: issue #104 tolerance-bound ledger.
+Status: `assumed` (Five tolerances derived; bounds and path-length tolerances remain assumed)
 
 This document states the arithmetic model behind
 `Tools/LottieOracle/oracle-tolerances.json` schema version 2. A tolerance is not
