@@ -47,6 +47,9 @@ let package = Package(
                 "LottieModel",
             ]
         ),
+        .target(
+            name: "LottieConformanceVerifierCore"
+        ),
         .testTarget(
             name: "LottieModelTests",
             dependencies: ["LottieModel"]
@@ -71,6 +74,12 @@ let package = Package(
             name: "LottieOracleDiffTests",
             dependencies: [
                 "LottieOracleDiff",
+            ]
+        ),
+        .testTarget(
+            name: "LottieConformanceVerifierTests",
+            dependencies: [
+                "LottieConformanceVerifierCore",
             ]
         ),
         .executableTarget(
@@ -99,6 +108,13 @@ let package = Package(
                 "LottieOracleDiff",
             ],
             path: "Tools/LottieNumericOracleDiff"
+        ),
+        .executableTarget(
+            name: "LottieConformanceVerifier",
+            dependencies: [
+                "LottieConformanceVerifierCore",
+            ],
+            path: "Tools/LottieConformanceVerifier"
         ),
     ]
 )
