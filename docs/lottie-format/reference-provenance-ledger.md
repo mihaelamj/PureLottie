@@ -26,6 +26,8 @@ actionable.
   regression corpus.
 - Rendered PNG/APNG artifacts are inspection evidence only after source-intent
   and reference-oracle numbers exist.
+- Reversibility and loss-taxonomy rules are centralized in
+  [Reversibility Compiler Contract](reversibility-compiler-contract.md).
 - PureLayer and PureDraw are target dependencies and oracles. They are not
   modified from PureLottie.
 
@@ -41,7 +43,7 @@ actionable.
 | Machine-readable provenance manifest | `docs/lottie-format/reference-provenance.json` | 17 entries | Typed provenance index for reference sets, tools, docs, dependency oracles, unknown facts, and validation evidence. | `ReferenceProvenanceManifestValidationTests` validates schema, vocabularies, required facts, unknown follow-ups, path-bearing diagnostics, and repository paths. |
 | lottie-web oracle tool | `Tools/LottieOracle` | 1 Node tool package | External browser/reference harness kept outside `Package.swift`. | `npm --prefix Tools/LottieOracle test` checks fixture manifest, eligibility gates, package pins, image comparison helpers, path-bearing validation diagnostics, and package isolation; `npm --prefix Tools/LottieOracle run validate-fixtures` checks live lottie-web fixture usability. |
 | Frame dump tools | `Tools/LottieFrameDump`, `Tools/LottieAPNGDump` | 2 Swift executables | Emit PureLayer frames/APNGs with semantic summaries after source-intent gates. | Built by `swift build`; covered by import/APNG/oracle tests and oracle filename checks. |
-| Lottie format docs | `docs/lottie-format` | 8 checked-in files including this ledger | Human-readable source-intent, conformance, matrix, provenance, evidence role, update workflow, and reference schema contracts. | Swift/Node tests pin referenced fixture counts, trace behavior, role vocabulary, provenance schema, and referenced workflow commands. |
+| Lottie format docs | `docs/lottie-format` | 10 checked-in files including this ledger | Human-readable source-intent, reversibility compiler, loss taxonomy, conformance, matrix, provenance, evidence role, update workflow, and reference schema contracts. | Swift/Node tests pin referenced fixture counts, trace behavior, reversibility contract language, role vocabulary, provenance schema, and referenced workflow commands. |
 
 ## Raw Corpus Sources
 
@@ -76,6 +78,7 @@ The curated corpus is the regression set selected from authored fixtures under
 | Source fixtures | 31 JSON files in `Tests/Fixtures/LottieOracle` |
 | Numeric browser traces | 31 JSON files in `Tests/Fixtures/LottieOracle/lottie-web-intent` |
 | Source-intent reversibility report | `Tests/Fixtures/LottieOracle/reversibility-gate/report.json` with 31 fixtures, 94 selected frames, 0 exclusions, 0 mismatches, 105 path-bearing losses, 1,308 reconstructed facts, and 48 unique source paths |
+| Reversibility compiler contract | `docs/lottie-format/reversibility-compiler-contract.md` defining phase boundaries, loss taxonomy, owner evidence, path-bearing rules, and executable gates |
 | RenderIR-to-PureLayer lowering report | `Tests/Fixtures/LottieOracle/lowering-gate/report.json` with 31 fixtures, 94 selected frames, 0 exclusions, and 45 backend findings |
 | Semantic status split | 30 `modeled`, 1 `diagnosed` |
 | Evidence role split | 30 `conformance`, 31 `regression`, 31 `visual-inspection`, 24 `engine-divergence`, 1 `unsupported-feature` |

@@ -22,6 +22,9 @@ snapshot for this corpus. It records 31 covered fixtures, 94 selected frames,
 records, 1,308 reconstructed facts, and 48 unique source paths before any
 PureLayer/PureDraw lowering.
 
+The phase boundary and loss taxonomy used by that report are documented in
+`docs/lottie-format/reversibility-compiler-contract.md`.
+
 Evidence role definitions live in
 `docs/lottie-format/fixture-evidence-roles.md`.
 

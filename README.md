@@ -61,6 +61,15 @@ lowering: original path lengths, normalized start/end/offset, parallel versus
 sequential selection order, selected segment ranges, resulting Bezier paths, and
 the named lottie-web sampling/rounding approximations used to compute them.
 
+## Reversibility Contract
+
+The compiler contract lives in
+`docs/lottie-format/reversibility-compiler-contract.md`. It defines the
+`source -> parse -> validate -> normalize/evaluate -> lower -> decompile ->
+source-intent` boundary, the loss taxonomy, required path-bearing evidence, and
+the rule that PNG/APNG files are inspection artifacts only after the numeric
+source-intent gates pass.
+
 ## Backend Gap Evidence
 
 `LottieRenderIRLowerer` reports unsupported PureLayer/PureDraw backend behavior

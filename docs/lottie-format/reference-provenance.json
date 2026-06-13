@@ -395,7 +395,7 @@
         "status": "known",
         "value": "PureLottie documentation"
       },
-      "purpose": "Human-readable source-intent, conformance, corpus, role, and provenance contracts.",
+      "purpose": "Human-readable source-intent, reversibility compiler, loss taxonomy, conformance, corpus, role, and provenance contracts.",
       "classifications": [
         "documentation",
         "source-intent"
@@ -404,6 +404,7 @@
         "status": "usable",
         "evidence": [
           "ReferenceProvenanceLedgerTests",
+          "LottieReversibilityCompilerContractDocumentationTests",
           "CorpusSemanticLedgerTests"
         ]
       }
