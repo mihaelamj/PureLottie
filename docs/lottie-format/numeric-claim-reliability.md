@@ -10,13 +10,13 @@ PureLottie separates three different claims that used to be easy to conflate:
   lottie-web trace backs it yet.
 - `blocked`: the fact cannot currently be witnessed, with the blocker named.
 
-## Self-oracle: geometry and transforms are independent theorems (#139)
+## Self-oracle: geometry and transforms checked against independent closed forms (#139)
 
 The exact-definitional layer no longer depends on lottie-web as its source of
-truth. The geometry evaluator's contours and the layer transform matrix are
-proven, by bounded-exhaustive tests, equal to independent closed forms derived
-from the documented bodymovin/AE math (not from lottie-web traces), to
-floating-point epsilon:
+truth. The closed forms are exact for all inputs by construction; the geometry
+evaluator's contours and the layer transform matrix are checked against them, by
+sampled-grid tests (a pinned set of points, not an exhaustive enumeration), to
+floating-point epsilon, with lottie-web consulted in none:
 
 - ellipse vertices/bounds and the `0.5519` round-corner constant
   (`LottieEllipseExactnessTests`);
