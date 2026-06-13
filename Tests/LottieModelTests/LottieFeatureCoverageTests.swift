@@ -15,12 +15,15 @@ import Testing
 ///    docs/lottie-format/verify-coverage.sh. So a schema key added upstream and
 ///    left unclassified fails this test. Status: theorem (bounded to @4b55957).
 ///
-///  - DOES NOT YET PROVE: that a key marked `.modeled` is actually decoded into a
-///    typed home (a `.modeled` key the model silently drops would still pass this
-///    test), nor that a `.reported` key actually reaches the ImportReport. Backing
-///    each disposition with a decode/report check that bites is the remaining work
-///    of #138 and must land before #138 closes. Until then this is a key-set
-///    guard, not a completeness proof.
+///  - PROVES (modeled decode-backing): every key marked `.modeled` is actually
+///    decoded by a `CodingKeys` case in the model source. A key labelled
+///    `.modeled` that the model has no decoder for fails the test (this is how
+///    g/np/u/ver were caught and corrected to `.reported`).
+///
+///  - DOES NOT YET PROVE: that a `.reported` key actually reaches the
+///    ImportReport/validation (the symmetric bite), nor round-trip idempotence,
+///    nor fuzz robustness. Those remain open on #138 and must land before it
+///    closes.
 @Suite("Lottie feature coverage")
 struct LottieFeatureCoverageTests {
     /// The authoritative key set, machine-extracted from the pinned schema (not
