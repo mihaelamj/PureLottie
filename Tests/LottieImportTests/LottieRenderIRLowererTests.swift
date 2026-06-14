@@ -154,6 +154,32 @@ struct LottieRenderIRLowererTests {
         #expect(abs(shape.lineDashPhase) < 0.0001)
     }
 
+    @Test("legacy 0-255 fill colours normalize to 0-1 instead of clamping to white")
+    func legacyByteRangeColorNormalizes() throws {
+        // Legacy bodymovin (v4) encodes colours as 0...255: [255,0,0,255] is red. Without
+        // normalization every channel >1 clamps to 1 and the layer renders white (the cause
+        // of complex real-world Lotties rendering blank).
+        let legacy = try renderFrame(from: """
+        {"v":"4.0.0","fr":10,"ip":0,"op":10,"w":64,"h":64,"layers":[{"ty":4,"nm":"L","ind":1,"ip":0,"op":10,"st":0,"ks":{},"shapes":[
+          {"ty":"rc","p":{"a":0,"k":[32,32]},"s":{"a":0,"k":[20,20]},"r":{"a":0,"k":0}},
+          {"ty":"fl","c":{"a":0,"k":[255,0,0,255]},"o":{"a":0,"k":100}}
+        ]}]}
+        """, at: 0)
+        let legacyShape = try #require(allShapeLayers(in: LottieRenderIRLowerer().lower(legacy).root).first { $0.fillColor != nil })
+        let red = try #require(legacyShape.fillColor)
+        #expect(abs(red.red - 1) < 0.01 && red.green < 0.01 && red.blue < 0.01, "0-255 red gave (\(red.red),\(red.green),\(red.blue))")
+
+        // A modern 0...1 colour is left unchanged (no false normalization).
+        let modern = try renderFrame(from: """
+        {"v":"5.7.4","fr":10,"ip":0,"op":10,"w":64,"h":64,"layers":[{"ty":4,"nm":"L","ind":1,"ip":0,"op":10,"st":0,"ks":{},"shapes":[
+          {"ty":"rc","p":{"a":0,"k":[32,32]},"s":{"a":0,"k":[20,20]},"r":{"a":0,"k":0}},
+          {"ty":"fl","c":{"a":0,"k":[0.5,0,0,1]},"o":{"a":0,"k":100}}
+        ]}]}
+        """, at: 0)
+        let modernShape = try #require(allShapeLayers(in: LottieRenderIRLowerer().lower(modern).root).first { $0.fillColor != nil })
+        #expect(abs((modernShape.fillColor?.red ?? 0) - 0.5) < 0.01, "0-1 colour must pass through unchanged")
+    }
+
     @Test("multiply fill blend (bm=1) is rendered via extended, not reported as a gap (#178)")
     func multiplyFillBlendModeIsRenderedNotReported() throws {
         // bm=1 (multiply) is the one blend mode the software backend renders exactly. It is
