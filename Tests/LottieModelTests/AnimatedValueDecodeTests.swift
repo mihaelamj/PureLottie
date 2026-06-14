@@ -46,4 +46,26 @@ final class AnimatedValueDecodeTests: XCTestCase {
         XCTAssertThrowsError(try decodeKeyframe(#"{"t":0,"s":[0],"to":"not-an-array"}"#))
         XCTAssertThrowsError(try decodeKeyframe(#"{"t":0,"s":[0],"ti":{"x":1}}"#))
     }
+
+    // MARK: Expression detection (`x`)
+
+    func testPropertyExpressionIsDetected() throws {
+        // An AfterEffects expression on `x` is not evaluated; it must be flagged so
+        // the importer can report the gap instead of rendering the base value silently.
+        let scalar = try JSONDecoder().decode(AnimatedDouble.self, from: Data(#"{"a":0,"k":50,"x":"$bm_rt = clamp(value, 0, 100);"}"#.utf8))
+        XCTAssertTrue(scalar.hasExpression)
+        XCTAssertEqual(scalar.initialValue, 50)
+
+        let vector = try JSONDecoder().decode(AnimatedVector.self, from: Data(#"{"a":0,"k":[1,2],"x":"loopOut('cycle');"}"#.utf8))
+        XCTAssertTrue(vector.hasExpression)
+        XCTAssertEqual(vector.initialValue, [1, 2])
+    }
+
+    func testAbsentOrEmptyExpressionIsNotFlagged() throws {
+        let noExpression = try JSONDecoder().decode(AnimatedDouble.self, from: Data(#"{"a":0,"k":50}"#.utf8))
+        XCTAssertFalse(noExpression.hasExpression)
+
+        let emptyExpression = try JSONDecoder().decode(AnimatedDouble.self, from: Data(#"{"a":0,"k":50,"x":""}"#.utf8))
+        XCTAssertFalse(emptyExpression.hasExpression)
+    }
 }

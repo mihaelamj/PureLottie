@@ -251,6 +251,43 @@ final class ValidatedImportTests: XCTestCase {
         ])
     }
 
+    func testImporterReportsTransformPropertyExpression() throws {
+        // The position carries an AfterEffects expression (`x`). PureLottie does not
+        // evaluate expressions, so it must declare the gap rather than render the
+        // base value as a silently-static layer.
+        let scene = try LottieImporter().scene(from: Data("""
+        {
+          "v": "5.7.4",
+          "fr": 30,
+          "ip": 0,
+          "op": 30,
+          "w": 100,
+          "h": 100,
+          "layers": [{
+            "ty": 4,
+            "nm": "Bouncing",
+            "ind": 1,
+            "ip": 0,
+            "op": 30,
+            "st": 0,
+            "ks": {
+              "a": { "a": 0, "k": [0, 0] },
+              "p": { "a": 0, "k": [50, 50], "x": "var $bm_rt;\\n$bm_rt = loopOut('cycle');" },
+              "s": { "a": 0, "k": [100, 100] },
+              "r": { "a": 0, "k": 0 },
+              "o": { "a": 0, "k": 100 }
+            },
+            "shapes": []
+          }],
+          "assets": []
+        }
+        """.utf8))
+
+        let expressionFinding = try XCTUnwrap(scene.report.findings.first { $0.feature == "position expression" })
+        XCTAssertEqual(expressionFinding.disposition, .skipped)
+        XCTAssertFalse(scene.report.isClean)
+    }
+
     func testDataImportThrowsValidationErrorsBeforeImporterReport() throws {
         let data = Data("""
         {

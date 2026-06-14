@@ -115,7 +115,7 @@ public struct LottieFrameEvaluator: Sendable {
         path: JSONPath = JSONPath(),
         offsetFrame: Double = 0
     ) -> LottieEvaluationResult<Double> {
-        switch property {
+        switch property.kind {
         case let .fixed(value):
             return LottieEvaluationResult(
                 value: value,
@@ -147,7 +147,7 @@ public struct LottieFrameEvaluator: Sendable {
         path: JSONPath = JSONPath(),
         offsetFrame: Double = 0
     ) -> LottieEvaluationResult<[Double]> {
-        switch property {
+        switch property.kind {
         case let .fixed(value):
             LottieEvaluationResult(
                 value: value,
@@ -203,7 +203,7 @@ public struct LottieFrameEvaluator: Sendable {
         at _: Double,
         path: JSONPath = JSONPath()
     ) -> LottieEvaluationResult<LottieBezier?> {
-        switch property {
+        switch property.kind {
         case let .fixed(value):
             LottieEvaluationResult(value: value)
         case let .keyframed(keyframes):

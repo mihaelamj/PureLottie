@@ -122,14 +122,35 @@ public struct LottieKeyframe<Value: Decodable & Sendable & Equatable>: Decodable
 /// Lottie writes the fixed form as `{a: 0, k: value}` where `value` may also be
 /// a single-element array, and the keyframed form as `{a: 1, k: [keyframes]}`
 /// whose `s` values are single-element arrays.
-public enum AnimatedDouble: Sendable, Equatable {
-    case fixed(Double)
-    case keyframed([LottieKeyframe<[Double]>])
+public struct AnimatedDouble: Sendable, Equatable {
+    public enum Kind: Sendable, Equatable {
+        case fixed(Double)
+        case keyframed([LottieKeyframe<[Double]>])
+    }
+
+    public var kind: Kind
+    /// Whether the source property carries an AfterEffects expression (`x`).
+    /// PureLottie does not evaluate expressions, so an expression-driven property
+    /// renders its base value; the importer reports it instead of animating silently.
+    public var hasExpression: Bool
+
+    public init(kind: Kind, hasExpression: Bool = false) {
+        self.kind = kind
+        self.hasExpression = hasExpression
+    }
+
+    public static func fixed(_ value: Double) -> AnimatedDouble {
+        .init(kind: .fixed(value))
+    }
+
+    public static func keyframed(_ frames: [LottieKeyframe<[Double]>]) -> AnimatedDouble {
+        .init(kind: .keyframed(frames))
+    }
 
     /// The fixed value, or the first keyframe's start value for a keyframed
     /// property (the value before any animation progresses).
     public var initialValue: Double {
-        switch self {
+        switch kind {
         case let .fixed(value):
             value
         case let .keyframed(keyframes):
@@ -138,7 +159,7 @@ public enum AnimatedDouble: Sendable, Equatable {
     }
 
     public var isAnimated: Bool {
-        if case .keyframed = self { return true }
+        if case .keyframed = kind { return true }
         return false
     }
 }
@@ -147,29 +168,58 @@ extension AnimatedDouble: Decodable {
     private enum CodingKeys: String, CodingKey {
         case animated = "a"
         case value = "k"
+        case expression = "x"
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        let kind: Kind
         if let keyframes = try? container.decode([LottieKeyframe<[Double]>].self, forKey: .value) {
-            self = .keyframed(keyframes)
+            kind = .keyframed(keyframes)
         } else if let scalar = try? container.decode(Double.self, forKey: .value) {
-            self = .fixed(scalar)
+            kind = .fixed(scalar)
         } else {
             let array = try container.decode([Double].self, forKey: .value)
-            self = .fixed(array.first ?? 0)
+            kind = .fixed(array.first ?? 0)
         }
+        self.init(kind: kind, hasExpression: AnimatedExpression.isPresent(in: container, forKey: .expression))
+    }
+}
+
+/// Detects the presence of a non-empty AfterEffects expression (`x`) on a property.
+enum AnimatedExpression {
+    static func isPresent<Key: CodingKey>(in container: KeyedDecodingContainer<Key>, forKey key: Key) -> Bool {
+        guard let expression = try? container.decodeIfPresent(String.self, forKey: key) else { return false }
+        return !expression.isEmpty
     }
 }
 
 /// A multi-dimensional property (positions, scales, colors): a fixed vector or
 /// keyframes over it.
-public enum AnimatedVector: Sendable, Equatable {
-    case fixed([Double])
-    case keyframed([LottieKeyframe<[Double]>])
+public struct AnimatedVector: Sendable, Equatable {
+    public enum Kind: Sendable, Equatable {
+        case fixed([Double])
+        case keyframed([LottieKeyframe<[Double]>])
+    }
+
+    public var kind: Kind
+    public var hasExpression: Bool
+
+    public init(kind: Kind, hasExpression: Bool = false) {
+        self.kind = kind
+        self.hasExpression = hasExpression
+    }
+
+    public static func fixed(_ value: [Double]) -> AnimatedVector {
+        .init(kind: .fixed(value))
+    }
+
+    public static func keyframed(_ frames: [LottieKeyframe<[Double]>]) -> AnimatedVector {
+        .init(kind: .keyframed(frames))
+    }
 
     public var initialValue: [Double] {
-        switch self {
+        switch kind {
         case let .fixed(value):
             value
         case let .keyframed(keyframes):
@@ -178,7 +228,7 @@ public enum AnimatedVector: Sendable, Equatable {
     }
 
     public var isAnimated: Bool {
-        if case .keyframed = self { return true }
+        if case .keyframed = kind { return true }
         return false
     }
 }
@@ -187,25 +237,45 @@ extension AnimatedVector: Decodable {
     private enum CodingKeys: String, CodingKey {
         case animated = "a"
         case value = "k"
+        case expression = "x"
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        if let keyframes = try? container.decode([LottieKeyframe<[Double]>].self, forKey: .value) {
-            self = .keyframed(keyframes)
+        let kind: Kind = if let keyframes = try? container.decode([LottieKeyframe<[Double]>].self, forKey: .value) {
+            .keyframed(keyframes)
         } else {
-            self = try .fixed(container.decode([Double].self, forKey: .value))
+            try .fixed(container.decode([Double].self, forKey: .value))
         }
+        self.init(kind: kind, hasExpression: AnimatedExpression.isPresent(in: container, forKey: .expression))
     }
 }
 
 /// A bezier-path property: a fixed shape or keyframes morphing it.
-public enum AnimatedBezier: Sendable, Equatable {
-    case fixed(LottieBezier)
-    case keyframed([LottieKeyframe<[LottieBezier]>])
+public struct AnimatedBezier: Sendable, Equatable {
+    public enum Kind: Sendable, Equatable {
+        case fixed(LottieBezier)
+        case keyframed([LottieKeyframe<[LottieBezier]>])
+    }
+
+    public var kind: Kind
+    public var hasExpression: Bool
+
+    public init(kind: Kind, hasExpression: Bool = false) {
+        self.kind = kind
+        self.hasExpression = hasExpression
+    }
+
+    public static func fixed(_ value: LottieBezier) -> AnimatedBezier {
+        .init(kind: .fixed(value))
+    }
+
+    public static func keyframed(_ frames: [LottieKeyframe<[LottieBezier]>]) -> AnimatedBezier {
+        .init(kind: .keyframed(frames))
+    }
 
     public var initialValue: LottieBezier? {
-        switch self {
+        switch kind {
         case let .fixed(value):
             value
         case let .keyframed(keyframes):
@@ -214,7 +284,7 @@ public enum AnimatedBezier: Sendable, Equatable {
     }
 
     public var isAnimated: Bool {
-        if case .keyframed = self { return true }
+        if case .keyframed = kind { return true }
         return false
     }
 }
@@ -223,14 +293,16 @@ extension AnimatedBezier: Decodable {
     private enum CodingKeys: String, CodingKey {
         case animated = "a"
         case value = "k"
+        case expression = "x"
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        if let bezier = try? container.decode(LottieBezier.self, forKey: .value) {
-            self = .fixed(bezier)
+        let kind: Kind = if let bezier = try? container.decode(LottieBezier.self, forKey: .value) {
+            .fixed(bezier)
         } else {
-            self = try .keyframed(container.decode([LottieKeyframe<[LottieBezier]>].self, forKey: .value))
+            try .keyframed(container.decode([LottieKeyframe<[LottieBezier]>].self, forKey: .value))
         }
+        self.init(kind: kind, hasExpression: AnimatedExpression.isPresent(in: container, forKey: .expression))
     }
 }
