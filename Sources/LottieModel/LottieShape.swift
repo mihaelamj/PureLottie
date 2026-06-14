@@ -115,6 +115,30 @@ public struct ShapePath: Decodable, Sendable, Equatable {
         case isHidden = "hd"
         case direction = "d"
         case shape = "ks"
+        case closed
+    }
+
+    public init(name: String?, isHidden: Bool?, direction: Int?, shape: AnimatedBezier) {
+        self.name = name
+        self.isHidden = isHidden
+        self.direction = direction
+        self.shape = shape
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        isHidden = try container.decodeIfPresent(Bool.self, forKey: .isHidden)
+        direction = try container.decodeIfPresent(Int.self, forKey: .direction)
+        let decodedShape = try container.decode(AnimatedBezier.self, forKey: .shape)
+        // Legacy bodymovin carries the closed flag at the shape-item level
+        // (`closed`) instead of inside the bezier (`ks.k.c`); fold it in so the
+        // closing segment is drawn, matching lottie-web's format upgrade.
+        if let itemClosed = try container.decodeIfPresent(Bool.self, forKey: .closed) {
+            shape = decodedShape.applyingClosedFlag(itemClosed)
+        } else {
+            shape = decodedShape
+        }
     }
 }
 

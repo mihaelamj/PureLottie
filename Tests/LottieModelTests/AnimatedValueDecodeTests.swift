@@ -68,4 +68,63 @@ final class AnimatedValueDecodeTests: XCTestCase {
         let emptyExpression = try JSONDecoder().decode(AnimatedDouble.self, from: Data(#"{"a":0,"k":50,"x":""}"#.utf8))
         XCTAssertFalse(emptyExpression.hasExpression)
     }
+
+    // MARK: Legacy item-level closed flag (`sh.closed`)
+
+    private func decodePath(_ json: String) throws -> ShapePath {
+        try JSONDecoder().decode(ShapePath.self, from: Data(json.utf8))
+    }
+
+    func testItemLevelClosedTrueFoldsIntoBezierWhenInnerFlagAbsent() throws {
+        // Legacy bodymovin omits the bezier `c` and carries the closed flag at the
+        // shape-item level. It must fold in so the closing segment is drawn.
+        let path = try decodePath(#"{"ty":"sh","closed":true,"ks":{"a":0,"k":{"i":[[0,0]],"o":[[0,0]],"v":[[0,0]]}}}"#)
+        XCTAssertEqual(path.shape.initialValue?.isClosed, true)
+    }
+
+    func testItemLevelClosedFalseFoldsIntoBezier() throws {
+        let path = try decodePath(#"{"ty":"sh","closed":false,"ks":{"a":0,"k":{"i":[[0,0]],"o":[[0,0]],"v":[[0,0]]}}}"#)
+        XCTAssertEqual(path.shape.initialValue?.isClosed, false)
+    }
+
+    func testInnerClosedFlagStillHonoredWithoutItemLevelFlag() throws {
+        let path = try decodePath(#"{"ty":"sh","ks":{"a":0,"k":{"i":[[0,0]],"o":[[0,0]],"v":[[0,0]],"c":true}}}"#)
+        XCTAssertEqual(path.shape.initialValue?.isClosed, true)
+    }
+
+    func testAbsentClosedFlagsDefaultToOpen() throws {
+        let path = try decodePath(#"{"ty":"sh","ks":{"a":0,"k":{"i":[[0,0]],"o":[[0,0]],"v":[[0,0]]}}}"#)
+        XCTAssertEqual(path.shape.initialValue?.isClosed, false)
+    }
+
+    func testRealGatinLegacyPathsDecodeAsClosed() throws {
+        // gatin is a legacy export: all 36 paths carry item-level `closed` (30
+        // true, 6 false) with no inner `c`. Before the fold-in fix every path
+        // decoded open, dropping the closing segment and under-filling shapes.
+        let url = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Tests/Fixtures/LottieCorpus/airbnb-lottie-web/demo/gatin/data.json")
+        let animation = try LottieAnimation.decode(from: Data(contentsOf: url))
+        var closedCount = 0
+        var openCount = 0
+        func walk(_ shapes: [LottieShape]) {
+            for shape in shapes {
+                switch shape {
+                case let .group(group):
+                    walk(group.items)
+                case let .path(path):
+                    if path.shape.initialValue?.isClosed == true { closedCount += 1 } else { openCount += 1 }
+                default:
+                    break
+                }
+            }
+        }
+        for layer in animation.layers {
+            walk(layer.shapes ?? [])
+        }
+        XCTAssertEqual(closedCount, 30)
+        XCTAssertEqual(openCount, 6)
+    }
 }

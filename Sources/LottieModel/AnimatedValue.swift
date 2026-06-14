@@ -287,6 +287,35 @@ public struct AnimatedBezier: Sendable, Equatable {
         if case .keyframed = kind { return true }
         return false
     }
+
+    /// Returns a copy with `isClosed` forced on every contained bezier.
+    ///
+    /// Legacy bodymovin stores a path's closed flag at the shape-item level
+    /// (`sh.closed`) rather than inside the bezier (`ks.k.c`); the importer uses
+    /// this to fold that flag into the bezier so the closing segment is drawn.
+    public func applyingClosedFlag(_ closed: Bool) -> AnimatedBezier {
+        switch kind {
+        case var .fixed(bezier):
+            bezier.isClosed = closed
+            return AnimatedBezier(kind: .fixed(bezier), hasExpression: hasExpression)
+        case let .keyframed(frames):
+            let updated = frames.map { frame -> LottieKeyframe<[LottieBezier]> in
+                var copy = frame
+                copy.startValue = frame.startValue?.map { bezier in
+                    var bezier = bezier
+                    bezier.isClosed = closed
+                    return bezier
+                }
+                copy.endValue = frame.endValue?.map { bezier in
+                    var bezier = bezier
+                    bezier.isClosed = closed
+                    return bezier
+                }
+                return copy
+            }
+            return AnimatedBezier(kind: .keyframed(updated), hasExpression: hasExpression)
+        }
+    }
 }
 
 extension AnimatedBezier: Decodable {
