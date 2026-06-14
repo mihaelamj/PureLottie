@@ -331,6 +331,81 @@ struct LottieRenderOracleTests {
         #expect(interior > 200 && exterior > 500, "coverage check was near-vacuous: interior=\(interior) exterior=\(exterior)")
     }
 
+    @Test("filled polygon and star: per-pixel coverage matches closed-form point-in-polygon (#140)")
+    func polystarPerPixelCoverageMatchesClosedForm() throws {
+        // Closed-form polystar vertices, the same form proven exact in #139
+        // (LottiePolystarExactnessTests): vertex i at angle -pi/2 + rot + (2pi/count)*i,
+        // radius `or` (polygon) or alternating `or`/`ir` (star, count = pt*2), about the
+        // centre. #139 proves these vertices; this proves the fill covers exactly the
+        // polygon they span. The edges are straight (no rounding), so point-in-polygon is
+        // the exact interior. A 1.5px band around every edge is excluded for anti-aliasing.
+        func vertices(count: Int, rotationDeg: Double, radius: (Int) -> Double) -> [(Double, Double)] {
+            let step = 2 * Double.pi / Double(count)
+            return (0 ..< count).map { i in
+                let angle = -Double.pi / 2 + rotationDeg * Double.pi / 180 + step * Double(i)
+                return (32 + radius(i) * cos(angle), 32 + radius(i) * sin(angle))
+            }
+        }
+        // polygon-five.json: pt=5, or=18, r=18. star-five.json: pt=5 -> 10 verts, or=20, ir=8, r=-18.
+        let pentagon = vertices(count: 5, rotationDeg: 18) { _ in 18 }
+        let star = vertices(count: 10, rotationDeg: -18) { $0.isMultiple(of: 2) ? 20 : 8 }
+        try assertPolygonCoverage(fixture: "polygon-five.json", polygon: pentagon)
+        try assertPolygonCoverage(fixture: "star-five.json", polygon: star)
+    }
+
+    /// Render a polystar fixture and assert, per pixel, that the fill covers exactly the
+    /// interior of `polygon`: every pixel centre strictly inside (more than 1.5px from any
+    /// edge) is painted, every pixel strictly outside is background.
+    private func assertPolygonCoverage(fixture: String, polygon: [(Double, Double)]) throws {
+        let image = try renderFixtureImage(fixture)
+        let painted = paintedMask(image)
+        var interior = 0, exterior = 0
+        for y in 0 ..< image.height {
+            for x in 0 ..< image.width {
+                let fx = Double(x) + 0.5, fy = Double(y) + 0.5
+                if minEdgeDistance(fx, fy, polygon) <= 1.5 { continue } // anti-aliasing band
+                if pointInPolygon(fx, fy, polygon) {
+                    interior += 1
+                    #expect(painted(x, y), "\(fixture): interior pixel (\(x),\(y)) is not painted")
+                } else {
+                    exterior += 1
+                    #expect(!painted(x, y), "\(fixture): exterior pixel (\(x),\(y)) is painted")
+                }
+            }
+        }
+        #expect(interior > 100 && exterior > 100, "\(fixture): coverage near-vacuous: interior=\(interior) exterior=\(exterior)")
+    }
+
+    /// Even-odd ray-cast point-in-polygon (the polystar edges form a simple polygon).
+    private func pointInPolygon(_ px: Double, _ py: Double, _ poly: [(Double, Double)]) -> Bool {
+        var inside = false
+        var j = poly.count - 1
+        for i in 0 ..< poly.count {
+            let (xi, yi) = poly[i], (xj, yj) = poly[j]
+            if (yi > py) != (yj > py), px < (xj - xi) * (py - yi) / (yj - yi) + xi {
+                inside.toggle()
+            }
+            j = i
+        }
+        return inside
+    }
+
+    /// Minimum distance from a point to any edge of the polygon (for the AA band).
+    private func minEdgeDistance(_ px: Double, _ py: Double, _ poly: [(Double, Double)]) -> Double {
+        var best = Double.greatestFiniteMagnitude
+        var j = poly.count - 1
+        for i in 0 ..< poly.count {
+            let (ax, ay) = poly[j], (bx, by) = poly[i]
+            let dx = bx - ax, dy = by - ay
+            let lengthSquared = dx * dx + dy * dy
+            let t = lengthSquared == 0 ? 0 : max(0, min(1, ((px - ax) * dx + (py - ay) * dy) / lengthSquared))
+            let cx = ax + t * dx, cy = ay + t * dy
+            best = min(best, ((px - cx) * (px - cx) + (py - cy) * (py - cy)).squareRoot())
+            j = i
+        }
+        return best
+    }
+
     /// A painted-pixel predicate: a pixel differs from the (background) corner pixel.
     private func paintedMask(_ image: Image) -> (Int, Int) -> Bool {
         let bpp = image.bitsPerPixel / 8
