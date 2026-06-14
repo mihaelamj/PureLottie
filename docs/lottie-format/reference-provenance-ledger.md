@@ -33,12 +33,12 @@ actionable.
 
 | Reference set | Path | Count | Purpose | Validation status |
 | --- | --- | ---: | --- | --- |
-| Raw public Lottie corpus | `Tests/Fixtures/LottieCorpus` | 936 JSON files | Discovery corpus for observed Lottie fields and unsupported-feature evidence. | `FixtureCorpusTests` checks root Lottie keys; `CorpusSemanticLedgerTests` checks counts, unique payloads, source counts, licenses, field classification, and eligibility reasons. |
-| Raw corpus licenses | `Tests/Fixtures/LottieCorpus/_licenses` | 7 files | Preserve upstream license text beside copied fixtures. | `CorpusSemanticLedgerTests.testCorpusSourceProvenanceIsPinned` checks required license files. |
+| Raw public Lottie corpus | `Tests/Fixtures/LottieCorpus` | 1016 JSON files | Discovery corpus for observed Lottie fields and unsupported-feature evidence. | `FixtureCorpusTests` checks root Lottie keys; `CorpusSemanticLedgerTests` checks counts, unique payloads, source counts, licenses, field classification, and eligibility reasons. |
+| Raw corpus licenses | `Tests/Fixtures/LottieCorpus/_licenses` | 8 files | Preserve upstream license text beside copied fixtures. | `CorpusSemanticLedgerTests.testCorpusSourceProvenanceIsPinned` checks required license files. |
 | Curated source-intent oracle corpus | `Tests/Fixtures/LottieOracle` | 31 source JSON files | Vetted regression corpus with small source fixtures and selected frame rationales. | `LottieOracleCorpusTests` checks manifest size, coverage families, frame lists, validation statuses, and lottie-web intent alignment; `npm --prefix Tools/LottieOracle run validate-fixtures` live-loads every curated fixture through pinned lottie-web. |
 | Committed lottie-web numeric traces | `Tests/Fixtures/LottieOracle/lottie-web-intent` | 31 JSON traces | Browser-side numeric reference facts before PNG comparison. | `LottieOracleCorpusTests.everyCorpusFixtureHasCommittedLottieWebNumericIntentSnapshot` checks schema, renderer, lottie-web version, size, selected frames, and path counts. |
 | Golden source-intent trace | `Tests/Fixtures/SourceIntentTrace` | 1 JSON trace | Stable v1 source-intent schema round-trip fixture. | `LottieSourceIntentTraceTests` checks decode, provenance, vocabularies, and JSON coding round trip. |
-| Machine-readable provenance manifest | `docs/lottie-format/reference-provenance.json` | 19 entries | Typed provenance index for reference sets, tools, docs, dependency oracles, unknown facts, and validation evidence. | `ReferenceProvenanceManifestValidationTests` validates schema, vocabularies, required facts, unknown follow-ups, path-bearing diagnostics, and repository paths. |
+| Machine-readable provenance manifest | `docs/lottie-format/reference-provenance.json` | 20 entries | Typed provenance index for reference sets, tools, docs, dependency oracles, unknown facts, and validation evidence. | `ReferenceProvenanceManifestValidationTests` validates schema, vocabularies, required facts, unknown follow-ups, path-bearing diagnostics, and repository paths. |
 | lottie-web oracle tool | `Tools/LottieOracle` | 1 Node tool package | External browser/reference harness kept outside `Package.swift`. | `npm --prefix Tools/LottieOracle test` checks fixture manifest, eligibility gates, package pins, image comparison helpers, path-bearing validation diagnostics, and package isolation; `npm --prefix Tools/LottieOracle run validate-fixtures` checks live lottie-web fixture usability. |
 | Wider lottie-web witness corpus | `Tools/LottieOracle/witness-corpus.json`; traces under `Tests/Fixtures/LottieOracle/witnessed-corpus/lottie-web-intent` | 5 trace files over 25 sampled frames | Browser-measured witness-only numeric facts from the raw corpus, separate from curated conformance claims. | `LottieWitnessCorpusManifestTests` and `witness-corpus.test.mjs` validate manifest paths, frame lists, lottie-web version, and committed trace identities. |
 | Frame dump tools | `Tools/LottieFrameDump`, `Tools/LottieAPNGDump` | 2 Swift executables | Emit PureLayer frames/APNGs with semantic summaries after source-intent gates. | Built by `swift build`; covered by import/APNG/oracle tests and oracle filename checks. |
@@ -59,12 +59,13 @@ test repositories. Only JSON files with root Lottie keys `v`, `fr`, `ip`, `op`,
 | `Tests/Fixtures/LottieCorpus/airbnb-lottie-web` | `https://github.com/airbnb/lottie-web` | `bede03d` | 17 | `_licenses/airbnb-lottie-web-LICENSE.md` | Browser-engine fixture discovery. | Root-document gate, semantic-ledger classification, source-count pin. |
 | `Tests/Fixtures/LottieCorpus/LottieFiles-lottie-react` | `https://github.com/LottieFiles/lottie-react` | `0082d3d` | 1 | `_licenses/LottieFiles-lottie-react-LICENSE` | React wrapper fixture discovery. | Root-document gate, semantic-ledger classification, source-count pin. |
 | `Tests/Fixtures/LottieCorpus/useAnimations-react-useanimations` | `https://github.com/useAnimations/react-useanimations` | `a19d6f1` | 79 | `_licenses/useAnimations-react-useanimations-LICENSE` | Production UI icon animations (CC-BY) for real-world shape/transform/trim coverage. | Root-document gate, semantic-ledger classification, source-count pin. |
+| `Tests/Fixtures/LottieCorpus/LottieFiles-test-files` | `https://github.com/LottieFiles/test-files` | `ba02545` | 80 | `_licenses/LottieFiles-test-files-LICENSE` | Official LottieFiles tooling test set (MIT) covering offset-path, pucker-bloat, zig-zag, gradient, and other feature edge cases. | Root-document gate, semantic-ledger classification, source-count pin. |
 
 Current measured totals:
 
 | Measurement | Value |
 | --- | ---: |
-| Raw corpus JSON files | 936 |
+| Raw corpus JSON files | 1016 |
 | Unique raw JSON payloads | 675 |
 
 ## Curated Oracle Corpus

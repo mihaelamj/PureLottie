@@ -596,6 +596,38 @@
       "measurements": {
         "jsonFiles": 79
       }
+    },
+    {
+      "id": "raw-lottiefiles-test-files",
+      "kind": "raw-corpus-source",
+      "path": "Tests/Fixtures/LottieCorpus/LottieFiles-test-files",
+      "source": {
+        "type": "git",
+        "value": "https://github.com/LottieFiles/test-files"
+      },
+      "revision": {
+        "status": "known",
+        "value": "ba02545"
+      },
+      "license": {
+        "status": "known",
+        "value": "Tests/Fixtures/LottieCorpus/_licenses/LottieFiles-test-files-LICENSE"
+      },
+      "purpose": "Official LottieFiles tooling test set (MIT) covering offset-path, pucker-bloat, zig-zag, gradient, and other feature edge cases.",
+      "classifications": [
+        "discovery",
+        "raw-corpus"
+      ],
+      "validation": {
+        "status": "usable",
+        "evidence": [
+          "CorpusSemanticLedgerTests.testCorpusSourceProvenanceIsPinned",
+          "FixtureCorpusTests.testFixtureCorpusFilesAreLottieDocuments"
+        ]
+      },
+      "measurements": {
+        "jsonFiles": 80
+      }
     }
   ]
 }
