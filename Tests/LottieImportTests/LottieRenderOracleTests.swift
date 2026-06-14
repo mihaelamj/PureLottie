@@ -147,15 +147,65 @@ struct LottieRenderOracleTests {
         #expect(abs(box.maxY - 40) <= margin, "bottom \(box.maxY) vs 40")
     }
 
+    @Test("raw cubic-bezier stroke renders along the curve, not the chord (#134 final item)")
+    func rawCubicBezierStrokeFollowsCurve() throws {
+        // raw-bezier-cubic.json: one open cubic, width-4 round-cap/join stroke, no layer
+        // offset. Control points from the fixture's v/i/o:
+        //   P0 = v0           = (12,50)
+        //   P1 = v0 + o0      = (30,22)
+        //   P2 = v1 + i1      = (34,42)
+        //   P3 = v1           = (52,14)
+        // X is monotone (12<30<34<52) and Y'(t)=0 -> 24t^2-24t+7=0 has discriminant -96
+        // (no real roots), so Y is monotone too: the curve bbox equals the vertex bbox
+        // [12,52]x[14,50]. A round stroke is the curve dilated by the half-width (2), so the
+        // painted bbox is [10,54]x[12,52]. Decisively: sampled curve points are painted, and
+        // at t=0.25 the curve sits at ~(23.3,36.5), ~3.3px off the straight chord, so a
+        // chord render (ignoring the tangents) would leave that point unpainted.
+        func cubic(_ t: Double) -> (Double, Double) {
+            let u = 1 - t
+            let a = u * u * u, b = 3 * u * u * t, c = 3 * u * t * t, d = t * t * t
+            return (
+                a * 12 + b * 30 + c * 34 + d * 52,
+                a * 50 + b * 22 + c * 42 + d * 14
+            )
+        }
+        let image = try renderFixtureImage("raw-bezier-cubic.json")
+        let bytesPerPixel = image.bitsPerPixel / 8
+        func pixel(_ x: Int, _ y: Int) -> ArraySlice<UInt8> {
+            let offset = y * image.bytesPerRow + x * bytesPerPixel
+            return image.data[offset ..< offset + bytesPerPixel]
+        }
+        let background = pixel(0, 0)
+        func painted(_ x: Int, _ y: Int) -> Bool { pixel(x, y) != background }
+
+        // Every sampled point on the cubic is under the stroke (width 4, so the centreline
+        // is painted). A straight-chord render fails the off-chord samples around t=0.25.
+        for i in 0 ... 10 {
+            let (px, py) = cubic(Double(i) / 10)
+            let x = Int(px.rounded()), y = Int(py.rounded())
+            #expect(painted(x, y), "curve point t=\(Double(i) / 10) (\(x),\(y)) is not painted")
+        }
+        // The off-chord bulge specifically (a chord stroke would not reach this pixel).
+        #expect(painted(23, 36), "off-chord curve point (23,36) must be painted (proves cubic, not chord)")
+
+        // Painted bbox = curve bbox dilated by the stroke half-width (round cap/join).
+        var minX = image.width, minY = image.height, maxX = -1, maxY = -1
+        for y in 0 ..< image.height {
+            for x in 0 ..< image.width where painted(x, y) {
+                minX = min(minX, x); minY = min(minY, y); maxX = max(maxX, x); maxY = max(maxY, y)
+            }
+        }
+        let margin = 2
+        #expect(abs(minX - 10) <= margin, "left \(minX) vs 10")
+        #expect(abs(maxX - 54) <= margin, "right \(maxX) vs 54")
+        #expect(abs(minY - 12) <= margin, "top \(minY) vs 12")
+        #expect(abs(maxY - 52) <= margin, "bottom \(maxY) vs 52")
+    }
+
     /// Render an imported single-layer Lottie through the real engine and return
     /// the bounding box of pixels that differ from the (background) corner pixel.
     private func coveredBoundingBox(_ json: String) throws -> (minX: Int, minY: Int, maxX: Int, maxY: Int) {
-        let animation = try LottieAnimation.decode(from: Data(json.utf8))
-        let frame = LottieRenderIRBuilder(animation: animation).frame(at: 0)
-        let tree = LottieRenderIRLowerer().lower(frame)
-        let root = LottieRenderSurface.root(tree.root, width: animation.width, height: animation.height, scale: 1)
-        let size = LottieRenderSurface.pixelSize(width: animation.width, height: animation.height, scale: 1)
-        let image = try SoftwareBackend().render(Compositor().drawList(for: root, at: 0), size: size)
+        let image = try renderImage(json)
         let bytesPerPixel = image.bitsPerPixel / 8
         func pixel(_ x: Int, _ y: Int) -> ArraySlice<UInt8> {
             let offset = y * image.bytesPerRow + x * bytesPerPixel
@@ -170,5 +220,25 @@ struct LottieRenderOracleTests {
             }
         }
         return (minX, minY, maxX, maxY)
+    }
+
+    /// Render an imported single-layer Lottie JSON string through the real engine.
+    private func renderImage(_ json: String) throws -> Image {
+        let animation = try LottieAnimation.decode(from: Data(json.utf8))
+        let frame = LottieRenderIRBuilder(animation: animation).frame(at: 0)
+        let tree = LottieRenderIRLowerer().lower(frame)
+        let root = LottieRenderSurface.root(tree.root, width: animation.width, height: animation.height, scale: 1)
+        let size = LottieRenderSurface.pixelSize(width: animation.width, height: animation.height, scale: 1)
+        return try SoftwareBackend().render(Compositor().drawList(for: root, at: 0), size: size)
+    }
+
+    /// Render an oracle fixture file through the real engine.
+    private func renderFixtureImage(_ name: String) throws -> Image {
+        let url = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Tests/Fixtures/LottieOracle/\(name)")
+        return try renderImage(String(contentsOf: url, encoding: .utf8))
     }
 }

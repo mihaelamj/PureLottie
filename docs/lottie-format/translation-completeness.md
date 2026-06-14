@@ -101,13 +101,17 @@ itself a result:
 - Stroke cap, join, miter limit, and dash now **render** through `ShapeLayer`
   (PureLayer#157, PureDraw#99 dash rasterizer), wired in the lowerer and verified
   by `LottieRenderIRLowererTests.strokeStyleLowersOntoShapeLayer`. They are no
-  longer reported as backend gaps. That resolves two of the three open #134 items.
-- So the **only** remaining unverified #134 item is the raw cubic-bezier path,
-  which needs the same geometry-grounded coordinate check. The honest claim is
-  "PureLayer and lottie-web diverge on N cases; which side is correct is
-  established only where the geometry has been computed, and every computed case
-  so far has found PureLayer correct (mask) or a since-fixed PureLayer bug (split
-  position), never a PureLottie translation error."
+  longer reported as backend gaps.
+- The raw cubic-bezier path is verified too. `raw-bezier-cubic.json` (one open
+  cubic, round stroke) is monotone in x and y (Y'(t)=0 has no real root), so its
+  curve bbox equals the vertex bbox and the round-stroked bbox is `[10,54]×[12,52]`.
+  `LottieRenderOracleTests.rawCubicBezierStrokeFollowsCurve` confirms the render
+  matches that box and, decisively, that points sampled along the cubic are painted
+  (including the t=0.25 bulge ~3.3px off the chord, which a straight-line render
+  would miss). So the rendered stroke follows the cubic, not the chord.
+- That closes the #134 render frontier: every one of the originally-flagged cases
+  was computed, and each found PureLayer correct (mask, rounded rect, raw cubic) or
+  a since-fixed PureLayer bug (split position), never a PureLottie translation error.
 - Shape blend mode (`bm`) stays an explicit `ImportReport` finding by design: the
   default render uses PureLayer's standard (faithful Core Animation) compositor,
   which does not apply it. PureLayer can render it in `.extended` mode, but only
@@ -148,7 +152,10 @@ shown: coordinate root-cause proved PureLayer correct on the mask case and a
 PureLayer compositor bug (`PureLayer#160`) on the split-position case, neither a
 PureLottie translation error. That bug is now fixed (PureLayer 0.2.0) and the
 shape renders in full; stroke cap/join/miter/dash also render now (PureLayer#157,
-PureDraw#99), leaving the raw cubic-bezier path as the only unverified case. The
-path to a real render oracle (#140 + #21) is named, not hand-waved. Claiming
-either a green render or a blanket PureLayer-is-broken would be the shortcut this
+PureDraw#99), and the raw cubic-bezier stroke is verified to follow the curve. So
+every originally-flagged #134 case has now been computed, and none was a PureLottie
+translation error. This still is not a blanket "100% render-equivalent" proof: it
+covers the curated #134 set, not all inputs, and the independent pixel oracle
+(#140 + #21) remains the path to a general guarantee. Claiming either a green
+render across the board or a blanket PureLayer-is-broken would be the shortcut this
 effort forbids.
