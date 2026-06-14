@@ -15,7 +15,7 @@ import Testing
 /// pixels must be. Rendering the import and checking the covered-pixel bounding
 /// box against that prediction catches import/lowering bugs that move, resize, or
 /// drop a shape (the class #134 records) without depending on the pixel byte
-/// order. It is the foundation the per-pixel comparison will build on.
+/// order. The per-pixel analytic coverage oracle further down builds on it.
 ///
 /// Status: `sampled` (one curated shape, checked against the geometry prediction
 /// with an anti-aliasing margin).
@@ -240,6 +240,89 @@ struct LottieRenderOracleTests {
         #expect(px(extended, 32, 32) != px(extended, 0, 0), "overlap unpainted under extended")
         // Foreground-only region (no backdrop to blend with) is unchanged by the blend mode.
         #expect(px(standard, 48, 32) == px(extended, 48, 32), "foreground-only region must not change")
+    }
+
+    // MARK: - Per-pixel analytic coverage oracle (#140)
+
+    // The bounding-box checks above catch a moved/resized/dropped shape but say
+    // nothing about the interior. These check coverage per pixel against an
+    // independent analytic reference (point-in-shape from the #139-exact geometry),
+    // not the renderer and not a browser: every pixel whose centre is strictly
+    // inside the shape (by more than the 1px anti-aliasing band) must be painted,
+    // and every pixel strictly outside must be background. The boundary band is
+    // excluded because anti-aliasing legitimately makes it partial.
+
+    @Test("filled rectangle: every interior pixel painted, every exterior pixel background (#140)")
+    func rectanglePerPixelCoverageMatchesAnalyticReference() throws {
+        // rc p=[40,60] s=[60,30] -> x[10,70] y[45,75].
+        let json = """
+        {"v":"5.7.4","fr":30,"ip":0,"op":30,"w":100,"h":100,"layers":[{"ty":4,"ind":1,"ip":0,"op":30,"ks":{},"shapes":[
+          {"ty":"rc","p":{"a":0,"k":[40,60]},"s":{"a":0,"k":[60,30]},"r":{"a":0,"k":0}},
+          {"ty":"fl","c":{"a":0,"k":[0,0,1,1]},"o":{"a":0,"k":100}}
+        ]}]}
+        """
+        let image = try renderImage(json)
+        let painted = paintedMask(image)
+        let (a, b, c, d) = (10.0, 70.0, 45.0, 75.0) // x[a,b] y[c,d]
+        var interior = 0, exterior = 0
+        for y in 0 ..< image.height {
+            for x in 0 ..< image.width {
+                let fx = Double(x) + 0.5, fy = Double(y) + 0.5
+                let insideBy = min(fx - a, b - fx, fy - c, d - fy) // >0 inside, <0 outside
+                if insideBy > 1 {
+                    interior += 1
+                    #expect(painted(x, y), "interior pixel (\(x),\(y)) is not painted")
+                } else if insideBy < -1 {
+                    exterior += 1
+                    #expect(!painted(x, y), "exterior pixel (\(x),\(y)) is painted")
+                }
+            }
+        }
+        #expect(interior > 500 && exterior > 500, "coverage check was near-vacuous: interior=\(interior) exterior=\(exterior)")
+    }
+
+    @Test("filled ellipse: every interior pixel painted, every exterior pixel background (#140)")
+    func ellipsePerPixelCoverageMatchesAnalyticReference() throws {
+        // el p=[50,50] s=[40,20] -> centre (50,50), rx=20, ry=10.
+        let json = """
+        {"v":"5.7.4","fr":30,"ip":0,"op":30,"w":100,"h":100,"layers":[{"ty":4,"ind":1,"ip":0,"op":30,"ks":{},"shapes":[
+          {"ty":"el","p":{"a":0,"k":[50,50]},"s":{"a":0,"k":[40,20]}},
+          {"ty":"fl","c":{"a":0,"k":[1,0,0,1]},"o":{"a":0,"k":100}}
+        ]}]}
+        """
+        let image = try renderImage(json)
+        let painted = paintedMask(image)
+        let (cx, cy, rx, ry) = (50.0, 50.0, 20.0, 10.0)
+        func norm(_ fx: Double, _ fy: Double, _ rrx: Double, _ rry: Double) -> Double {
+            let dx = (fx - cx) / rrx, dy = (fy - cy) / rry
+            return dx * dx + dy * dy
+        }
+        var interior = 0, exterior = 0
+        for y in 0 ..< image.height {
+            for x in 0 ..< image.width {
+                let fx = Double(x) + 0.5, fy = Double(y) + 0.5
+                if norm(fx, fy, rx - 1, ry - 1) < 1 { // inside even with radii shrunk by 1px
+                    interior += 1
+                    #expect(painted(x, y), "interior pixel (\(x),\(y)) is not painted")
+                } else if norm(fx, fy, rx + 1, ry + 1) > 1 { // outside even with radii grown by 1px
+                    exterior += 1
+                    #expect(!painted(x, y), "exterior pixel (\(x),\(y)) is painted")
+                }
+            }
+        }
+        #expect(interior > 200 && exterior > 500, "coverage check was near-vacuous: interior=\(interior) exterior=\(exterior)")
+    }
+
+    /// A painted-pixel predicate: a pixel differs from the (background) corner pixel.
+    private func paintedMask(_ image: Image) -> (Int, Int) -> Bool {
+        let bpp = image.bitsPerPixel / 8
+        let data = image.data, bytesPerRow = image.bytesPerRow
+        func pixel(_ x: Int, _ y: Int) -> ArraySlice<UInt8> {
+            let offset = y * bytesPerRow + x * bpp
+            return data[offset ..< offset + bpp]
+        }
+        let background = pixel(0, 0)
+        return { x, y in pixel(x, y) != background }
     }
 
     /// Render an imported single-layer Lottie through the real engine and return
