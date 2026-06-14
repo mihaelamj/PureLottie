@@ -113,16 +113,18 @@ itself a result:
   was computed, and each found PureLayer correct (mask, rounded rect, raw cubic) or
   a since-fixed PureLayer bug (split position), never a PureLottie translation error.
 - Shape blend mode (`bm`): the one Lottie mode the software backend renders
-  exactly is `bm=1` (multiply). The lowerer now carries it onto
-  `ShapeLayer.extended.blendMode`, and `LottieRenderOracleTests`
-  `shapeMultiplyBlendModeRendersUnderExtendedCompositor` confirms it applies under
-  `Compositor(extensions: .extended)` (the overlap changes versus the standard
-  compositor; a non-overlapping region does not). It stays an `ImportReport`
-  finding because the default export path (`MovieExporter`/`Player`) builds a
-  standard compositor with no extensions parameter, so the real output does not
-  apply it; exposing extensions there is filed as `mihaelamj/PureLayer#178`. The
-  other `bm` modes fall back to normal in the software backend, so they remain
-  report-only. This keeps the exact-or-report invariant intact.
+  exactly is `bm=1` (multiply). The lowerer carries it onto
+  `ShapeLayer.extended.blendMode`, and PureLottie's canonical render and export now
+  use the extended compositor (PureLayer#178 exposed `extensions` on
+  `MovieExporter`/`Player`; the `LottieFrameDump` and `LottieAPNGDump` exporters
+  pass `.extended`). So multiply is **rendered, not reported**: the closed-form
+  check `LottieRenderOracleTests.shapeMultiplyBlendModeRendersExactValue` proves
+  the overlap equals `magenta x yellow = red` exactly, `exportPathAppliesMultiplyBlend`
+  proves the `MovieExporter` output applies it, and
+  `LottieRenderIRLowererTests.multiplyFillBlendModeIsRenderedNotReported` proves it
+  is no longer an `ImportReport` gap. The other `bm` modes fall back to normal in
+  the software backend, so they stay report-only. Exact-or-report is intact: the
+  one exactly-renderable mode is now on the rendered side.
 - A claim of "100% render-equivalent translation" is still unproven (the
   divergences are real and most are unattributed). But "PureLayer renders six
   features wrong" was an overclaim resting on lottie-web-as-ground-truth.

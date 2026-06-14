@@ -40,7 +40,8 @@ struct LottieAPNGDump {
             let tree = LottieRenderIRLowerer().lower(frame)
             renderIRFindings.append(contentsOf: tree.report.findings)
             let root = LottieRenderSurface.root(tree.root, width: animation.width, height: animation.height, scale: options.scale)
-            return try MovieExporter().screenshot(of: root, size: size, at: 0)
+            // Extended compositor: PureLottie's canonical render applies shape blend modes.
+            return try MovieExporter(extensions: .extended).screenshot(of: root, size: size, at: 0)
         }
 
         try Data(PNGSequenceEncoder.animatedPNG(from: framePNGs, frameDelay: 1 / options.fps)).write(to: options.output)
