@@ -103,6 +103,16 @@ let package = Package(
             path: "Tools/LottieAPNGDump"
         ),
         .executableTarget(
+            name: "LottieGIFDump",
+            dependencies: [
+                "LottieEvaluation",
+                "LottieImport",
+                "LottieModel",
+                .product(name: "PureLayer", package: "PureLayer"),
+            ],
+            path: "Tools/LottieGIFDump"
+        ),
+        .executableTarget(
             name: "LottieNumericOracleDiff",
             dependencies: [
                 "LottieOracleDiff",

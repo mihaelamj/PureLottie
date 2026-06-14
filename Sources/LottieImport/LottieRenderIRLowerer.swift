@@ -794,11 +794,17 @@ private final class RenderIRLoweringContext {
     }
 
     private func color(from components: [Double], opacity: Double) -> Color {
-        Color(
-            red: components.scalar(0),
-            green: components.scalar(1),
-            blue: components.scalar(2),
-            alpha: (components.count > 3 ? components[3] : 1) * opacity
+        // Modern Lottie encodes colour channels in 0...1; legacy bodymovin (e.g. v4,
+        // as in many real-world files) encodes them as 0...255 bytes. A normalized
+        // channel never exceeds 1, so if any does the colour is byte-range and every
+        // channel (including a 4th alpha byte) is divided by 255. Without this, every
+        // byte-range colour clamps to 1 and the whole layer renders white.
+        let scale = components.prefix(4).contains { $0 > 1 } ? 1.0 / 255 : 1.0
+        return Color(
+            red: components.scalar(0) * scale,
+            green: components.scalar(1) * scale,
+            blue: components.scalar(2) * scale,
+            alpha: (components.count > 3 ? components[3] * scale : 1) * opacity
         )
     }
 
