@@ -12,8 +12,8 @@ final class CorpusSemanticLedgerTests: XCTestCase {
     func testCorpusLedgerReportsCountsAndEligibility() throws {
         let report = try ledgerReport()
 
-        XCTAssertEqual(report.fixtureCount, 936, report.diagnosticDescription)
-        XCTAssertEqual(report.uniquePayloadCount, 754, report.diagnosticDescription)
+        XCTAssertEqual(report.fixtureCount, 1016, report.diagnosticDescription)
+        XCTAssertEqual(report.uniquePayloadCount, 833, report.diagnosticDescription)
         XCTAssertEqual(report.eligibility.totalFixtures, report.fixtureCount)
         XCTAssertGreaterThan(report.featureCounts[.lowered, default: 0], 0)
         XCTAssertGreaterThan(report.featureCounts[.approximated, default: 0], 0)
@@ -21,8 +21,8 @@ final class CorpusSemanticLedgerTests: XCTestCase {
         XCTAssertGreaterThan(report.featureCounts[.metadata, default: 0], 0)
         XCTAssertGreaterThan(report.featureCounts[.gap, default: 0], 0)
         XCTAssertFalse(report.eligibility.fixtureReasons.isEmpty)
-        XCTAssertTrue(report.diagnosticDescription.contains("Total fixtures: 936"))
-        XCTAssertTrue(report.diagnosticDescription.contains("Unique payloads: 754"))
+        XCTAssertTrue(report.diagnosticDescription.contains("Total fixtures: 1016"))
+        XCTAssertTrue(report.diagnosticDescription.contains("Unique payloads: 833"))
         XCTAssertTrue(report.diagnosticDescription.contains("Unclassified fields: 0"))
         XCTAssertTrue(report.diagnosticDescription.contains("Visual eligibility:"))
     }
@@ -721,6 +721,7 @@ private let corpusSources = [
     CorpusSource(directory: "airbnb-lottie-ios", expectedFiles: 186, licensePath: "_licenses/airbnb-lottie-ios-LICENSE"),
     CorpusSource(directory: "airbnb-lottie-web", expectedFiles: 17, licensePath: "_licenses/airbnb-lottie-web-LICENSE.md"),
     CorpusSource(directory: "useAnimations-react-useanimations", expectedFiles: 79, licensePath: "_licenses/useAnimations-react-useanimations-LICENSE"),
+    CorpusSource(directory: "LottieFiles-test-files", expectedFiles: 80, licensePath: "_licenses/LottieFiles-test-files-LICENSE"),
 ]
 
 private func sourceSummaries(fixtureRoot: URL) -> [SourceSummary] {
@@ -867,7 +868,7 @@ private let semanticLedger: [ObservedField: SemanticDisposition] = {
     // Unsupported shape types are currently reported by type/name at import
     // time. Their interior fields are classified as reported because the whole
     // shape operation is not lowered yet.
-    for scope in ["shape.gf", "shape.gs", "shape.mm", "shape.rd", "shape.rp"] {
+    for scope in ["shape.gf", "shape.gs", "shape.mm", "shape.op", "shape.pb", "shape.rd", "shape.rp", "shape.zz"] {
         add(
             scope,
             .reported,
