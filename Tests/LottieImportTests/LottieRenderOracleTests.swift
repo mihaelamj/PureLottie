@@ -49,8 +49,10 @@ struct LottieRenderOracleTests {
         var minX = image.width, minY = image.height, maxX = -1, maxY = -1
         for y in 0 ..< image.height {
             for x in 0 ..< image.width where pixel(x, y) != background {
-                minX = min(minX, x); minY = min(minY, y)
-                maxX = max(maxX, x); maxY = max(maxY, y)
+                minX = min(minX, x)
+                minY = min(minY, y)
+                maxX = max(maxX, x)
+                maxY = max(maxY, y)
             }
         }
 
@@ -176,7 +178,9 @@ struct LottieRenderOracleTests {
             return image.data[offset ..< offset + bytesPerPixel]
         }
         let background = pixel(0, 0)
-        func painted(_ x: Int, _ y: Int) -> Bool { pixel(x, y) != background }
+        func painted(_ x: Int, _ y: Int) -> Bool {
+            pixel(x, y) != background
+        }
 
         // Every sampled point on the cubic is under the stroke (width 4, so the centreline
         // is painted). A straight-chord render fails the off-chord samples around t=0.25.
@@ -192,7 +196,10 @@ struct LottieRenderOracleTests {
         var minX = image.width, minY = image.height, maxX = -1, maxY = -1
         for y in 0 ..< image.height {
             for x in 0 ..< image.width where painted(x, y) {
-                minX = min(minX, x); minY = min(minY, y); maxX = max(maxX, x); maxY = max(maxY, y)
+                minX = min(minX, x)
+                minY = min(minY, y)
+                maxX = max(maxX, x)
+                maxY = max(maxY, y)
             }
         }
         let margin = 2
@@ -338,8 +345,10 @@ struct LottieRenderOracleTests {
         var minX = image.width, minY = image.height, maxX = -1, maxY = -1
         for y in 0 ..< image.height {
             for x in 0 ..< image.width where pixel(x, y) != background {
-                minX = min(minX, x); minY = min(minY, y)
-                maxX = max(maxX, x); maxY = max(maxY, y)
+                minX = min(minX, x)
+                minY = min(minY, y)
+                maxX = max(maxX, x)
+                maxY = max(maxY, y)
             }
         }
         return (minX, minY, maxX, maxY)

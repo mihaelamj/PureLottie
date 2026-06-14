@@ -23,25 +23,35 @@ import Testing
 /// would push a real divergence above the bound and trip this).
 @Suite("Lottie temporal-easing sampling bound")
 struct LottieEasingSamplingBoundTests {
-    // Measured maximum over the grid below: 3.72e-6, at the flattest S-curve ease
-    // (x1=1, x2=0, y1=-0.3, y2=1.3) evaluated at x=0.5, which takes the low-slope
-    // binary-subdivision fallback (capped at 10 iterations / 1e-7 in x). On the
-    // Newton path the solve is at floating-point epsilon (~3e-15); the fallback is
-    // the dominant sampled error. Pinned just above the observed maximum, so a drop
-    // in solve precision (fewer iterations, a coarser table) trips it.
+    /// Measured maximum over the grid below: 3.72e-6, at the flattest S-curve ease
+    /// (x1=1, x2=0, y1=-0.3, y2=1.3) evaluated at x=0.5, which takes the low-slope
+    /// binary-subdivision fallback (capped at 10 iterations / 1e-7 in x). On the
+    /// Newton path the solve is at floating-point epsilon (~3e-15); the fallback is
+    /// the dominant sampled error. Pinned just above the observed maximum, so a drop
+    /// in solve precision (fewer iterations, a coarser table) trips it.
     private let measuredBound = 4.0e-6
 
-    private func a(_ a1: Double, _ a2: Double) -> Double { 1 - 3 * a2 + 3 * a1 }
-    private func b(_ a1: Double, _ a2: Double) -> Double { 3 * a2 - 6 * a1 }
-    private func c(_ a1: Double) -> Double { 3 * a1 }
+    private func a(_ a1: Double, _ a2: Double) -> Double {
+        1 - 3 * a2 + 3 * a1
+    }
+
+    private func b(_ a1: Double, _ a2: Double) -> Double {
+        3 * a2 - 6 * a1
+    }
+
+    private func c(_ a1: Double) -> Double {
+        3 * a1
+    }
+
     private func calcBezier(_ t: Double, _ a1: Double, _ a2: Double) -> Double {
         ((a(a1, a2) * t + b(a1, a2)) * t + c(a1)) * t
     }
+
     private func slope(_ t: Double, _ a1: Double, _ a2: Double) -> Double {
         3 * a(a1, a2) * t * t + 2 * b(a1, a2) * t + c(a1)
     }
 
-    // The production solve, identical to BezierEasing in LottieFrameEvaluator.
+    /// The production solve, identical to BezierEasing in LottieFrameEvaluator.
     private func productionValue(_ x: Double, _ x1: Double, _ y1: Double, _ x2: Double, _ y2: Double) -> Double {
         if x1 == y1, x2 == y2 { return x }
         if x == 0 { return 0 }
@@ -84,8 +94,8 @@ struct LottieEasingSamplingBoundTests {
         return t
     }
 
-    // High-precision reference: bisection on the monotone x(t) over [0,1], to double
-    // convergence (x1,x2 in [0,1] keep x(t) monotone, so the root is unique).
+    /// High-precision reference: bisection on the monotone x(t) over [0,1], to double
+    /// convergence (x1,x2 in [0,1] keep x(t) monotone, so the root is unique).
     private func referenceTForX(_ x: Double, _ x1: Double, _ x2: Double) -> Double {
         var lo = 0.0, hi = 1.0
         for _ in 0 ..< 100 {
