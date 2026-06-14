@@ -586,6 +586,48 @@ struct LottieRenderIRLowererTests {
         #expect(maskFindings.allSatisfy { $0.evidence?.layerGraphRecord?.maskCount == 2 })
     }
 
+    @Test("render path reports shape-property expressions, descending into groups")
+    func renderPathReportsShapeExpressions() throws {
+        // A grouped shape whose path and fill colour are expression-driven. The
+        // render path evaluates base values, so without descending into the group
+        // these would render statically with no finding.
+        let frame = try renderFrame(from: """
+        {
+          "v": "5.7.4",
+          "nm": "Root",
+          "fr": 30,
+          "ip": 0,
+          "op": 30,
+          "w": 100,
+          "h": 100,
+          "layers": [{
+            "ty": 4,
+            "nm": "Shapes",
+            "ind": 1,
+            "ip": 0,
+            "op": 30,
+            "st": 0,
+            "ks": { "o": { "a": 0, "k": 100 } },
+            "shapes": [{
+              "ty": "gr",
+              "nm": "Group",
+              "it": [
+                { "ty": "sh", "nm": "Path", "ks": { "a": 0, "k": { "i": [[0, 0]], "o": [[0, 0]], "v": [[0, 0]], "c": true }, "x": "var $bm_rt;\\n$bm_rt = value;" } },
+                { "ty": "fl", "nm": "Fill", "c": { "a": 0, "k": [1, 0, 0, 1], "x": "var $bm_rt;\\n$bm_rt = value;" }, "o": { "a": 0, "k": 100 } }
+              ]
+            }]
+          }],
+          "assets": []
+        }
+        """, at: 0)
+
+        let tree = LottieRenderIRLowerer().lower(frame)
+        let features = Set(tree.report.findings.map(\.feature))
+        #expect(features.contains("shape path expression"))
+        #expect(features.contains("fill color expression"))
+        #expect(tree.report.findings.filter { $0.feature.hasSuffix("expression") }.allSatisfy { $0.disposition == .skipped })
+    }
+
     @Test("real starfish corpus fixture reports its position expressions on the render path")
     func starfishCorpusFixtureReportsPositionExpressions() throws {
         // starfish drives its layers with AfterEffects position expressions
@@ -606,6 +648,26 @@ struct LottieRenderIRLowererTests {
         let positionExpressions = tree.report.findings.filter { $0.feature == "position expression" }
         #expect(!positionExpressions.isEmpty)
         #expect(positionExpressions.allSatisfy { $0.disposition == .skipped })
+    }
+
+    @Test("real worm corpus fixture reports its shape-path expressions inside a precomp")
+    func wormCorpusFixtureReportsShapeExpressions() throws {
+        // worm drives shape paths (`sh.ks.x`) with expressions, nested inside a
+        // precomposition asset. The render path must descend through the precomp
+        // and into shape groups to declare the gap.
+        let url = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Tests/Fixtures/LottieCorpus/Samsung-rlottie/example/resource/worm.json")
+        let animation = try LottieAnimation.decode(from: Data(contentsOf: url))
+        let frame = LottieRenderIRBuilder(animation: animation).frame(at: 0)
+
+        let tree = LottieRenderIRLowerer().lower(frame)
+
+        let shapeExpressions = tree.report.findings.filter { $0.feature == "shape path expression" }
+        #expect(!shapeExpressions.isEmpty)
+        #expect(shapeExpressions.allSatisfy { $0.disposition == .skipped })
     }
 
     private func renderFrame(from source: String, at frame: Double) throws -> LottieRenderFrame {
