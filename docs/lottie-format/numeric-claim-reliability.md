@@ -34,6 +34,19 @@ player and 200 in the exporter; the influence/speed-to-Bezier easing
 reparameterization), which carry `sampled`/`witnessed` status and are not exact
 theorems. See `bodymovin-source-semantics.md` for the exact-vs-sampled split.
 
+Both sampled approximations now carry a **measured** error bound, not an assumed
+one:
+
+- spatial arc length: the 150-segment polyline differs from a 20000-segment
+  reference by at most `2.79e-5` relative, pinned at `3.0e-5`
+  (`LottieSpatialSamplingBoundTests`).
+- temporal easing: the production solve (11-entry sample table, 4 Newton-Raphson
+  iterations, 10-step binary-subdivision fallback) differs from a high-precision
+  bisection reference by at most `3.72e-6` in the returned eased value, pinned at
+  `4.0e-6` (`LottieEasingSamplingBoundTests`). On the Newton path the solve is at
+  floating-point epsilon; the bound is set by the low-slope fallback on the
+  flattest S-curve eases.
+
 ## Current Counts
 
 MEASURED on 2026-06-13 from
