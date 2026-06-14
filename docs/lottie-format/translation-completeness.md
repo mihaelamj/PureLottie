@@ -127,11 +127,19 @@ itself a result:
   divergences are real and most are unattributed). But "PureLayer renders six
   features wrong" was an overclaim resting on lottie-web-as-ground-truth.
 
-Closing this requires, and is blocked on:
-- **#140** an independent pixel oracle (an analytic rasterizer, or pinned
-  AfterEffects golden frames) so render-equivalence is checked against something
-  other than the subject itself or a single browser. We have no programmatic AE,
-  so this may land partly `blocked`.
+Closing this requires, and is partly underway on:
+- **#140** an independent pixel oracle. The first instrument now exists: a
+  per-pixel **analytic coverage** oracle (`LottieRenderOracleTests`
+  `rectanglePerPixelCoverageMatchesAnalyticReference` and
+  `ellipsePerPixelCoverageMatchesAnalyticReference`). For shapes whose exact
+  coverage is computable from the #139-exact geometry (axis-aligned rectangle,
+  ellipse), it asserts every interior pixel is painted and every exterior pixel is
+  background, with the 1px anti-aliasing boundary band excluded. The reference is
+  point-in-shape geometry, not the renderer and not a browser, so this is a
+  genuinely independent per-pixel check, not just the covered bounding box. What
+  remains `blocked`: per-pixel *colour* equivalence for arbitrary content
+  (gradients, blends, partial-coverage edges) against an external reference, which
+  needs pinned AfterEffects golden frames; we have no programmatic AE.
 - **Phase 3 / PureComposition #21** the actual Lottie -> CompositionIR front-end,
   which is built on the agent side and gated by the PureComposition #41 language
   constructs.
