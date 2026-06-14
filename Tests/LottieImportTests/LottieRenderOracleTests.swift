@@ -202,6 +202,46 @@ struct LottieRenderOracleTests {
         #expect(abs(maxY - 52) <= margin, "bottom \(maxY) vs 52")
     }
 
+    @Test("shape multiply blend mode renders under the extended compositor (carried from Lottie bm)")
+    func shapeMultiplyBlendModeRendersUnderExtendedCompositor() throws {
+        // A magenta foreground rect x[24,52] with fill bm=1 (multiply), listed first so
+        // PureLottie draws it on top, over a yellow background rect x[12,40]; they overlap
+        // in x[24,40]. Under the standard compositor the foreground is drawn source-over
+        // (overlap = magenta). Under the extended compositor the carried multiply applies
+        // (overlap = multiply(magenta, yellow) = red). So the overlap pixel must differ
+        // between the two compositors, while the foreground-only region (no backdrop)
+        // stays the same. This proves the lowerer carries the Lottie blend mode and the
+        // extended compositor applies it.
+        let json = """
+        {"v":"5.7.4","fr":10,"ip":0,"op":10,"w":64,"h":64,"layers":[{"ty":4,"ind":1,"ip":0,"op":10,"ks":{},"shapes":[
+          {"ty":"gr","it":[
+            {"ty":"rc","p":{"a":0,"k":[38,32]},"s":{"a":0,"k":[28,28]},"r":{"a":0,"k":0}},
+            {"ty":"fl","c":{"a":0,"k":[1,0,1,1]},"o":{"a":0,"k":100},"bm":1},
+            {"ty":"tr","p":{"a":0,"k":[0,0]},"a":{"a":0,"k":[0,0]},"s":{"a":0,"k":[100,100]},"r":{"a":0,"k":0},"o":{"a":0,"k":100}}
+          ]},
+          {"ty":"gr","it":[
+            {"ty":"rc","p":{"a":0,"k":[26,32]},"s":{"a":0,"k":[28,28]},"r":{"a":0,"k":0}},
+            {"ty":"fl","c":{"a":0,"k":[1,1,0,1]},"o":{"a":0,"k":100}},
+            {"ty":"tr","p":{"a":0,"k":[0,0]},"a":{"a":0,"k":[0,0]},"s":{"a":0,"k":[100,100]},"r":{"a":0,"k":0},"o":{"a":0,"k":100}}
+          ]}
+        ]}]}
+        """
+        let standard = try renderImage(json, extended: false)
+        let extended = try renderImage(json, extended: true)
+        func px(_ image: Image, _ x: Int, _ y: Int) -> ArraySlice<UInt8> {
+            let bpp = image.bitsPerPixel / 8
+            let offset = y * image.bytesPerRow + x * bpp
+            return image.data[offset ..< offset + bpp]
+        }
+        // Overlap centre: standard draws magenta source-over, extended multiplies to red.
+        #expect(px(standard, 32, 32) != px(extended, 32, 32), "overlap must change when the multiply blend is applied")
+        // Painted in both (not background).
+        #expect(px(standard, 32, 32) != px(standard, 0, 0), "overlap unpainted under standard")
+        #expect(px(extended, 32, 32) != px(extended, 0, 0), "overlap unpainted under extended")
+        // Foreground-only region (no backdrop to blend with) is unchanged by the blend mode.
+        #expect(px(standard, 48, 32) == px(extended, 48, 32), "foreground-only region must not change")
+    }
+
     /// Render an imported single-layer Lottie through the real engine and return
     /// the bounding box of pixels that differ from the (background) corner pixel.
     private func coveredBoundingBox(_ json: String) throws -> (minX: Int, minY: Int, maxX: Int, maxY: Int) {
@@ -223,13 +263,16 @@ struct LottieRenderOracleTests {
     }
 
     /// Render an imported single-layer Lottie JSON string through the real engine.
-    private func renderImage(_ json: String) throws -> Image {
+    /// `extended` selects PureLayer's extended compositor (which applies shape blend
+    /// modes); the default standard compositor is faithful Core Animation.
+    private func renderImage(_ json: String, extended: Bool = false) throws -> Image {
         let animation = try LottieAnimation.decode(from: Data(json.utf8))
         let frame = LottieRenderIRBuilder(animation: animation).frame(at: 0)
         let tree = LottieRenderIRLowerer().lower(frame)
         let root = LottieRenderSurface.root(tree.root, width: animation.width, height: animation.height, scale: 1)
         let size = LottieRenderSurface.pixelSize(width: animation.width, height: animation.height, scale: 1)
-        return try SoftwareBackend().render(Compositor().drawList(for: root, at: 0), size: size)
+        let compositor = extended ? Compositor(extensions: .extended) : Compositor()
+        return try SoftwareBackend().render(compositor.drawList(for: root, at: 0), size: size)
     }
 
     /// Render an oracle fixture file through the real engine.

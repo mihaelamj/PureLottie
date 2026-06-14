@@ -112,10 +112,17 @@ itself a result:
 - That closes the #134 render frontier: every one of the originally-flagged cases
   was computed, and each found PureLayer correct (mask, rounded rect, raw cubic) or
   a since-fixed PureLayer bug (split position), never a PureLottie translation error.
-- Shape blend mode (`bm`) stays an explicit `ImportReport` finding by design: the
-  default render uses PureLayer's standard (faithful Core Animation) compositor,
-  which does not apply it. PureLayer can render it in `.extended` mode, but only
-  four modes blend exactly there, so reporting keeps the exact-or-report invariant.
+- Shape blend mode (`bm`): the one Lottie mode the software backend renders
+  exactly is `bm=1` (multiply). The lowerer now carries it onto
+  `ShapeLayer.extended.blendMode`, and `LottieRenderOracleTests`
+  `shapeMultiplyBlendModeRendersUnderExtendedCompositor` confirms it applies under
+  `Compositor(extensions: .extended)` (the overlap changes versus the standard
+  compositor; a non-overlapping region does not). It stays an `ImportReport`
+  finding because the default export path (`MovieExporter`/`Player`) builds a
+  standard compositor with no extensions parameter, so the real output does not
+  apply it; exposing extensions there is filed as `mihaelamj/PureLayer#178`. The
+  other `bm` modes fall back to normal in the software backend, so they remain
+  report-only. This keeps the exact-or-report invariant intact.
 - A claim of "100% render-equivalent translation" is still unproven (the
   divergences are real and most are unattributed). But "PureLayer renders six
   features wrong" was an overclaim resting on lottie-web-as-ground-truth.

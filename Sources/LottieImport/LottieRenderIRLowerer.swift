@@ -468,6 +468,7 @@ private final class RenderIRLoweringContext {
 
     private func apply(_ fill: LottieRenderFillStyle, to layer: ShapeLayer, at source: LottieRenderSource, node: LottieRenderNode) {
         if let blendMode = fill.blendMode, blendMode != 0 {
+            carryExactBlendMode(blendMode, to: layer)
             skipBackend(
                 "fill blend mode",
                 at: source,
@@ -479,8 +480,21 @@ private final class RenderIRLoweringContext {
         layer.fillRule = fill.fillRule == 2 ? .evenOdd : .winding
     }
 
+    /// Carry a Lottie blend mode the software backend renders exactly onto the
+    /// shape's non-Core-Animation extension, so an extended compositor applies it.
+    /// Only bm 1 (multiply) qualifies among Lottie blend modes (the backend renders
+    /// normal/multiply/clear/copy exactly; Lottie does not emit clear/copy). The
+    /// finding is still reported because the default export path (PureLayer's
+    /// MovieExporter/Player) uses the standard compositor, which ignores it.
+    private func carryExactBlendMode(_ blendMode: Int, to layer: ShapeLayer) {
+        if blendMode == 1 {
+            layer.extended.blendMode = .multiply
+        }
+    }
+
     private func apply(_ stroke: LottieRenderStrokeStyle, to layer: ShapeLayer, at source: LottieRenderSource, node: LottieRenderNode) {
         if let blendMode = stroke.blendMode, blendMode != 0 {
+            carryExactBlendMode(blendMode, to: layer)
             skipBackend(
                 "stroke blend mode",
                 at: source,
