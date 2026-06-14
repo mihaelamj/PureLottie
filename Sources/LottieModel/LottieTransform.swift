@@ -66,6 +66,15 @@ public enum LottiePosition: Sendable, Equatable {
             x.isAnimated || y.isAnimated || z?.isAnimated == true
         }
     }
+
+    public var hasExpression: Bool {
+        switch self {
+        case let .vector(vector):
+            vector.hasExpression
+        case let .split(x, y, z):
+            x.hasExpression || y.hasExpression || z?.hasExpression == true
+        }
+    }
 }
 
 extension LottiePosition: Decodable {

@@ -496,6 +496,7 @@ private struct LottieRenderFrameEmitter {
         let localTransform = transformEvaluator.localTransform(for: layer, at: localFrame.value, path: jsonPath)
         let worldTransform = transformEvaluator.worldTransform(for: layer, in: layers, at: localFrame.value, path: jsonPath)
         diagnostics.append(contentsOf: worldTransform.diagnostics)
+        diagnostics.append(contentsOf: transformExpressionDiagnostics(for: layer, layerPath: path, jsonPath: jsonPath))
 
         let transformStack = transformStackPrefix + layerTransformStack(
             layer,
@@ -1135,6 +1136,36 @@ private struct LottieRenderFrameEmitter {
             width: asset.width,
             height: asset.height
         )
+    }
+
+    /// Records every transform property carrying an AfterEffects expression (`x`)
+    /// as a render-path gap. PureLottie evaluates the base value, so without this
+    /// the layer renders statically with no finding, violating render-or-report.
+    private func transformExpressionDiagnostics(for layer: LottieLayer, layerPath: String, jsonPath: JSONPath) -> [ValidationError] {
+        guard let transform = layer.transform else { return [] }
+        let transformPath = jsonPath.appending(.key("ks"))
+        let properties: [(name: String, key: String, hasExpression: Bool)] = [
+            ("anchor point", "a", transform.anchor?.hasExpression ?? false),
+            ("position", "p", transform.position?.hasExpression ?? false),
+            ("scale", "s", transform.scale?.hasExpression ?? false),
+            ("rotation", "r", transform.rotation?.hasExpression ?? false),
+            ("rotation x", "rx", transform.rotationX?.hasExpression ?? false),
+            ("rotation y", "ry", transform.rotationY?.hasExpression ?? false),
+            ("rotation z", "rz", transform.rotationZ?.hasExpression ?? false),
+            ("orientation", "or", transform.orientation?.hasExpression ?? false),
+            ("skew", "sk", transform.skew?.hasExpression ?? false),
+            ("skew axis", "sa", transform.skewAxis?.hasExpression ?? false),
+            ("opacity", "o", transform.opacity?.hasExpression ?? false),
+        ]
+        return properties.filter(\.hasExpression).map { property in
+            diagnostic(
+                ruleID: "lottie.renderir.transform.expression.unsupported",
+                reason: "\(property.name) expression",
+                path: transformPath.appending(.key(property.key)),
+                sourcePath: layerPath,
+                classification: .gap
+            )
+        }
     }
 
     private func diagnostic(

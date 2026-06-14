@@ -304,6 +304,9 @@ public struct LottieImporter {
         visibility: (start: Double, end: Double)?
     ) {
         let transform = lottieLayer.transform
+        if let transform {
+            reportTransformExpressions(transform, at: path, context: context)
+        }
         let evaluated = evaluatedTransformState(for: lottieLayer, context: context, at: path, jsonPath: jsonPath)
         let anchor = evaluated.anchor
         if transform?.anchor?.isAnimated == true {
@@ -335,7 +338,7 @@ public struct LottieImporter {
             }
         }
         if let rotation = transform?.rotation {
-            if case let .keyframed(keyframes) = rotation {
+            if case let .keyframed(keyframes) = rotation.kind {
                 let samples = ScalarTimeline.samples(from: keyframes, dimension: 0, frameRate: context.frameRate, startFrame: context.startFrame) { $0 * .pi / 180 }
                 if let animation = ScalarTimeline.animation(keyPath: "transform.rotation.z", samples: samples, sceneDuration: context.duration, beginTime: context.timeShift) {
                     layer.add(animation, forKey: "lottie.rotation")
@@ -354,6 +357,29 @@ public struct LottieImporter {
 
         if includeOpacity {
             applyOpacity(transform?.opacity, to: layer, context: context, visibility: visibility)
+        }
+    }
+
+    /// Records every transform property that carries an AfterEffects expression
+    /// (`x`). PureLottie does not evaluate expressions, so such a property renders
+    /// its base value; the gap is declared in the report rather than animated
+    /// silently wrong.
+    private func reportTransformExpressions(_ transform: LottieTransform, at path: String, context: ImportContext) {
+        let properties: [(String, Bool)] = [
+            ("anchor point", transform.anchor?.hasExpression ?? false),
+            ("position", transform.position?.hasExpression ?? false),
+            ("scale", transform.scale?.hasExpression ?? false),
+            ("rotation", transform.rotation?.hasExpression ?? false),
+            ("rotation x", transform.rotationX?.hasExpression ?? false),
+            ("rotation y", transform.rotationY?.hasExpression ?? false),
+            ("rotation z", transform.rotationZ?.hasExpression ?? false),
+            ("orientation", transform.orientation?.hasExpression ?? false),
+            ("skew", transform.skew?.hasExpression ?? false),
+            ("skew axis", transform.skewAxis?.hasExpression ?? false),
+            ("opacity", transform.opacity?.hasExpression ?? false),
+        ]
+        for (name, hasExpression) in properties where hasExpression {
+            context.report.skip("\(name) expression", at: path)
         }
     }
 
@@ -398,7 +424,7 @@ public struct LottieImporter {
         }
         switch position {
         case let .vector(vector):
-            guard case let .keyframed(keyframes) = vector else { return }
+            guard case let .keyframed(keyframes) = vector.kind else { return }
             if SpatialInterpolationClassifier.containsUnsupportedSpatialInterpolation(keyframes) {
                 context.report.approximate("spatial position curve (linearized)", at: path)
             }
@@ -413,14 +439,14 @@ public struct LottieImporter {
                 key: "lottie.position.y"
             )
         case let .split(x, y, _):
-            if case let .keyframed(keyframes) = x {
+            if case let .keyframed(keyframes) = x.kind {
                 add(
                     ScalarTimeline.samples(from: keyframes, dimension: 0, frameRate: context.frameRate, startFrame: context.startFrame) { $0 },
                     keyPath: "position.x",
                     key: "lottie.position.x"
                 )
             }
-            if case let .keyframed(keyframes) = y {
+            if case let .keyframed(keyframes) = y.kind {
                 add(
                     ScalarTimeline.samples(from: keyframes, dimension: 0, frameRate: context.frameRate, startFrame: context.startFrame) { $0 },
                     keyPath: "position.y",
@@ -431,7 +457,7 @@ public struct LottieImporter {
     }
 
     private func addScaleAnimations(_ scale: AnimatedVector, to layer: Layer, context: ImportContext) {
-        guard case let .keyframed(keyframes) = scale else { return }
+        guard case let .keyframed(keyframes) = scale.kind else { return }
         let map = { (percent: Double) in percent / 100 }
         let xSamples = ScalarTimeline.samples(from: keyframes, dimension: 0, frameRate: context.frameRate, startFrame: context.startFrame, map: map)
         let ySamples = ScalarTimeline.samples(from: keyframes, dimension: 1, frameRate: context.frameRate, startFrame: context.startFrame, map: map)
@@ -448,7 +474,7 @@ public struct LottieImporter {
     private func applyOpacity(_ opacity: AnimatedDouble?, to layer: Layer, context: ImportContext, visibility: (start: Double, end: Double)?) {
         let map = { (percent: Double) in min(max(percent / 100, 0), 1) }
         var samples: [TimelineSample]?
-        if case let .keyframed(keyframes) = opacity {
+        if let opacity, case let .keyframed(keyframes) = opacity.kind {
             samples = ScalarTimeline.samples(from: keyframes, dimension: 0, frameRate: context.frameRate, startFrame: context.startFrame, map: map)
         }
         let staticValue = map(opacity?.initialValue ?? 100)

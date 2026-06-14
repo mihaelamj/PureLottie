@@ -68,6 +68,46 @@ struct LottieRenderIRLowererTests {
         #expect(abs(box.maxX - 30) < 0.0001)
     }
 
+    @Test("render path reports a transform expression instead of rendering statically")
+    func renderPathReportsTransformExpression() throws {
+        // The position carries an AfterEffects expression (`x`). The render path
+        // evaluates only the base value, so without a report it would render a
+        // static layer with zero findings: a render-or-report violation. This is
+        // the path real fixtures (e.g. starfish) take, since they bypass the
+        // importer-scene validation gate.
+        let frame = try renderFrame(from: """
+        {
+          "v": "5.7.4",
+          "nm": "Root",
+          "fr": 30,
+          "ip": 0,
+          "op": 30,
+          "w": 100,
+          "h": 100,
+          "layers": [{
+            "ty": 4,
+            "nm": "Bouncing",
+            "ind": 1,
+            "ip": 0,
+            "op": 30,
+            "st": 0,
+            "ks": {
+              "p": { "a": 0, "k": [50, 50], "x": "var $bm_rt;\\n$bm_rt = loopOut('cycle');" },
+              "o": { "a": 0, "k": 100 }
+            },
+            "shapes": []
+          }],
+          "assets": []
+        }
+        """, at: 0)
+
+        let tree = LottieRenderIRLowerer().lower(frame)
+
+        let finding = try #require(tree.report.findings.first { $0.feature == "position expression" })
+        #expect(finding.disposition == .skipped)
+        #expect(!tree.report.isClean)
+    }
+
     @Test("additive mask fixture lowers to PureLayer alpha mask")
     func additiveMaskFixtureLowersToPureLayerAlphaMask() throws {
         let frame = try renderFrame(fixture: "mask-add-rectangle.json", at: 5)
@@ -544,6 +584,28 @@ struct LottieRenderIRLowererTests {
         #expect(maskFindings.contains { $0.path == "root > layer 'Shapes' > mask 'Mask A'" })
         #expect(maskFindings.contains { $0.path == "root > layer 'Shapes' > mask 'Mask B'" })
         #expect(maskFindings.allSatisfy { $0.evidence?.layerGraphRecord?.maskCount == 2 })
+    }
+
+    @Test("real starfish corpus fixture reports its position expressions on the render path")
+    func starfishCorpusFixtureReportsPositionExpressions() throws {
+        // starfish drives its layers with AfterEffects position expressions
+        // (`ks.p.x`). It bypasses the importer-scene validation gate (it carries
+        // effects), so the render path is the only place its expression gap can be
+        // declared. Before this guard it rendered statically with zero render-path
+        // findings.
+        let url = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Tests/Fixtures/LottieCorpus/airbnb-lottie-web/test/animations/starfish.json")
+        let animation = try LottieAnimation.decode(from: Data(contentsOf: url))
+        let frame = LottieRenderIRBuilder(animation: animation).frame(at: 0)
+
+        let tree = LottieRenderIRLowerer().lower(frame)
+
+        let positionExpressions = tree.report.findings.filter { $0.feature == "position expression" }
+        #expect(!positionExpressions.isEmpty)
+        #expect(positionExpressions.allSatisfy { $0.disposition == .skipped })
     }
 
     private func renderFrame(from source: String, at frame: Double) throws -> LottieRenderFrame {

@@ -131,7 +131,7 @@ struct ShapeBuilder {
         let fraction = { (percent: Double) in min(max(percent / 100, 0), 1) }
         layer.strokeStart = fraction(trim.start.initialValue)
         layer.strokeEnd = fraction(trim.end.initialValue)
-        if case let .keyframed(keyframes) = trim.start {
+        if case let .keyframed(keyframes) = trim.start.kind {
             let samples = ScalarTimeline.samples(
                 from: keyframes,
                 dimension: 0,
@@ -143,7 +143,7 @@ struct ShapeBuilder {
                 layer.add(animation, forKey: "lottie.strokeStart")
             }
         }
-        if case let .keyframed(keyframes) = trim.end {
+        if case let .keyframed(keyframes) = trim.end.kind {
             let samples = ScalarTimeline.samples(
                 from: keyframes,
                 dimension: 0,
