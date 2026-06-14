@@ -497,6 +497,7 @@ private struct LottieRenderFrameEmitter {
         let worldTransform = transformEvaluator.worldTransform(for: layer, in: layers, at: localFrame.value, path: jsonPath)
         diagnostics.append(contentsOf: worldTransform.diagnostics)
         diagnostics.append(contentsOf: transformExpressionDiagnostics(for: layer, layerPath: path, jsonPath: jsonPath))
+        diagnostics.append(contentsOf: shapeExpressionDiagnostics(layer.shapes ?? [], layerPath: path, jsonPath: jsonPath.appending(.key("shapes"))))
 
         let transformStack = transformStackPrefix + layerTransformStack(
             layer,
@@ -1165,6 +1166,94 @@ private struct LottieRenderFrameEmitter {
                 sourcePath: layerPath,
                 classification: .gap
             )
+        }
+    }
+
+    /// Records every shape property carrying an AfterEffects expression (`x`) as a
+    /// render-path gap, descending into groups. Same rationale as the transform
+    /// case: the base value is evaluated, so an unreported expression renders a
+    /// static shape with no finding.
+    private func shapeExpressionDiagnostics(_ shapes: [LottieShape], layerPath: String, jsonPath: JSONPath) -> [ValidationError] {
+        shapes.enumerated().flatMap { index, shape in
+            shapeExpressionDiagnostics(for: shape, layerPath: layerPath, jsonPath: jsonPath.appending(.index(index)))
+        }
+    }
+
+    private func shapeExpressionDiagnostics(for shape: LottieShape, layerPath: String, jsonPath: JSONPath) -> [ValidationError] {
+        func flag(_ name: String, _ key: String, _ hasExpression: Bool) -> ValidationError? {
+            guard hasExpression else { return nil }
+            return diagnostic(
+                ruleID: "lottie.renderir.shape.expression.unsupported",
+                reason: "\(name) expression",
+                path: jsonPath.appending(.key(key)),
+                sourcePath: layerPath,
+                classification: .gap
+            )
+        }
+        switch shape {
+        case let .group(group):
+            return shapeExpressionDiagnostics(group.items, layerPath: layerPath, jsonPath: jsonPath.appending(.key("it")))
+        case let .path(path):
+            return [flag("shape path", "ks", path.shape.hasExpression)].compactMap { $0 }
+        case let .rectangle(rectangle):
+            return [
+                flag("rectangle position", "p", rectangle.position.hasExpression),
+                flag("rectangle size", "s", rectangle.size.hasExpression),
+                flag("rectangle roundness", "r", rectangle.roundness?.hasExpression ?? false),
+            ].compactMap { $0 }
+        case let .ellipse(ellipse):
+            return [
+                flag("ellipse position", "p", ellipse.position.hasExpression),
+                flag("ellipse size", "s", ellipse.size.hasExpression),
+            ].compactMap { $0 }
+        case let .polystar(polystar):
+            return [
+                flag("polystar points", "pt", polystar.points?.hasExpression ?? false),
+                flag("polystar position", "p", polystar.position?.hasExpression ?? false),
+                flag("polystar rotation", "r", polystar.rotation?.hasExpression ?? false),
+                flag("polystar inner radius", "ir", polystar.innerRadius?.hasExpression ?? false),
+                flag("polystar inner roundness", "is", polystar.innerRoundness?.hasExpression ?? false),
+                flag("polystar outer radius", "or", polystar.outerRadius?.hasExpression ?? false),
+                flag("polystar outer roundness", "os", polystar.outerRoundness?.hasExpression ?? false),
+            ].compactMap { $0 }
+        case let .fill(fill):
+            return [
+                flag("fill color", "c", fill.color.hasExpression),
+                flag("fill opacity", "o", fill.opacity?.hasExpression ?? false),
+            ].compactMap { $0 }
+        case let .stroke(stroke):
+            var diagnostics = [
+                flag("stroke color", "c", stroke.color.hasExpression),
+                flag("stroke opacity", "o", stroke.opacity?.hasExpression ?? false),
+                flag("stroke width", "w", stroke.width.hasExpression),
+                flag("stroke miter limit", "ml2", stroke.secondaryMiterLimit?.hasExpression ?? false),
+            ].compactMap { $0 }
+            for (dashIndex, dash) in (stroke.dashPattern ?? []).enumerated() where dash.value?.hasExpression == true {
+                diagnostics.append(diagnostic(
+                    ruleID: "lottie.renderir.shape.expression.unsupported",
+                    reason: "stroke dash expression",
+                    path: jsonPath.appending(.key("d")).appending(.index(dashIndex)).appending(.key("v")),
+                    sourcePath: layerPath,
+                    classification: .gap
+                ))
+            }
+            return diagnostics
+        case let .trim(trim):
+            return [
+                flag("trim start", "s", trim.start.hasExpression),
+                flag("trim end", "e", trim.end.hasExpression),
+                flag("trim offset", "o", trim.offset?.hasExpression ?? false),
+            ].compactMap { $0 }
+        case let .transform(transform):
+            return [
+                flag("shape transform anchor point", "a", transform.anchor?.hasExpression ?? false),
+                flag("shape transform position", "p", transform.position?.hasExpression ?? false),
+                flag("shape transform scale", "s", transform.scale?.hasExpression ?? false),
+                flag("shape transform rotation", "r", transform.rotation?.hasExpression ?? false),
+                flag("shape transform opacity", "o", transform.opacity?.hasExpression ?? false),
+            ].compactMap { $0 }
+        case .unsupported:
+            return []
         }
     }
 
