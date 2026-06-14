@@ -22,7 +22,9 @@ struct LottieFrameDump {
             : nil
 
         let size = LottieRenderSurface.pixelSize(width: animation.width, height: animation.height, scale: options.scale)
-        let exporter = MovieExporter()
+        // PureLottie's canonical render applies shape blend modes (faithful Lottie),
+        // so it exports through the extended compositor, not the standard one.
+        let exporter = MovieExporter(extensions: .extended)
         let frameTiming = LottieArtifactFrameTiming.explicitSourceFrameList(
             source: .init(animation: animation),
             sourceFrames: options.frames

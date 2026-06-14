@@ -154,6 +154,34 @@ struct LottieRenderIRLowererTests {
         #expect(abs(shape.lineDashPhase) < 0.0001)
     }
 
+    @Test("multiply fill blend (bm=1) is rendered via extended, not reported as a gap (#178)")
+    func multiplyFillBlendModeIsRenderedNotReported() throws {
+        // bm=1 (multiply) is the one blend mode the software backend renders exactly. It is
+        // carried onto ShapeLayer.extended.blendMode and PureLottie exports with the extended
+        // compositor, so it is no longer an ImportReport gap. Other modes (e.g. bm=2 screen)
+        // still fall back to normal and stay reported.
+        let multiply = try renderFrame(from: """
+        {"v":"5.7.4","fr":10,"ip":0,"op":10,"w":64,"h":64,"layers":[{"ty":4,"nm":"L","ind":1,"ip":0,"op":10,"st":0,"ks":{},"shapes":[
+          {"ty":"rc","nm":"Box","p":{"a":0,"k":[32,32]},"s":{"a":0,"k":[20,20]},"r":{"a":0,"k":0}},
+          {"ty":"fl","nm":"F","c":{"a":0,"k":[1,0,1,1]},"o":{"a":0,"k":100},"bm":1}
+        ]}]}
+        """, at: 0)
+        let multiplyTree = LottieRenderIRLowerer().lower(multiply)
+        #expect(!multiplyTree.report.findings.contains { $0.feature == "fill blend mode" }, "multiply must not be reported as a gap")
+        let multiplyShape = try #require(allShapeLayers(in: multiplyTree.root).first { $0.fillColor != nil })
+        #expect(multiplyShape.extended.blendMode == .multiply, "multiply must be carried onto the shape")
+
+        // A non-exact mode (bm=2 screen) is still reported.
+        let screen = try renderFrame(from: """
+        {"v":"5.7.4","fr":10,"ip":0,"op":10,"w":64,"h":64,"layers":[{"ty":4,"nm":"L","ind":1,"ip":0,"op":10,"st":0,"ks":{},"shapes":[
+          {"ty":"rc","nm":"Box","p":{"a":0,"k":[32,32]},"s":{"a":0,"k":[20,20]},"r":{"a":0,"k":0}},
+          {"ty":"fl","nm":"F","c":{"a":0,"k":[1,0,1,1]},"o":{"a":0,"k":100},"bm":2}
+        ]}]}
+        """, at: 0)
+        let screenTree = LottieRenderIRLowerer().lower(screen)
+        #expect(screenTree.report.findings.contains { $0.feature == "fill blend mode" }, "non-exact blend modes stay reported")
+    }
+
     @Test("precomposition backend evidence preserves time remap frame mapping")
     func precompositionBackendEvidencePreservesTimeRemapFrameMapping() throws {
         let frame = try renderFrame(fixture: "time-remap-precomp-diagnosed.json", at: 0)

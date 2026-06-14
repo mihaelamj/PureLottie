@@ -467,8 +467,7 @@ private final class RenderIRLoweringContext {
     }
 
     private func apply(_ fill: LottieRenderFillStyle, to layer: ShapeLayer, at source: LottieRenderSource, node: LottieRenderNode) {
-        if let blendMode = fill.blendMode, blendMode != 0 {
-            carryExactBlendMode(blendMode, to: layer)
+        if let blendMode = fill.blendMode, blendMode != 0, !renderExactBlendMode(blendMode, to: layer) {
             skipBackend(
                 "fill blend mode",
                 at: source,
@@ -480,21 +479,20 @@ private final class RenderIRLoweringContext {
         layer.fillRule = fill.fillRule == 2 ? .evenOdd : .winding
     }
 
-    /// Carry a Lottie blend mode the software backend renders exactly onto the
-    /// shape's non-Core-Animation extension, so an extended compositor applies it.
-    /// Only bm 1 (multiply) qualifies among Lottie blend modes (the backend renders
-    /// normal/multiply/clear/copy exactly; Lottie does not emit clear/copy). The
-    /// finding is still reported because the default export path (PureLayer's
-    /// MovieExporter/Player) uses the standard compositor, which ignores it.
-    private func carryExactBlendMode(_ blendMode: Int, to layer: ShapeLayer) {
-        if blendMode == 1 {
-            layer.extended.blendMode = .multiply
-        }
+    /// Map a Lottie blend mode the software backend renders exactly onto the shape's
+    /// non-Core-Animation extension and return `true`, so it is rendered (under the
+    /// extended compositor PureLottie exports with) rather than reported as a gap.
+    /// Only bm 1 (multiply) qualifies among Lottie blend modes: the backend renders
+    /// normal/multiply/clear/copy exactly, and Lottie does not emit clear/copy. Every
+    /// other mode falls back to normal there, so it returns `false` and stays reported.
+    private func renderExactBlendMode(_ blendMode: Int, to layer: ShapeLayer) -> Bool {
+        guard blendMode == 1 else { return false }
+        layer.extended.blendMode = .multiply
+        return true
     }
 
     private func apply(_ stroke: LottieRenderStrokeStyle, to layer: ShapeLayer, at source: LottieRenderSource, node: LottieRenderNode) {
-        if let blendMode = stroke.blendMode, blendMode != 0 {
-            carryExactBlendMode(blendMode, to: layer)
+        if let blendMode = stroke.blendMode, blendMode != 0, !renderExactBlendMode(blendMode, to: layer) {
             skipBackend(
                 "stroke blend mode",
                 at: source,

@@ -260,6 +260,37 @@ struct LottieRenderOracleTests {
         #expect(stdOverlap == magenta, "standard source-over overlap must equal magenta; got \(stdOverlap) vs magenta \(magenta)")
     }
 
+    @Test("the export path (MovieExporter) applies the multiply blend under .extended (#178)")
+    func exportPathAppliesMultiplyBlend() throws {
+        // The same magenta-over-yellow overlap. PureLottie's executables export through
+        // MovieExporter(extensions: .extended); exporting the same tree standard vs extended
+        // must produce different PNGs, because only the extended path applies the carried
+        // multiply. (The exact resulting colour is proven in the closed-form test above; this
+        // proves the real export API, not the hand-rolled oracle compositor, routes it.)
+        let json = """
+        {"v":"5.7.4","fr":10,"ip":0,"op":10,"w":64,"h":64,"layers":[{"ty":4,"ind":1,"ip":0,"op":10,"ks":{},"shapes":[
+          {"ty":"gr","it":[
+            {"ty":"rc","p":{"a":0,"k":[38,32]},"s":{"a":0,"k":[28,28]},"r":{"a":0,"k":0}},
+            {"ty":"fl","c":{"a":0,"k":[1,0,1,1]},"o":{"a":0,"k":100},"bm":1},
+            {"ty":"tr","p":{"a":0,"k":[0,0]},"a":{"a":0,"k":[0,0]},"s":{"a":0,"k":[100,100]},"r":{"a":0,"k":0},"o":{"a":0,"k":100}}
+          ]},
+          {"ty":"gr","it":[
+            {"ty":"rc","p":{"a":0,"k":[26,32]},"s":{"a":0,"k":[28,28]},"r":{"a":0,"k":0}},
+            {"ty":"fl","c":{"a":0,"k":[1,1,0,1]},"o":{"a":0,"k":100}},
+            {"ty":"tr","p":{"a":0,"k":[0,0]},"a":{"a":0,"k":[0,0]},"s":{"a":0,"k":[100,100]},"r":{"a":0,"k":0},"o":{"a":0,"k":100}}
+          ]}
+        ]}]}
+        """
+        let animation = try LottieAnimation.decode(from: Data(json.utf8))
+        let frame = LottieRenderIRBuilder(animation: animation).frame(at: 0)
+        let tree = LottieRenderIRLowerer().lower(frame)
+        let root = LottieRenderSurface.root(tree.root, width: animation.width, height: animation.height, scale: 1)
+        let size = LottieRenderSurface.pixelSize(width: animation.width, height: animation.height, scale: 1)
+        let standard = try MovieExporter().screenshot(of: root, size: size, at: 0)
+        let extended = try MovieExporter(extensions: .extended).screenshot(of: root, size: size, at: 0)
+        #expect(standard != extended, "the export path must apply the multiply blend under .extended")
+    }
+
     // MARK: - Per-pixel analytic coverage oracle (#140)
 
     // The bounding-box checks above catch a moved/resized/dropped shape but say
