@@ -463,7 +463,8 @@ private struct DrawListGeometryCollector {
                  .pushMask,
                  .popMask,
                  .pushBlendMode,
-                 .popBlendMode:
+                 .popBlendMode,
+                 .transform3D:
                 continue
             case let .pushTransform(transform):
                 transformStack.append(currentTransform)
