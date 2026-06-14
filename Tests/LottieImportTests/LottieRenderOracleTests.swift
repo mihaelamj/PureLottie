@@ -209,17 +209,18 @@ struct LottieRenderOracleTests {
         #expect(abs(maxY - 52) <= margin, "bottom \(maxY) vs 52")
     }
 
-    @Test("shape multiply blend mode renders under the extended compositor (carried from Lottie bm)")
-    func shapeMultiplyBlendModeRendersUnderExtendedCompositor() throws {
-        // A magenta foreground rect x[24,52] with fill bm=1 (multiply), listed first so
-        // PureLottie draws it on top, over a yellow background rect x[12,40]; they overlap
-        // in x[24,40]. Under the standard compositor the foreground is drawn source-over
-        // (overlap = magenta). Under the extended compositor the carried multiply applies
-        // (overlap = multiply(magenta, yellow) = red). So the overlap pixel must differ
-        // between the two compositors, while the foreground-only region (no backdrop)
-        // stays the same. This proves the lowerer carries the Lottie blend mode and the
-        // extended compositor applies it.
-        let json = """
+    @Test("shape multiply blend renders the exact closed form magenta x yellow = red (#178)")
+    func shapeMultiplyBlendModeRendersExactValue() throws {
+        // Foreground magenta (1,0,1), fill bm=1 (multiply), drawn on top of background
+        // yellow (1,1,0); the rects overlap at (32,32). The separable multiply of opaque
+        // colours is componentwise: (1,0,1) x (1,1,0) = (1,0,0) = red, fully opaque. That
+        // closed form is the independent reference. To avoid assuming a pixel byte order,
+        // the references are themselves rendered as solid fills of the predicted colours
+        // and compared as whole pixels:
+        //   - extended-compositor overlap MUST equal a solid red fill (the multiply result);
+        //   - standard-compositor overlap MUST equal a solid magenta fill (plain source-over).
+        // "it differs from standard" is not enough; the value must be the one the math gives.
+        let overlap = """
         {"v":"5.7.4","fr":10,"ip":0,"op":10,"w":64,"h":64,"layers":[{"ty":4,"ind":1,"ip":0,"op":10,"ks":{},"shapes":[
           {"ty":"gr","it":[
             {"ty":"rc","p":{"a":0,"k":[38,32]},"s":{"a":0,"k":[28,28]},"r":{"a":0,"k":0}},
@@ -233,20 +234,30 @@ struct LottieRenderOracleTests {
           ]}
         ]}]}
         """
-        let standard = try renderImage(json, extended: false)
-        let extended = try renderImage(json, extended: true)
-        func px(_ image: Image, _ x: Int, _ y: Int) -> ArraySlice<UInt8> {
-            let bpp = image.bitsPerPixel / 8
-            let offset = y * image.bytesPerRow + x * bpp
-            return image.data[offset ..< offset + bpp]
+        func solidFill(_ r: Double, _ g: Double, _ b: Double) -> String {
+            """
+            {"v":"5.7.4","fr":10,"ip":0,"op":10,"w":64,"h":64,"layers":[{"ty":4,"ind":1,"ip":0,"op":10,"ks":{},"shapes":[
+              {"ty":"rc","p":{"a":0,"k":[32,32]},"s":{"a":0,"k":[40,40]},"r":{"a":0,"k":0}},
+              {"ty":"fl","c":{"a":0,"k":[\(r),\(g),\(b),1]},"o":{"a":0,"k":100}}
+            ]}]}
+            """
         }
-        // Overlap centre: standard draws magenta source-over, extended multiplies to red.
-        #expect(px(standard, 32, 32) != px(extended, 32, 32), "overlap must change when the multiply blend is applied")
-        // Painted in both (not background).
-        #expect(px(standard, 32, 32) != px(standard, 0, 0), "overlap unpainted under standard")
-        #expect(px(extended, 32, 32) != px(extended, 0, 0), "overlap unpainted under extended")
-        // Foreground-only region (no backdrop to blend with) is unchanged by the blend mode.
-        #expect(px(standard, 48, 32) == px(extended, 48, 32), "foreground-only region must not change")
+        func centre(_ image: Image) -> [UInt8] {
+            let bpp = image.bitsPerPixel / 8
+            let offset = 32 * image.bytesPerRow + 32 * bpp
+            return Array(image.data[offset ..< offset + bpp])
+        }
+        let stdOverlap = try centre(renderImage(overlap, extended: false))
+        let extOverlap = try centre(renderImage(overlap, extended: true))
+        let red = try centre(renderImage(solidFill(1, 0, 0)))
+        let magenta = try centre(renderImage(solidFill(1, 0, 1)))
+        let yellow = try centre(renderImage(solidFill(1, 1, 0)))
+
+        // Guard against a degenerate check: the three reference colours must be distinct.
+        #expect(red != magenta && red != yellow && magenta != yellow, "reference colours collapsed: \(red) \(magenta) \(yellow)")
+        // Closed-form value checks.
+        #expect(extOverlap == red, "multiply overlap must equal magenta x yellow = red; got \(extOverlap) vs red \(red)")
+        #expect(stdOverlap == magenta, "standard source-over overlap must equal magenta; got \(stdOverlap) vs magenta \(magenta)")
     }
 
     // MARK: - Per-pixel analytic coverage oracle (#140)
