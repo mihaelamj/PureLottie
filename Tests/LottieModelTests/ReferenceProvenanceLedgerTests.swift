@@ -6,8 +6,8 @@ final class ReferenceProvenanceLedgerTests: XCTestCase {
         let ledger = try ledgerContents()
         let corpusRoot = repositoryRoot().appendingPathComponent("Tests/Fixtures/LottieCorpus", isDirectory: true)
 
-        XCTAssertTrue(ledger.contains("Raw corpus JSON files | 857"))
-        XCTAssertEqual(try jsonFiles(in: corpusRoot).count, 857)
+        XCTAssertTrue(ledger.contains("Raw corpus JSON files | 936"))
+        XCTAssertEqual(try jsonFiles(in: corpusRoot).count, 936)
 
         for source in expectedCorpusSources {
             let sourceRoot = corpusRoot.appendingPathComponent(source.directory, isDirectory: true)
@@ -106,7 +106,7 @@ final class ReferenceProvenanceLedgerTests: XCTestCase {
         XCTAssertTrue(ledger.contains("Fixture Evidence Roles"))
         XCTAssertTrue(ledger.contains("Reference Provenance Schema"))
         XCTAssertTrue(ledger.contains("reference-provenance.json"))
-        XCTAssertTrue(ledger.contains("18 entries"))
+        XCTAssertTrue(ledger.contains("19 entries"))
         XCTAssertTrue(ledger.contains("## Issue #54-#58 Completion Criteria"))
         XCTAssertTrue(ledger.contains("composable positive-rule validation"))
         XCTAssertTrue(ledger.contains("25 checked-in files including this ledger"))
@@ -284,6 +284,13 @@ private let expectedCorpusSources = [
         revision: "0082d3d",
         fileCount: 1,
         licensePath: "_licenses/LottieFiles-lottie-react-LICENSE"
+    ),
+    ExpectedCorpusSource(
+        directory: "useAnimations-react-useanimations",
+        url: "https://github.com/useAnimations/react-useanimations",
+        revision: "a19d6f1",
+        fileCount: 79,
+        licensePath: "_licenses/useAnimations-react-useanimations-LICENSE"
     ),
 ]
 

@@ -12,8 +12,8 @@ final class CorpusSemanticLedgerTests: XCTestCase {
     func testCorpusLedgerReportsCountsAndEligibility() throws {
         let report = try ledgerReport()
 
-        XCTAssertEqual(report.fixtureCount, 857, report.diagnosticDescription)
-        XCTAssertEqual(report.uniquePayloadCount, 675, report.diagnosticDescription)
+        XCTAssertEqual(report.fixtureCount, 936, report.diagnosticDescription)
+        XCTAssertEqual(report.uniquePayloadCount, 754, report.diagnosticDescription)
         XCTAssertEqual(report.eligibility.totalFixtures, report.fixtureCount)
         XCTAssertGreaterThan(report.featureCounts[.lowered, default: 0], 0)
         XCTAssertGreaterThan(report.featureCounts[.approximated, default: 0], 0)
@@ -21,8 +21,8 @@ final class CorpusSemanticLedgerTests: XCTestCase {
         XCTAssertGreaterThan(report.featureCounts[.metadata, default: 0], 0)
         XCTAssertGreaterThan(report.featureCounts[.gap, default: 0], 0)
         XCTAssertFalse(report.eligibility.fixtureReasons.isEmpty)
-        XCTAssertTrue(report.diagnosticDescription.contains("Total fixtures: 857"))
-        XCTAssertTrue(report.diagnosticDescription.contains("Unique payloads: 675"))
+        XCTAssertTrue(report.diagnosticDescription.contains("Total fixtures: 936"))
+        XCTAssertTrue(report.diagnosticDescription.contains("Unique payloads: 754"))
         XCTAssertTrue(report.diagnosticDescription.contains("Unclassified fields: 0"))
         XCTAssertTrue(report.diagnosticDescription.contains("Visual eligibility:"))
     }
@@ -720,6 +720,7 @@ private let corpusSources = [
     CorpusSource(directory: "airbnb-lottie-android", expectedFiles: 451, licensePath: "_licenses/airbnb-lottie-android-LICENSE"),
     CorpusSource(directory: "airbnb-lottie-ios", expectedFiles: 186, licensePath: "_licenses/airbnb-lottie-ios-LICENSE"),
     CorpusSource(directory: "airbnb-lottie-web", expectedFiles: 17, licensePath: "_licenses/airbnb-lottie-web-LICENSE.md"),
+    CorpusSource(directory: "useAnimations-react-useanimations", expectedFiles: 79, licensePath: "_licenses/useAnimations-react-useanimations-LICENSE"),
 ]
 
 private func sourceSummaries(fixtureRoot: URL) -> [SourceSummary] {
