@@ -564,6 +564,38 @@
           "ReferenceProvenanceManifestValidationTests"
         ]
       }
+    },
+    {
+      "id": "raw-useanimations-react-useanimations",
+      "kind": "raw-corpus-source",
+      "path": "Tests/Fixtures/LottieCorpus/useAnimations-react-useanimations",
+      "source": {
+        "type": "git",
+        "value": "https://github.com/useAnimations/react-useanimations"
+      },
+      "revision": {
+        "status": "known",
+        "value": "a19d6f1"
+      },
+      "license": {
+        "status": "known",
+        "value": "Tests/Fixtures/LottieCorpus/_licenses/useAnimations-react-useanimations-LICENSE"
+      },
+      "purpose": "Production UI icon animations (CC-BY) for real-world shape, transform, and trim coverage.",
+      "classifications": [
+        "discovery",
+        "raw-corpus"
+      ],
+      "validation": {
+        "status": "usable",
+        "evidence": [
+          "CorpusSemanticLedgerTests.testCorpusSourceProvenanceIsPinned",
+          "FixtureCorpusTests.testFixtureCorpusFilesAreLottieDocuments"
+        ]
+      },
+      "measurements": {
+        "jsonFiles": 79
+      }
     }
   ]
 }
