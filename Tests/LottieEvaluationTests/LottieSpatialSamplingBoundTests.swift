@@ -17,10 +17,10 @@ import Testing
 /// real divergence above the bound is a regression in the sampling resolution).
 @Suite("Lottie spatial arc-length sampling bound")
 struct LottieSpatialSamplingBoundTests {
-    // Measured maximum over the grid below: the 150-segment polyline differs from
-    // the 20000-segment reference by 2.79e-5 (about 0.0028%). The bound is pinned
-    // just above that observed maximum, so a drop in sampling resolution (a real
-    // increase in divergence) trips it; tightening N would lower the divergence.
+    /// Measured maximum over the grid below: the 150-segment polyline differs from
+    /// the 20000-segment reference by 2.79e-5 (about 0.0028%). The bound is pinned
+    /// just above that observed maximum, so a drop in sampling resolution (a real
+    /// increase in divergence) trips it; tightening N would lower the divergence.
     private let measuredBound = 3.0e-5
 
     private func point(_ t: Double, _ p: [[Double]]) -> [Double] {
